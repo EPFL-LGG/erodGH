@@ -1,0 +1,17 @@
+build
+build_*
+results
+TODO
+.DS_Store
+bin/
+gh/
+.vs/
+obj/
+.vscode
+packages/
+*.dylib
+*.so
+*.pyc
+__pycache__
+.ipynb_checkpoints
+python/MeshFEM/
