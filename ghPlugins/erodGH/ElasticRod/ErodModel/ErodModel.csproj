@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <Version>1.0</Version>
+    <Title>ElasticRodGH</Title>
+    <Description>Description of ElasticRodGH</Description>
+    <RhinoPluginType>gha</RhinoPluginType>
+    <RhinoMacLauncher>/Applications/Rhino 7.app</RhinoMacLauncher>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugType>full</DebugType>
+    <OutputPath>..\bin</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\..\bin</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Grasshopper" Version="7.10.21256.17001">
+        <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Speckle.Core" Version="2.2.4">
+            <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Model\" />
+    <Folder Include="Tools\" />
+    <Folder Include="Analysis\" />
+    <Folder Include="Interop\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+<!--  <ItemGroup>
+    <Compile Remove="Data\draft_RodRLinkageDataGH.cs" />
+  </ItemGroup>-->
+  <ItemGroup>
+    <ProjectReference Include="..\ErodModelLib\ErodModelLib.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+<!--  <ItemGroup>
+    <None Remove="Speckle.Core" />
+    <None Remove="Interop\" />
+  </ItemGroup>-->
+</Project>

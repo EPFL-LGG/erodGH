@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{853C533F-CC60-4F0D-AB8B-3D9B212E637C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>ErodModelLib</RootNamespace>
+    <AssemblyName>ErodModelLib</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <RhinoPluginType>none</RhinoPluginType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command>
+          <type>AfterBuild</type>
+          <command>rm -r "${TargetDir}/x86"</command>
+        </Command>
+        <Command>
+          <type>AfterBuild</type>
+          <command>rm -r  "${TargetDir}/x64"</command>
+        </Command>
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\bin</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="Eto">
+      <HintPath>..\packages\RhinoCommon.7.10.21256.17001\lib\net48\Eto.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Rhino.UI">
+      <HintPath>..\packages\RhinoCommon.7.10.21256.17001\lib\net48\Rhino.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RhinoCommon">
+      <HintPath>..\packages\RhinoCommon.7.10.21256.17001\lib\net48\RhinoCommon.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GH_IO">
+      <HintPath>..\packages\Grasshopper.7.10.21256.17001\lib\net48\GH_IO.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Grasshopper">
+      <HintPath>..\packages\Grasshopper.7.10.21256.17001\lib\net48\Grasshopper.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GraphQL.Primitives">
+      <HintPath>..\packages\GraphQL.Primitives.3.2.4\lib\netstandard2.0\GraphQL.Primitives.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Piwik.Tracker">
+      <HintPath>..\packages\Piwik.Tracker.3.0.0\lib\net40\Piwik.Tracker.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Speckle.Newtonsoft.Json">
+      <HintPath>..\packages\Speckle.Newtonsoft.Json.12.0.3.1\lib\net45\Speckle.Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Data.SQLite">
+      <HintPath>..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.0\lib\net46\System.Data.SQLite.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Buffers">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Net.WebSockets.Client.Managed">
+      <HintPath>..\packages\System.Net.WebSockets.Client.Managed.1.0.22\lib\net45\System.Net.WebSockets.Client.Managed.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.5.0.0\lib\net45\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Memory">
+      <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\packages\System.Collections.Immutable.5.0.0\lib\net461\System.Collections.Immutable.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Reflection.Metadata">
+      <HintPath>..\packages\System.Reflection.Metadata.5.0.0\lib\net461\System.Reflection.Metadata.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation">
+      <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Text.Encodings.Web">
+      <HintPath>..\packages\System.Text.Encodings.Web.5.0.1\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.5.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.ValueTuple">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Reactive">
+      <HintPath>..\packages\System.Reactive.4.3.2\lib\net46\System.Reactive.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GraphQL.Client.Abstractions">
+      <HintPath>..\packages\GraphQL.Client.Abstractions.3.2.4\lib\netstandard2.0\GraphQL.Client.Abstractions.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GraphQL.Client.Abstractions.Websocket">
+      <HintPath>..\packages\GraphQL.Client.Abstractions.Websocket.3.2.4\lib\netstandard2.0\GraphQL.Client.Abstractions.Websocket.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="GraphQL.Client">
+      <HintPath>..\packages\GraphQL.Client.3.2.4\lib\net461\GraphQL.Client.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Text.Json">
+      <HintPath>..\packages\System.Text.Json.5.0.2\lib\net461\System.Text.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Sentry">
+      <HintPath>..\packages\Sentry.3.9.4\lib\net461\Sentry.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SpeckleCore2">
+      <HintPath>..\packages\Speckle.Core.2.2.4\lib\netstandard2.0\SpeckleCore2.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Objects">
+      <HintPath>..\packages\Speckle.Objects.2.2.4\lib\netstandard2.0\Objects.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Creators\Kernel.RodLinkage.cs" />
+    <Compile Include="Types\RodLinkage.cs" />
+    <Compile Include="Types\RodSegment.cs" />
+    <Compile Include="Types\Joint.cs" />
+    <Compile Include="Types\Solvers.cs" />
+    <Compile Include="Creators\Kernel.RodSegment.cs" />
+    <Compile Include="Creators\Kernel.LinkageJoint.cs" />
+    <Compile Include="Creators\Kernel.Solvers.cs" />
+    <Compile Include="Types\RodLinkage.Initializer.cs" />
+    <Compile Include="Creators\Kernel.ElasticRod.cs" />
+    <Compile Include="Types\ElasticRod.cs" />
+    <Compile Include="Types\ElasticRodModelFactory.cs" />
+    <Compile Include="Types\ElasticModel.cs" />
+    <Compile Include="Creators\Kernel.PeriodicRod.cs" />
+    <Compile Include="Types\ElasticModel.Preview.cs" />
+    <Compile Include="Types\RodLinkage.Analysis.cs" />
+    <Compile Include="Creators\Kernel.Analysis.cs" />
+    <Compile Include="Types\RodLinkage.Methods.cs" />
+    <Compile Include="Types\NewtonSolverOpts.cs" />
+    <Compile Include="Types\ConvergenceReport.cs" />
+    <Compile Include="Utils\BaseLinkage.cs" />
+    <Compile Include="Utils\BaseData.cs" />
+    <Compile Include="Utils\BaseCurveNetwork.cs" />
+    <Compile Include="Utils\BaseLinkageResults.cs" />
+    <Compile Include="Utils\BaseTargetSurface.cs" />
+    <Compile Include="Utils\RenderData.cs" />
+    <Compile Include="Types\Material.cs" />
+    <Compile Include="Creators\Kernel.Material.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Creators\" />
+    <Folder Include="Types\" />
+    <Folder Include="Utils\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="..\..\bin\liberod.dylib">
+      <Link>liberod.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ErodDataLib\ErodDataLib.csproj">
+      <Project>{3015EABE-09C1-418D-A019-122CF1969948}</Project>
+      <Name>ErodDataLib</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\RhinoCommon.7.10.21256.17001\build\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.7.10.21256.17001\build\RhinoCommon.targets')" />
+  <Import Project="..\packages\Grasshopper.7.10.21256.17001\build\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.7.10.21256.17001\build\Grasshopper.targets')" />
+  <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
+</Project>

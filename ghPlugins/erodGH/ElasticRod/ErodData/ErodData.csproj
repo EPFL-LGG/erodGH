@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <Version>1.0</Version>
+    <Title>ErodDataGH</Title>
+    <Description>Description of ErodDataGH</Description>
+    <RhinoMacLauncher>/Applications/Rhino 7.app</RhinoMacLauncher>
+    <RhinoPluginType>gha</RhinoPluginType>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugType>full</DebugType>
+    <OutputPath>..\bin</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\..\bin</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Grasshopper" Version="7.10.21256.17001" IncludeAssets="compile;build" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="SSH.NET" Version="2020.0.2" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="System.Windows.Forms" />
+    <None Remove="Newtonsoft.Json" />
+    <None Remove="SpeckleCore2, Version=2.2.2.0, Culture=neutral, PublicKeyToken=null" />
+    <None Remove="Interop\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ErodDataLib\ErodDataLib.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ErodModelLib\ErodModelLib.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interop\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Interop\OptimizationGUI.Buttons.cs" />
+    <Compile Remove="Interop\OptimizationGUI.Window.cs" />
+  </ItemGroup>
+</Project>
