@@ -1,15 +1,15 @@
 #ifndef EROD_H
 #define EROD_H
 
-#include "../RodLinkage.hh"
-#include "../restlen_solve.hh"
-#include "../compute_equilibrium.hh"
-#include "../open_linkage.hh"
-#include "../ElasticRod.hh"
-#include "../PeriodicRod.hh"
-#include "../infer_target_surface.hh"
-#include "../RodMaterial.hh"
-#include "../SurfaceAttractedLinkage.hh"
+#include "RodLinkage.hh"
+#include "restlen_solve.hh"
+#include "compute_equilibrium.hh"
+#include "open_linkage.hh"
+#include "ElasticRod.hh"
+#include "PeriodicRod.hh"
+#include "infer_target_surface.hh"
+#include "RodMaterial.hh"
+#include "SurfaceAttractedLinkage.hh"
 
 #define EROD_API_VERSION "erod"
 
