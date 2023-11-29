@@ -14,7 +14,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin</OutputPath>
+    <OutputPath>..\..\..\bin\erod</OutputPath>
     <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -209,10 +209,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="..\..\bin\liberod.dylib">
-      <Link>liberod.dylib</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="liberod.dylib" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ErodDataLib\ErodDataLib.csproj">

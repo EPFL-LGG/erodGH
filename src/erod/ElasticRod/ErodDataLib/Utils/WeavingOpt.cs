@@ -41,7 +41,7 @@ namespace ErodDataLib.Utils
         private string HOST = "gcmsrv1.epfl.ch";
         private int PORT = 22;
         private string USERNAME = "cs458";
-        private string PASSWORD = "weavemealone";
+        private string PASSWORD = "weavingplease";
         private string RUN_FOLDER = "Weaving/weaving/";
         private string INPUT_FOLDER = "Weaving/weaving/grasshopper/inputs/";
         private string OUTPUT_FOLDER = "Weaving/weaving/grasshopper/outputs/";
