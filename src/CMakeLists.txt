@@ -1,4 +1,4 @@
-add_library(erod SHARED erodGH/erod.cc)
+add_library(erod SHARED liberod/erod.cc)
 target_link_libraries(erod RodLinkages MeshFEM)
 set_target_properties(erod PROPERTIES CXX_STANDARD 14)
 set_target_properties(erod PROPERTIES CXX_STANDARD_REQUIRED ON)
