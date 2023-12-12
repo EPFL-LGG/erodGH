@@ -16,6 +16,22 @@ extern "C"
 
 namespace ElasticRodsGH
 {
+    void getConvergenceReport(ConvergenceReport report, double **outReport)
+    {
+        std::vector<double> flatReport;
+        flatReport.push_back(static_cast<double>(report.success));
+        flatReport.push_back(static_cast<double>(report.backtracking_failure));
+        flatReport.insert(flatReport.end(), report.energy.begin(), report.energy.end());
+        flatReport.insert(flatReport.end(), report.gradientNorm.begin(), report.gradientNorm.end());
+        flatReport.insert(flatReport.end(), report.freeGradientNorm.begin(), report.freeGradientNorm.end());
+        flatReport.insert(flatReport.end(), report.stepLength.begin(), report.stepLength.end());
+        flatReport.insert(flatReport.end(), report.indefinite.begin(), report.indefinite.end());
+
+        auto sizeReport = flatReport.size() * sizeof(double);//(numIterations * 5 + 2) * sizeof(double);
+        *outReport = static_cast<double *>(malloc(sizeReport));
+        std::memcpy(*outReport, flatReport.data(), sizeReport);
+    }
+
     // AttractedLinkage
     EROD_API SurfaceAttractedLinkage *erodXShellAttractedSurfaceBuild(int numVertices, int numTrias, double *inCoords, int *inTrias, RodLinkage *linkage, double tgt_joint_weight, const char **errorMessage)
     {
@@ -141,7 +157,7 @@ namespace ElasticRodsGH
     }
 
     // Linkage
-    EROD_API RodLinkage *erodXShellBuildFromEdgeData(int numVertices, int numEdges, double *inCoords, int *inEdges, double *inNormals, int subdivision, int interleavingType, bool initConsistentAngle, const char **errorMessage)
+    EROD_API RodLinkage *erodXShellBuildFromEdgeData(int numVertices, int numEdges, double *inCoords, int *inEdges, double *inNormals, int subdivision, int interleavingType, int initConsistentAngle, const char **errorMessage)
     {
         try
         {
@@ -236,7 +252,7 @@ namespace ElasticRodsGH
                                                       int *inSegmentsA, int *inSegmentsB,
                                                       int *inIsStartA, int *inIsStartB,
                                                       int *inJointForVertex, int *inEdges, int inFirstJointVtx,
-                                                      int interleavingType, bool checkConsistentNormals, bool initConsistentAngle, const char **errorMessage)
+                                                      int interleavingType, int checkConsistentNormals, int initConsistentAngle, const char **errorMessage)
     {
         try
         {
@@ -598,7 +614,7 @@ namespace ElasticRodsGH
         linkage->setJointMaterials(materials);
     }
 
-    EROD_API void erodXShellSetDesignParameterConfig(RodLinkage *linkage, bool use_restLen, bool use_restKappa, bool update_designParams_cache)
+    EROD_API void erodXShellSetDesignParameterConfig(RodLinkage *linkage, int use_restLen, int use_restKappa, int update_designParams_cache)
     {
         linkage->setDesignParameterConfig(use_restLen, use_restKappa, update_designParams_cache);
     }
@@ -724,7 +740,7 @@ namespace ElasticRodsGH
         std::memcpy(*outQuads, quadsIdx.data(), sizeQuads);
     }
 
-    EROD_API void erodXShellGetRodSegmentIndexesPerRod(RodLinkage *linkage, int index, int **segmentIndexes, size_t *numSeg, bool *type)
+    EROD_API void erodXShellGetRodSegmentIndexesPerRod(RodLinkage *linkage, int index, int **segmentIndexes, size_t *numSeg, int *type)
     {
         const auto data = linkage->traceRods()[index];
         *type = std::get<0>(data);
@@ -774,7 +790,7 @@ namespace ElasticRodsGH
         }
     }
 
-    EROD_API size_t erodXShellHessianNNZ(RodLinkage *linkage, bool variableDesignParameters)
+    EROD_API size_t erodXShellHessianNNZ(RodLinkage *linkage, int variableDesignParameters)
     {
         return linkage->hessianNNZ(variableDesignParameters);
     }
@@ -977,7 +993,7 @@ namespace ElasticRodsGH
         }
     }
 
-    EROD_API void erodXShellGetDesignParameterConfig(RodLinkage *linkage, bool *use_restLen, bool *use_restKappa)
+    EROD_API void erodXShellGetDesignParameterConfig(RodLinkage *linkage, int *use_restLen, int *use_restKappa)
     {
         const auto dpc = linkage->getDesignParameterConfig();
 
@@ -987,8 +1003,8 @@ namespace ElasticRodsGH
 
     // Solver
     EROD_API int erodPeriodicElasticRodNewtonSolver(PeriodicRod *pRod, int numIterations, int numSupports, int numForces, int *supports, double *inForces,
-                                                    double gradTol, double beta, bool includeForces, bool verbose, bool useIdentityMetric, bool useNegativeCurvatureDirection,
-                                                    bool feasibilitySolve, bool verboseNonPosDef, bool writeReport, double **outReport, const char **errorMessage)
+                                                    double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection,
+                                                    int feasibilitySolve, int verboseNonPosDef, int writeReport, double **outReport, const char **errorMessage)
     {
         try
         {
@@ -1024,21 +1040,7 @@ namespace ElasticRodsGH
             solver.options = options;
             const auto report = solver.optimize();
 
-            if (writeReport)
-            {
-                std::vector<double> flatReport;
-                flatReport.push_back(report.success);
-                flatReport.push_back(report.backtracking_failure);
-                flatReport.insert(flatReport.end(), report.energy.begin(), report.energy.end());
-                flatReport.insert(flatReport.end(), report.gradientNorm.begin(), report.gradientNorm.end());
-                flatReport.insert(flatReport.end(), report.freeGradientNorm.begin(), report.freeGradientNorm.end());
-                flatReport.insert(flatReport.end(), report.stepLength.begin(), report.stepLength.end());
-                flatReport.insert(flatReport.end(), report.indefinite.begin(), report.indefinite.end());
-
-                auto sizeReport = (numIterations * 5 + 2) * sizeof(double);
-                *outReport = static_cast<double *>(malloc(sizeReport));
-                std::memcpy(*outReport, flatReport.data(), sizeReport);
-            }
+            if (writeReport) getConvergenceReport(report, outReport);
 
             *errorMessage = "";
 
@@ -1065,8 +1067,8 @@ namespace ElasticRodsGH
     }
 
     EROD_API int erodElasticRodNewtonSolver(ElasticRod *rod, int numIterations, int numSupports, int numForces, int *supports, double *inForces,
-                                            double gradTol, double beta, bool includeForces, bool verbose, bool useIdentityMetric, bool useNegativeCurvatureDirection,
-                                            bool feasibilitySolve, bool verboseNonPosDef, bool writeReport, double **outReport, const char **errorMessage)
+                                            double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection,
+                                            int feasibilitySolve, int verboseNonPosDef, int writeReport, double **outReport, const char **errorMessage)
     {
         try
         {
@@ -1143,8 +1145,8 @@ namespace ElasticRodsGH
     }
 
     EROD_API int erodXShellNewtonSolver(RodLinkage *linkage, int numIterations, double deployedAngle, int numSupports, int numForces, int *supports, double *inForces,
-                                        double gradTol, double beta, bool includeForces, bool verbose, bool useIdentityMetric, bool useNegativeCurvatureDirection,
-                                        bool feasibilitySolve, bool verboseNonPosDef, bool writeReport, double **outReport, const char **errorMessage)
+                                        double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection,
+                                        int feasibilitySolve, int verboseNonPosDef, int writeReport, double **outReport, const char **errorMessage)
     {
         try
         {
@@ -1184,28 +1186,11 @@ namespace ElasticRodsGH
             solver.options = options;
             const auto report = solver.optimize();
 
-            if (writeReport)
-            {
-                std::vector<double> flatReport;
-                flatReport.push_back(report.success);
-                flatReport.push_back(report.backtracking_failure);
-                flatReport.insert(flatReport.end(), report.energy.begin(), report.energy.end());
-                flatReport.insert(flatReport.end(), report.gradientNorm.begin(), report.gradientNorm.end());
-                flatReport.insert(flatReport.end(), report.freeGradientNorm.begin(), report.freeGradientNorm.end());
-                flatReport.insert(flatReport.end(), report.stepLength.begin(), report.stepLength.end());
-                flatReport.insert(flatReport.end(), report.indefinite.begin(), report.indefinite.end());
-
-                auto sizeReport = (numIterations * 5 + 2) * sizeof(double);
-                *outReport = static_cast<double *>(malloc(sizeReport));
-                std::memcpy(*outReport, flatReport.data(), sizeReport);
-            }
+            if (writeReport) getConvergenceReport(report, outReport);
 
             *errorMessage = "";
-
-            if (report.success)
-                return 1;
-            else
-                return 0;
+            if (report.success) return 1;
+            else return 0;
         }
         catch (const std::runtime_error &error)
         {
@@ -1219,14 +1204,14 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown Error from the Unmanaged Code";
             return -1;
         }
     }
 
     EROD_API int erodXShellAttractedLinkageNewtonSolver(SurfaceAttractedLinkage *linkage, int numIterations, double deployedAngle, int numSupports, int numForces, int *supports, double *inForces,
-                                        double gradTol, double beta, bool includeForces, bool verbose, bool useIdentityMetric, bool useNegativeCurvatureDirection,
-                                        bool feasibilitySolve, bool verboseNonPosDef, bool writeReport, double **outReport, const char **errorMessage)
+                                                        double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection,
+                                                        int feasibilitySolve, int verboseNonPosDef, int writeReport, double **outReport, const char **errorMessage)
     {
         try
         {
@@ -1266,21 +1251,7 @@ namespace ElasticRodsGH
             solver.options = options;
             const auto report = solver.optimize();
 
-            if (writeReport)
-            {
-                std::vector<double> flatReport;
-                flatReport.push_back(report.success);
-                flatReport.push_back(report.backtracking_failure);
-                flatReport.insert(flatReport.end(), report.energy.begin(), report.energy.end());
-                flatReport.insert(flatReport.end(), report.gradientNorm.begin(), report.gradientNorm.end());
-                flatReport.insert(flatReport.end(), report.freeGradientNorm.begin(), report.freeGradientNorm.end());
-                flatReport.insert(flatReport.end(), report.stepLength.begin(), report.stepLength.end());
-                flatReport.insert(flatReport.end(), report.indefinite.begin(), report.indefinite.end());
-
-                auto sizeReport = (numIterations * 5 + 2) * sizeof(double);
-                *outReport = static_cast<double *>(malloc(sizeReport));
-                std::memcpy(*outReport, flatReport.data(), sizeReport);
-            }
+            if (writeReport) getConvergenceReport(report, outReport);
 
             *errorMessage = "";
 
@@ -1307,8 +1278,8 @@ namespace ElasticRodsGH
     }
 
     EROD_API int erodXShellLiveNewtonSolver(RodLinkage *linkage, int numIterations, double deployedAngle, int numSupports, int numForces, int *supports, double *inForces,
-                                        double gradTol, double beta, bool includeForces, bool verbose, bool useIdentityMetric, bool useNegativeCurvatureDirection,
-                                        bool feasibilitySolve, bool verboseNonPosDef, bool writeReport, double **outReport, const char **errorMessage)
+                                            double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection,
+                                            int feasibilitySolve, int verboseNonPosDef, int writeReport, double **outReport, const char **errorMessage)
     {
         try
         {
@@ -1348,21 +1319,7 @@ namespace ElasticRodsGH
             solver.options = options;
             const auto report = solver.optimize();
 
-            if (writeReport)
-            {
-                std::vector<double> flatReport;
-                flatReport.push_back(report.success);
-                flatReport.push_back(report.backtracking_failure);
-                flatReport.insert(flatReport.end(), report.energy.begin(), report.energy.end());
-                flatReport.insert(flatReport.end(), report.gradientNorm.begin(), report.gradientNorm.end());
-                flatReport.insert(flatReport.end(), report.freeGradientNorm.begin(), report.freeGradientNorm.end());
-                flatReport.insert(flatReport.end(), report.stepLength.begin(), report.stepLength.end());
-                flatReport.insert(flatReport.end(), report.indefinite.begin(), report.indefinite.end());
-
-                auto sizeReport = (numIterations * 5 + 2) * sizeof(double);
-                *outReport = static_cast<double *>(malloc(sizeReport));
-                std::memcpy(*outReport, flatReport.data(), sizeReport);
-            }
+            if (writeReport) getConvergenceReport(report, outReport);
 
             *errorMessage = "";
 
@@ -2465,7 +2422,7 @@ namespace ElasticRodsGH
     }
 
     // Periodic ElasticRod
-    EROD_API PeriodicRod *erodPeriodicElasticRodBuild(int numPoints, double *inCoords, bool removeCurvature, const char **errorMessage)
+    EROD_API PeriodicRod *erodPeriodicElasticRodBuild(int numPoints, double *inCoords, int removeCurvature, const char **errorMessage)
     {
         try
         {

@@ -263,7 +263,7 @@ namespace ErodModelLib.Types
 
         public void SetDesignParameters(bool use_restLength, bool use_restKappa, bool update_designParams_cache = true)
         {
-            Kernel.RodLinkage.ErodXShellSetDesignParameterConfig(Model, use_restLength, use_restKappa, update_designParams_cache);
+            Kernel.RodLinkage.ErodXShellSetDesignParameterConfig(Model, Convert.ToInt32(use_restLength), Convert.ToInt32(use_restKappa), Convert.ToInt32(update_designParams_cache));
         }
 
         public int GetRestKappaVarsCount()
@@ -286,7 +286,7 @@ namespace ErodModelLib.Types
 
         public int GetHessianNNZ(bool variableDesignParameters)
         {
-            return Kernel.RodLinkage.ErodXShellGetHessianNNZ(Model, variableDesignParameters);
+            return Kernel.RodLinkage.ErodXShellGetHessianNNZ(Model, Convert.ToInt32(variableDesignParameters));
         }
 
         protected override void GetMeshData(out double[] outCoords, out int[] outQuads)
@@ -400,7 +400,10 @@ namespace ErodModelLib.Types
 
         public void GetDesignParametersConfig(out bool restLength, out bool restKappa)
         {
-            Kernel.RodLinkage.ErodXShellGetDesignParameterConfig(Model, out restLength, out restKappa);
+            int outRestLength, outRestKappa;
+            Kernel.RodLinkage.ErodXShellGetDesignParameterConfig(Model, out outRestLength, out outRestKappa);
+            restLength = Convert.ToBoolean(outRestLength);
+            restKappa = Convert.ToBoolean(outRestKappa);
         }
 
         public double[] GetRestLenghtsSolveDoFs()

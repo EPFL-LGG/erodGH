@@ -35,7 +35,7 @@ namespace ErodModelLib.Types
 
                 if (periodicRod)
                 {
-                    Model = Kernel.PeriodicRod.ErodPeriodicElasticRodBuild(numPoints, coords, RemoveRestCurvature, out Error);
+                    Model = Kernel.PeriodicRod.ErodPeriodicElasticRodBuild(numPoints, coords, Convert.ToInt32(RemoveRestCurvature), out Error);
                     EdgeCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetEdgesCount(Model);
                     VerticesCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetVerticesCount(Model);
                 }

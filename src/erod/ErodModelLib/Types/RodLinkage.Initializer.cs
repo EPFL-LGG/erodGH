@@ -174,13 +174,13 @@ namespace ErodModelLib.Types
                                                                             segmentsA, segmentsB,
                                                                             isStartA, isStartB,
                                                                             jointForVertex, edges, data.GetFirstJointVertex(),
-                                                                            data.Interleaving, checkConsistentNormals, initConsistentAngle, out Error);
+                                                                            data.Interleaving, Convert.ToInt32(checkConsistentNormals), Convert.ToInt32(initConsistentAngle), out Error);
                 }
                 else
                 {
                     // For this constructor all rod segments needs to be subdivided equally
                     int subd = subdivisions.Sum() / subdivisions.Length;
-                    Model = Kernel.RodLinkage.ErodXShellBuildFromEdgeData(numVertices, numEdges, coords, edges, normals, subd, data.Interleaving, initConsistentAngle, out Error);
+                    Model = Kernel.RodLinkage.ErodXShellBuildFromEdgeData(numVertices, numEdges, coords, edges, normals, subd, data.Interleaving, Convert.ToInt32(initConsistentAngle), out Error);
                 }
 
                 if (Model != IntPtr.Zero)

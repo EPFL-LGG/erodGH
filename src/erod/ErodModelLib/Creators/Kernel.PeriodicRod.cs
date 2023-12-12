@@ -10,7 +10,7 @@ namespace ErodModelLib.Creators
         {
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodPeriodicElasticRodBuild")]
-            internal static extern IntPtr ErodPeriodicElasticRodBuild(int numPoints, [In] double[] inCoords, bool removeCurvature, out IntPtr errorMessage);
+            internal static extern IntPtr ErodPeriodicElasticRodBuild(int numPoints, [In] double[] inCoords, int removeCurvature, out IntPtr errorMessage);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodPeriodicElasticRodCopy")]

@@ -27,7 +27,7 @@ namespace ErodModelLib.Creators
             // Linkage
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellBuildFromEdgeData")]
-            public static extern IntPtr ErodXShellBuildFromEdgeData(int numVertices, int numEdges, [In] double[] inCoords, [In] int[] inEdges, [In] double[] inNormals, int subdivision, int interleavingType, bool initConsistentAngle, out IntPtr errorMessage);
+            public static extern IntPtr ErodXShellBuildFromEdgeData(int numVertices, int numEdges, [In] double[] inCoords, [In] int[] inEdges, [In] double[] inNormals, int subdivision, int interleavingType, int initConsistentAngle, out IntPtr errorMessage);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellBuildFromJointData")]
@@ -39,7 +39,7 @@ namespace ErodModelLib.Creators
                                                                      [In] int[] inSegmentsA, [In] int[] inSegmentsB,
                                                                      [In] int[] inIsStartA, [In] int[] inIsStartB,
                                                                      [In] int[] inJointForVertex, [In] int[] inEdges, int inFirstJointVtx,
-                                                                     int interleavingType, bool checkConsistentNormals, bool initConsistentAngle, out IntPtr errorMessage);
+                                                                     int interleavingType, int checkConsistentNormals, int initConsistentAngle, out IntPtr errorMessage);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellCopy")]
@@ -63,7 +63,7 @@ namespace ErodModelLib.Creators
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellSetDesignParameterConfig")]
-            internal static extern void ErodXShellSetDesignParameterConfig(IntPtr linkage, bool use_restLen, bool use_restKappa, bool update_designParams_cache);
+            internal static extern void ErodXShellSetDesignParameterConfig(IntPtr linkage, int use_restLen, int use_restKappa, int update_designParams_cache);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetCentralJointIndex")]
@@ -111,7 +111,7 @@ namespace ErodModelLib.Creators
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetRodSegmentIndexesPerRod")]
-            internal static extern void ErodXShellGetRodSegmentIndexesPerRod(IntPtr linkage, int index, out IntPtr segmentIndexes, out int numSeg, out bool rodTypeA);
+            internal static extern void ErodXShellGetRodSegmentIndexesPerRod(IntPtr linkage, int index, out IntPtr segmentIndexes, out int numSeg, out int rodTypeA);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetRodTraceCount")]
@@ -123,7 +123,7 @@ namespace ErodModelLib.Creators
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellHessianNNZ")]
-            internal static extern int ErodXShellGetHessianNNZ(IntPtr linkage, bool variableDesignParameters);
+            internal static extern int ErodXShellGetHessianNNZ(IntPtr linkage, int variableDesignParameters);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetRestKappaVarsCount")]
@@ -192,7 +192,7 @@ namespace ErodModelLib.Creators
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetDesignParameterConfig")]
-            internal static extern void ErodXShellGetDesignParameterConfig(IntPtr linkage, out bool restLen, out bool restKappa);
+            internal static extern void ErodXShellGetDesignParameterConfig(IntPtr linkage, out int restLen, out int restKappa);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetRestLengthsSolveDoFs")]

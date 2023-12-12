@@ -38,17 +38,17 @@ namespace ElasticRodsGH
 
     EROD_API RodLinkage::RodSegment *erodXShellBuildRodSegment(int numVertices, double *inCoords);
 
-    EROD_API RodLinkage *erodXShellBuildFromEdgeData(int numVertices, int numEdges, double *inCoords, int *inEdges, double *inNormals, int subdivision, int interleavingType, bool initConsistentAngle, const char **errorMessage);
+    EROD_API RodLinkage *erodXShellBuildFromEdgeData(int numVertices, int numEdges, double *inCoords, int *inEdges, double *inNormals, int subdivision, int interleavingType, int initConsistentAngle, const char **errorMessage);
 
     EROD_API RodLinkage *erodXShellBuildFromJointData(int numVertices, int numJoints, int numEdges,
-                                         double *inRestLengths, int *inOffsetInteriorCoords, double *inInteriorCoords,
-                                         int *inStartJoints, int *inEndJoints,
-                                         double *inCoords, double *inNormals,
-                                         double *inEdgesA, double *inEdgesB,
-                                         int *inSegmentsA, int *inSegmentsB,
-                                         int *inIsStartA, int *inIsStartB,
-                                         int *inJointForVertex, int *inEdges, int inFirstJointVtx,
-                                         int interleavingType, bool checkConsistentNormals, bool initConsistentAngle, const char **errorMessage);
+                                                      double *inRestLengths, int *inOffsetInteriorCoords, double *inInteriorCoords,
+                                                      int *inStartJoints, int *inEndJoints,
+                                                      double *inCoords, double *inNormals,
+                                                      double *inEdgesA, double *inEdgesB,
+                                                      int *inSegmentsA, int *inSegmentsB,
+                                                      int *inIsStartA, int *inIsStartB,
+                                                      int *inJointForVertex, int *inEdges, int inFirstJointVtx,
+                                                      int interleavingType, int checkConsistentNormals, int initConsistentAngle, const char **errorMessage);
 
     EROD_API void erodXShellSetMaterial(RodLinkage *linkage, int sectionType, double E, double nu, double *sectionParams, int numParams, int axisType);
 
@@ -58,7 +58,7 @@ namespace ElasticRodsGH
 
     EROD_API void erodXShellSetCustomJointMaterial(RodLinkage *linkage, size_t numMaterials, int *sectionType, double *E, double *nu, double *inCoords, int *inCoordsCount, double *inHolesCoords, int *inHolesCount, int *axisType);
 
-    EROD_API void erodXShellSetDesignParameterConfig(RodLinkage* linkage, bool use_restLen, bool use_restKappa, bool update_designParams_cache);
+    EROD_API void erodXShellSetDesignParameterConfig(RodLinkage *linkage, int use_restLen, int use_restKappa, int update_designParams_cache);
 
     EROD_API int erodXShellGetCentralJointIndex(RodLinkage *linkage);
 
@@ -94,13 +94,13 @@ namespace ElasticRodsGH
 
     EROD_API void erodXShellGetMeshData(RodLinkage* linkage, double** outCoords, int** outQuads, size_t* numCoords, size_t* numQuads);
 
-    EROD_API void erodXShellGetRodSegmentIndexesPerRod(RodLinkage *linkage, int index, int** segmentIndexes, size_t* numSeg, bool* type);
+    EROD_API void erodXShellGetRodSegmentIndexesPerRod(RodLinkage *linkage, int index, int **segmentIndexes, size_t *numSeg, int *type);
 
     EROD_API size_t erodXShellGetRodTraceCount(RodLinkage *linkage, const char **errorMessage);
 
     EROD_API void erodXShellRemoveRestCurvatures(RodLinkage *linkage);
 
-    EROD_API size_t erodXShellHessianNNZ(RodLinkage *linkage, bool variableDesignParameters);
+    EROD_API size_t erodXShellHessianNNZ(RodLinkage *linkage, int variableDesignParameters);
 
     EROD_API double erodXShellGetMinJointAngle(RodLinkage *linkage);
 
@@ -138,7 +138,7 @@ namespace ElasticRodsGH
 
     EROD_API int erodXShellGetSegmentRestLenToEdgeRestLenMapTranspose(RodLinkage *linkage, double **outAx, long **outAi, long **outAp, long *outM, long *outN, long *outNZ, const char **errorMessage);
 
-    EROD_API void erodXShellGetDesignParameterConfig(RodLinkage *linkage, bool *use_restLen, bool *use_restKappa);
+    EROD_API void erodXShellGetDesignParameterConfig(RodLinkage *linkage, int *use_restLen, int *use_restKappa);
 
     // Material
     EROD_API RodMaterial *erodMaterialBuild(int sectionType, double E, double nu, double *params, int numParams, int axisType);
@@ -162,21 +162,21 @@ namespace ElasticRodsGH
     EROD_API double erodMaterialGetCrossSectionHeight(RodMaterial *material);
 
     // Solver
-    EROD_API int erodPeriodicElasticRodNewtonSolver(PeriodicRod *rod, int numIterations, int numSupports, int numForces, int *supports, double* inForces, 
-                                              double gradTol, double beta, bool includeForces, bool verbose, bool useIdentityMetric, bool useNegativeCurvatureDirection, 
-                                              bool feasibilitySolve, bool verboseNonPosDef, bool writeReport, double **outReport, const char **errorMessage);
+    EROD_API int erodPeriodicElasticRodNewtonSolver(PeriodicRod *rod, int numIterations, int numSupports, int numForces, int *supports, double *inForces,
+                                                    double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection,
+                                                    int feasibilitySolve, int verboseNonPosDef, int writeReport, double **outReport, const char **errorMessage);
 
-    EROD_API int erodElasticRodNewtonSolver(ElasticRod *rod, int numIterations, int numSupports, int numForces, int *supports, double* inForces, 
-                                              double gradTol, double beta, bool includeForces, bool verbose, bool useIdentityMetric, bool useNegativeCurvatureDirection, 
-                                              bool feasibilitySolve, bool verboseNonPosDef, bool writeReport, double **outReport, const char **errorMessage);
-    
+    EROD_API int erodElasticRodNewtonSolver(ElasticRod *rod, int numIterations, int numSupports, int numForces, int *supports, double *inForces,
+                                            double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection,
+                                            int feasibilitySolve, int verboseNonPosDef, int writeReport, double **outReport, const char **errorMessage);
+
     EROD_API int erodXShellNewtonSolver(RodLinkage *linkage, int numIterations, double deployedAngle, int numSupports, int numForces, int *supports, double* inForces, 
-                                              double gradTol, double beta, bool includeForces, bool verbose, bool useIdentityMetric, bool useNegativeCurvatureDirection, 
-                                              bool feasibilitySolve, bool verboseNonPosDef, bool writeReport, double **outReport, const char **errorMessage);
+                                              double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection, 
+                                              int feasibilitySolve, int verboseNonPosDef, int writeReport, double **outReport, const char **errorMessage);
 
     EROD_API int erodXShellAttractedLinkageNewtonSolver(SurfaceAttractedLinkage *linkage, int numIterations, double deployedAngle, int numSupports, int numForces, int *supports, double *inForces,
-                                        double gradTol, double beta, bool includeForces, bool verbose, bool useIdentityMetric, bool useNegativeCurvatureDirection,
-                                        bool feasibilitySolve, bool verboseNonPosDef, bool writeReport, double **outReport, const char **errorMessage);
+                                                        double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection,
+                                                        int feasibilitySolve, int verboseNonPosDef, int writeReport, double **outReport, const char **errorMessage);
 
     // Joints 
     EROD_API const RodLinkage::Joint *erodJointBuild(RodLinkage *linkage, size_t index);
@@ -320,7 +320,7 @@ namespace ElasticRodsGH
 
 
     // ElasticRod Periodic
-    EROD_API PeriodicRod *erodPeriodicElasticRodBuild(int numPoints, double *inCoords, bool removeCurvature, const char **errorMessage);
+    EROD_API PeriodicRod *erodPeriodicElasticRodBuild(int numPoints, double *inCoords, int removeCurvature, const char **errorMessage);
 
     EROD_API PeriodicRod *erodPeriodicElasticRodCopy(PeriodicRod *pRod, const char **errorMessage);
 
