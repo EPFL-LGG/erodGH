@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using ErodDataLib.Types;
 using ErodDataLib.Utils;
 using ErodModelLib.Creators;
-using Objects.Structural.Analysis;
 using Rhino.Geometry;
 
 namespace ErodModelLib.Types
@@ -190,7 +189,7 @@ namespace ErodModelLib.Types
                 }
                 else
                 {
-                    string errorMsg = Marshal.PtrToStringAnsi(Error);
+                    string errorMsg = Marshal.PtrToStringAuto(Error);
                     throw new Exception(errorMsg);
                 }
             }

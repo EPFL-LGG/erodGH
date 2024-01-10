@@ -23,14 +23,6 @@
       <CustomCommands>
         <Command>
           <type>AfterBuild</type>
-          <command>rm -r "${TargetDir}/x86"</command>
-        </Command>
-        <Command>
-          <type>AfterBuild</type>
-          <command>rm -r  "${TargetDir}/x64"</command>
-        </Command>
-        <Command>
-          <type>AfterBuild</type>
           <command>rm -r  "${TargetDir}/Renci.SshNet.xml"</command>
         </Command>
       </CustomCommands>
@@ -78,56 +70,8 @@
     <Reference Include="WindowsBase" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Drawing" />
-    <Reference Include="GraphQL.Primitives">
-      <HintPath>..\packages\GraphQL.Primitives.3.2.4\lib\netstandard2.0\GraphQL.Primitives.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Piwik.Tracker">
-      <HintPath>..\packages\Piwik.Tracker.3.0.0\lib\net40\Piwik.Tracker.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Speckle.Newtonsoft.Json">
-      <HintPath>..\packages\Speckle.Newtonsoft.Json.12.0.3.1\lib\net45\Speckle.Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Data.SQLite">
-      <HintPath>..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.0\lib\net46\System.Data.SQLite.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Buffers">
-      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Numerics.Vectors">
-      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Net.WebSockets.Client.Managed">
-      <HintPath>..\packages\System.Net.WebSockets.Client.Managed.1.0.22\lib\net45\System.Net.WebSockets.Client.Managed.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.5.0.0\lib\net45\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Memory">
-      <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\packages\System.Collections.Immutable.5.0.0\lib\net461\System.Collections.Immutable.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\packages\System.Reflection.Metadata.5.0.0\lib\net461\System.Reflection.Metadata.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation">
-      <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Text.Encodings.Web">
-      <HintPath>..\packages\System.Text.Encodings.Web.5.0.1\lib\net461\System.Text.Encodings.Web.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions">
@@ -135,52 +79,13 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.5.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.ValueTuple">
-      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Reactive">
-      <HintPath>..\packages\System.Reactive.4.3.2\lib\net46\System.Reactive.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="GraphQL.Client.Abstractions">
-      <HintPath>..\packages\GraphQL.Client.Abstractions.3.2.4\lib\netstandard2.0\GraphQL.Client.Abstractions.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="GraphQL.Client.Abstractions.Websocket">
-      <HintPath>..\packages\GraphQL.Client.Abstractions.Websocket.3.2.4\lib\netstandard2.0\GraphQL.Client.Abstractions.Websocket.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="GraphQL.Client">
-      <HintPath>..\packages\GraphQL.Client.3.2.4\lib\net461\GraphQL.Client.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Text.Json">
-      <HintPath>..\packages\System.Text.Json.5.0.2\lib\net461\System.Text.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Sentry">
-      <HintPath>..\packages\Sentry.3.9.4\lib\net461\Sentry.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="SpeckleCore2">
-      <HintPath>..\packages\Speckle.Core.2.2.4\lib\netstandard2.0\SpeckleCore2.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Objects">
-      <HintPath>..\packages\Speckle.Objects.2.2.4\lib\netstandard2.0\Objects.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Renci.SshNet">
-      <HintPath>..\packages\SSH.NET.2020.0.2\lib\net40\Renci.SshNet.dll</HintPath>
+      <HintPath>..\packages\SSH.NET.2023.0.1\lib\net462\Renci.SshNet.dll</HintPath>
     </Reference>
     <Reference Include="System.Management" />
-    <Reference Include="NStack">
-      <HintPath>..\packages\NStack.Core.1.0.7\lib\netstandard2.0\NStack.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -217,5 +122,4 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\RhinoCommon.7.10.21256.17001\build\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.7.10.21256.17001\build\RhinoCommon.targets')" />
   <Import Project="..\packages\Grasshopper.7.10.21256.17001\build\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.7.10.21256.17001\build\Grasshopper.targets')" />
-  <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
 </Project>

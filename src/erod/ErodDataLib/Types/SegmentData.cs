@@ -185,7 +185,7 @@ namespace ErodDataLib.Types
         public void BuildCenterLine(bool keepDirection = true, double startLen = default, double endLen = default)
         {
             Curve copy = _curve.DuplicateCurve();
-            //if (!keepDirection) copy.Reverse();
+            if (!keepDirection) copy.Reverse();
 
             double t0 = copy.Domain.T0;
             double t1 = copy.Domain.T1;
@@ -337,6 +337,12 @@ namespace ErodDataLib.Types
 
         public bool CastTo<T>(out T target)
         {
+            if (typeof(T).Equals(typeof(GH_Curve)))
+            {
+                target = (T)(object)new GH_Curve(_curve);
+                return true;
+            }
+
             target = default(T);
             return false;
         }

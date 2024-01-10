@@ -40,10 +40,7 @@ namespace ErodDataLib.Types
         public void Init(IEnumerable<SegmentData> edges, IEnumerable<NormalData> normals = default)
         {
             ContainsStraightSegments = false;
-            for (int i = 0; i < edges.Count(); i++)
-            {
-                AddEdge(edges.ElementAt(i));
-            }
+            for (int i = 0; i < edges.Count(); i++) AddEdge(edges.ElementAt(i));
 
             InitNormals(normals);
             InitLabeling();
@@ -95,49 +92,80 @@ namespace ErodDataLib.Types
             // Step 1
             // If the given input of normals is not equal to the number of vertices,
             // then initialize all normals based on the cross-prudct of edges (This secures the initialization of all normals).
-            if (normals == default || normals.Count() != nv)
-            {
-                // Compute a joint normals.
-                // TODO: Check construction of normals 
-                for (int vi = 0; vi < nv; vi++)
-                {
-                    int jointValence = incidentEdges[vi].Count;
+            //if (normals == default || normals.Count() != nv)
+            //{
+            //    // Compute a joint normals.
+            //    // TODO: Check construction of normals 
+            //    for (int vi = 0; vi < nv; vi++)
+            //    {
+            //        int jointValence = incidentEdges[vi].Count;
 
-                    Vector3d n = new Vector3d();
+            //        Vector3d n = new Vector3d();
 
-                    if (jointValence >= 2 && jointValence <= 4)
-                    {
-                        for (int k = 0; k < jointValence; k++)
-                        {
-                            int next = k + 1;
-                            if (k == jointValence - 1) next = 0;
+            //        if (jointValence >= 2 && jointValence <= 4)
+            //        {
+            //            for (int k = 0; k < jointValence; k++)
+            //            {
+            //                int next = k + 1;
+            //                if (k == jointValence - 1) next = 0;
 
-                            Vector3d v0 = Segments[incidentEdges[vi].ElementAt(k)].GetStartVector();
-                            if (Segments[incidentEdges[vi].ElementAt(k)].Indexes[0] != vi) v0 = Segments[incidentEdges[vi].ElementAt(k)].GetEndVector();
+            //                Vector3d v0 = Segments[incidentEdges[vi].ElementAt(k)].GetStartVector();
+            //                if (Segments[incidentEdges[vi].ElementAt(k)].Indexes[0] != vi) v0 = Segments[incidentEdges[vi].ElementAt(k)].GetEndVector();
 
-                            Vector3d v1 = Segments[incidentEdges[vi].ElementAt(next)].GetStartVector();
-                            if (Segments[incidentEdges[vi].ElementAt(next)].Indexes[0] != vi) v1 = Segments[incidentEdges[vi].ElementAt(next)].GetEndVector();
-                            v0.Unitize();
-                            v1.Unitize();
+            //                Vector3d v1 = Segments[incidentEdges[vi].ElementAt(next)].GetStartVector();
+            //                if (Segments[incidentEdges[vi].ElementAt(next)].Indexes[0] != vi) v1 = Segments[incidentEdges[vi].ElementAt(next)].GetEndVector();
+            //                v0.Unitize();
+            //                v1.Unitize();
 
-                            Vector3d cross = Vector3d.CrossProduct(v0, v1);
-                            int sign = n * cross >= 0 ? 1 : -1;
+            //                Vector3d cross = Vector3d.CrossProduct(v0, v1);
+            //                int sign = n * cross >= 0 ? 1 : -1;
 
-                            n += cross * sign;
-                        }
-                        n.Unitize();
-                    }
+            //                n += cross * sign;
+            //            }
+            //            n.Unitize();
+            //        }
 
-                    Vertices[vi].Normal = n;
-                }
-            }
+            //        Vertices[vi].Normal = n;
+            //    }
+            //}
 
             // Step 2
             // Overwrite normals for given inputs
-            for (int i = 0; i < normals.Count(); i++)
+            for (int i = 0; i < normals.Count(); i++) AddNormal(normals.ElementAt(i));
+        }
+
+       
+        private Vector3d ComputeNormalFromEdgeVectors(int idx)
+        {
+            int jointValence = incidentEdges[idx].Count;
+
+            Vector3d n = new Vector3d();
+
+            // Compute the normal of the plane that best fits the edge vectors 
+            if (jointValence >= 2 && jointValence <= 4)
             {
-                AddNormal(normals.ElementAt(i));
+                for (int k = 0; k < jointValence; k++)
+                {
+                    int next = k + 1;
+                    if (k == jointValence - 1) next = 0;
+
+                    Vector3d v0 = Segments[incidentEdges[idx].ElementAt(k)].GetStartVector();
+                    if (Segments[incidentEdges[idx].ElementAt(k)].Indexes[0] != idx) v0 = Segments[incidentEdges[idx].ElementAt(k)].GetEndVector();
+
+                    Vector3d v1 = Segments[incidentEdges[idx].ElementAt(next)].GetStartVector();
+                    if (Segments[incidentEdges[idx].ElementAt(next)].Indexes[0] != idx) v1 = Segments[incidentEdges[idx].ElementAt(next)].GetEndVector();
+                    v0.Unitize();
+                    v1.Unitize();
+
+                    Vector3d cross = Vector3d.CrossProduct(v0, v1);
+                    int sign = n * cross >= 0 ? 1 : -1;
+
+                    n += cross * sign;
+                }
+                n.Unitize();
+                return n;
             }
+            else throw new Exception("Invalid joint valence when computing the normal of the plane that best fits the edge vectors");
         }
 
         private bool[] GenerateIndicationForRodOrientation(List<SegmentData> temp_segments, List<JointData> temp_joints)
@@ -304,7 +332,7 @@ namespace ErodDataLib.Types
                 {
                     // Order the edges clockwise around the joint normal and assign them alternating rod labels A, B, A, B.
                     // Compute the angles between edge 0 and every other edge.
-                    Vector3d normal = Vertices[vi].Normal;
+                    Vector3d normal = ComputeNormalFromEdgeVectors(vi);// Vertices[vi].Normal;
                     double[] angles = new double[3];
                     Vector3d v0 = edgeVecs[0] - normal * (normal * edgeVecs[0]);
                     for (int k = 1; k < jointValence; k++)
@@ -433,7 +461,7 @@ namespace ErodDataLib.Types
                     // Use the fact that int(true) == 1 to determine edge orientation. 
                     isStartPt[k] = (keepOrientation) ? (e.Indexes[0] == vi) : (e.Indexes[1] == vi);
 
-                    Curve localCopy = e.GetUnderlyingCurve();//.DuplicateCurve();
+                    Curve localCopy = e.GetUnderlyingCurve().DuplicateCurve();
                     if (!keepOrientation) localCopy.Reverse();
 
                     // Estimate the tangent direction at the joint and use that as edge vectors.

@@ -23,9 +23,6 @@
         <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Speckle.Core" Version="2.2.4">
-            <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Model\" />
@@ -48,4 +45,11 @@
     <None Remove="Speckle.Core" />
     <None Remove="Interop\" />
   </ItemGroup>-->
+  <ItemGroup>
+    <Compile Remove="Interop\BaseLinkageGH.cs" />
+    <Compile Remove="Interop\BaseResultsGH.cs" />
+    <Compile Remove="Interop\BaseEditsGH.cs" />
+    <Compile Remove="Interop\BaseDataGH.cs" />
+    <Compile Remove="Interop\WriteModelGH.cs" />
+  </ItemGroup>
 </Project>

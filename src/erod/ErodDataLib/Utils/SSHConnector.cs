@@ -67,19 +67,28 @@ namespace ErodDataLib.Utils
             }
         }
 
-        public void ReceiveJsonFile(string remoteFilePath, string localFilePath)
+        public bool ReceiveJsonFile(string remoteFilePath, string localFilePath)
         {
-            using (var Sftp = new SftpClient(_connectionInfo))
+            try
             {
-                Sftp.Connect();
-
-                // Download the JSON file from the remote server
-                using (var fileStream = new FileStream(localFilePath, FileMode.Create))
+                using (var Sftp = new SftpClient(_connectionInfo))
                 {
-                    Sftp.DownloadFile(remoteFilePath, fileStream);
-                }
+                    Sftp.Connect();
 
-                Sftp.Disconnect();
+                    // Download the JSON file from the remote server
+                    using (var fileStream = new FileStream(localFilePath, FileMode.Create))
+                    {
+                        Sftp.DownloadFile(remoteFilePath, fileStream);
+                    }
+
+                    Sftp.Disconnect();
+
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
@@ -107,19 +116,27 @@ namespace ErodDataLib.Utils
             File.Delete(tempFileName);
         }
 
-        public static void ReceiveJsonFileToClient(ConnectionInfo connectionInfo, string remoteFilePath, string localFilePath)
+        public static bool ReceiveJsonFileToClient(ConnectionInfo connectionInfo, string remoteFilePath, string localFilePath)
         {
-            using (var Sftp = new SftpClient(connectionInfo))
+            try
             {
-                Sftp.Connect();
-
-                // Download the JSON file from the remote server
-                using (var fileStream = new FileStream(localFilePath, FileMode.Create))
+                using (var Sftp = new SftpClient(connectionInfo))
                 {
-                    Sftp.DownloadFile(remoteFilePath, fileStream);
-                }
+                    Sftp.Connect();
 
-                Sftp.Disconnect();
+                    // Download the JSON file from the remote server
+                    using (var fileStream = new FileStream(localFilePath, FileMode.Create))
+                    {
+                        Sftp.DownloadFile(remoteFilePath, fileStream);
+                    }
+
+                    Sftp.Disconnect();
+                }
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 

@@ -13,7 +13,6 @@ using ErodDataLib.Types;
 using ErodDataLib.Utils;
 using Grasshopper;
 using Grasshopper.Kernel;
-using Renci.SshNet;
 using static ErodDataLib.Types.OptimizationOptions;
 
 namespace ErodData.Interop

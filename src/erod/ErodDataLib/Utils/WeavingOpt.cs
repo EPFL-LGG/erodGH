@@ -7,7 +7,6 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Linq;
 using Grasshopper.Kernel.Types;
-using Speckle.Core.Api;
 using ErodDataLib.Types;
 using Rhino;
 using System.Diagnostics;
@@ -85,12 +84,13 @@ namespace ErodDataLib.Utils
             string runPython = "cd " + RUN_FOLDER + " && python gcmaker_gh.py " + filename;
             Log = _sshclient.ExecuteCommand(activateEnvironment + runPython);
 
-            _sshclient.ReceiveJsonFile(OUTPUT_FOLDER + filename + "_optimization.json", tempFileName);
+            bool flag = _sshclient.ReceiveJsonFile(OUTPUT_FOLDER + filename + "_optimization.json", tempFileName);
             _sshclient.Disconnect();
 
-            ParseOptimizationDataFromJson(tempFileName);
-            // Delete the temporary file
-            File.Delete(tempFileName);
+            if(flag)
+                ParseOptimizationDataFromJson(tempFileName);
+                // Delete the temporary file
+                File.Delete(tempFileName);
 
             return Log;
         }
@@ -184,10 +184,14 @@ namespace ErodDataLib.Utils
                     }));
                     Log = outputBuilder.ToString();
 
-                    SSHConnector.ReceiveJsonFileToClient(connectionInfo, OUTPUT_FOLDER + filename + "_optimization.json", tempFileName);
-                    ParseOptimizationDataFromJson(tempFileName);
-                    // Delete the temporary file
-                    File.Delete(tempFileName);
+                    bool succeed = SSHConnector.ReceiveJsonFileToClient(connectionInfo, OUTPUT_FOLDER + filename + "_optimization.json", tempFileName);
+
+                    if (succeed)
+                    {
+                        ParseOptimizationDataFromJson(tempFileName);
+                        // Delete the temporary file
+                        File.Delete(tempFileName); 
+                    }
 
                     // Close the form
                     form.Invoke(new Action(() => form.Close()));
@@ -196,6 +200,8 @@ namespace ErodDataLib.Utils
 
                     component.Message = "Done!";
                     component.ExpireSolution(true);
+
+                    if(!succeed) component.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Failed to run optimization!");
                 }
             });
 
