@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Newtonsoft.Json.Linq;
 using Rhino.Geometry;
 
@@ -78,6 +79,44 @@ namespace ErodDataLib.Types
             NumA = numA;
             NumB = numB;
             Normal = normal;
+
+            // Adjuts the sign of edge vector B after initializing all values
+            EdgeB = AdjustVectorBToAcuteAngle(edgeA, edgeB);
+            // Check the cross product of both vectors
+            Vector3d sourceNormal = Vector3d.CrossProduct(EdgeA,EdgeB);
+
+            // Flip data if sourceNormal and input normals don't match
+            if (sourceNormal * normal < 0)
+            {
+                EdgeA = EdgeB;
+                EdgeB = edgeA;
+                SegmentsA = segmentsB;
+                SegmentsB = segmentsA;
+                IsStartA = isStartB;
+                IsStartB = isStartA;
+                NumA = numB;
+                NumB = numA;
+            }
+        }
+
+        // Function to pick the sign of vectorB so that angle "alpha" between vectors A and B is acute, not obtuse.
+        private Vector3d AdjustVectorBToAcuteAngle(Vector3d vecA, Vector3d vecB)
+        {
+            // Calculate dot product of A and B
+            double dotProduct = vecA * vecB;
+
+            // Calculate magnitudes of A and B
+            double magnitudeA = vecA.Length;
+            double magnitudeB = vecB.Length;
+
+            // Calculate the cosine of the angle between A and B
+            double cosAlpha = dotProduct / (magnitudeA * magnitudeB);
+
+            // If the angle is obtuse, reverse the sign of vector B
+            Vector3d signVecB = new Vector3d(vecB);
+            if (cosAlpha < 0) signVecB.Reverse();
+
+            return signVecB;
         }
 
         // The index of the segment that segment "si" connects with at this joint.

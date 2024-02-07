@@ -272,8 +272,7 @@ namespace ErodDataLib.Types
         public Vector3d GetStartVector(Curve curve = default, bool unitize = false)
         {
             if (curve == default) curve = _curve;
-            double t0 = curve.Domain.T0;
-            Vector3d v = curve.PointAt(t0 + STEPSIZE) - curve.PointAt(t0);
+            Vector3d v = curve.PointAt(curve.Domain.ParameterAt(STEPSIZE)) - curve.PointAtStart;
 
             if (unitize) v.Unitize();
             return v;
@@ -289,8 +288,7 @@ namespace ErodDataLib.Types
         public Vector3d GetEndVector(Curve curve = default, bool unitize = false)
         {
             if (curve == default) curve = _curve;
-            double t1 = curve.Domain.T1;
-            Vector3d v = curve.PointAt(t1 - STEPSIZE) - curve.PointAt(t1);
+            Vector3d v = curve.PointAt(curve.Domain.ParameterAt(1-STEPSIZE)) - curve.PointAtEnd;
 
             if (unitize) v.Unitize();
             return v;
