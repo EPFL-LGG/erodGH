@@ -1,119 +1,80 @@
-# erodGH
-Elastic Rod plugin for grasshopper
+ElasticRod Pluging for Grasshopper
+===========
 
-# Getting Started for Rhino7 (MAC intel) or Rhino8:
+# Getting Started
 
-1. Clone recursively the branch grasshopper from elastic_rods git repo
+## Building C++ Libraries
+The C++ code relies on `boost` and `cholmod/umfpack`. Some parts of the code (actuator sparsification, design optimization) also depend on the commercial optimization package `knitro`; these will be omitted from the build if knitro is not found.
 
-2. build 
+### macOS
+You can install all the mandatory dependencies on macOS with [MacPorts](https://www.macports.org).
 
-3. Install Visual Studio 2019 (2022 not yet tested) from
-https://visualstudio.microsoft.com/vs/mac/
+```bash
+# Build/version control tools, C++ code dependencies
+sudo port install cmake boost suitesparse ninja
+# Dependencies for jupyterlab/notebooks
+sudo port install py37-pip
+sudo port select --set python python37
+sudo port select --set pip3 pip37
+sudo port install npm6
+```
 
-4. Check if Mono Framework is installed with Visual Studio. If not download and install Mono from:
-https://www.mono-project.com/download/stable/
+## Obtaining and Building
 
-5. Download the latest Rhino/Grasshopper extension (.mpack file) for Visual Studio Mac from:
-https://github.com/mcneel/RhinoCommonXamarinStudioAddin/releases
+Clone this repository *recursively* so that its submodules are also downloaded:
 
-6. Launch Visual Studio for Mac => Navigate to Visual Studio>Extensions.. => Click "Install from file" => Select the .mpack file.
+```bash
+git clone --recursive git@github.com:EPFL-LGG/erodGH.git
+```
 
-7. Quit and Restart Visual Studio for Mac => Navigate to Extensions Studio>Add-ins..>Installed tab => Verify that RhinoCommon Plugin Support exists under the Debugging category.
+Build the C++ code and its Python bindings using `cmake` and your favorite
+build system. For example, with [`ninja`](https://ninja-build.org):
 
-8. Open .sln project from elastic_rods/erodGH/ElasticRod/ in Visual studio Mac and Build it. This will copy all the .dll and .gha files (plugin files) in elastic_rods/erodGH/ElasticRod/bin. The bin folder already contains a .dylib file with all the wrapped functions from elastic_rods.
+```bash
+cd erodGH
+mkdir build && cd build
+cmake .. -GNinja
+ninja
+```
 
-9. After compiling the plugin, open Rhino. Enter "GrasshopperDeveloperSettings" into the Command console and the bin folder into the Library Folders.
+## Running the Jupyter Notebooks
+The preferred way to interact with the inflatables code is in a Jupyter notebook,
+using the Python bindings.
+We recommend that you install the Python dependencies and JupyterLab itself in a
+virtual environment (e.g., with [venv](https://docs.python.org/3/library/venv.html)).
 
-10. Restart Rhino
+```bash
+pip3 install wheel # Needed if installing in a virtual environment
+pip3 install jupyterlab ipykernel==5.5.5 # Use a slightly older version of ipykernel to avoid cluttering notebook with stdout content.
+# If necessary, follow the instructions in the warnings to add the Python user
+# bin directory (containing the 'jupyter' binary) to your PATH...
 
-# [Not recommended] Getting Started for Rhino7 (MAC arm64):
-IMPORTANT: Building the plugin for Rhino 7 using an arm64 processor requires some special steps. 
-Rhino 7 is an intel based application that can run on an Apple silicon machine via Rosetta 2. Because of this, the c++ library (liberod.dylib) used by the plugin needs to be compiled for an x86_64 architecture otherwise Rhino 7 will throw an error when loading the plugin.  
-On the contrary, Rhino 8 is a universal application in which case the c++ libary can be compiled for an arm64 architecture. However, Rhino 8 is still under development and unstable (not recommended). 
-To compile the c++ library, we need to install boost and suitesparse for x86-64 architecture using Homebrew for Intel apps.
-The steps to follow are:
- 
-1. Codebase for inflatablesGH. Clone with:
+git clone https://github.com/jpanetta/pythreejs
+cd pythreejs
+pip3 install -e .
+cd js
+jupyter labextension install .
 
-    git clone --recursive https://github.com/EPFL-LGG/inflatablesGH.git 
+pip3 install matplotlib scipy
+```
 
-2. Install Homebrew for Intel apps.
-- Create a directory named homebrew in Downloads
-- Download and extract Homebrew in ~/Downloads/homebrew directory
+## Building C# Plugin
+The C# plugin is compatible only with Rhino 7 and 8 for Mac with Intel processors, as well as Rhino 8 with ARM processors.
 
-      curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C homebrew
+### Visual Studio for Mac (if not installed)
+Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/mac/)
 
-- Move the homebrew directory to /usr/local/homebrew (Homebrew for apple silicon machines is installed in /opt/homebrew/bin/brew)
-    
-      sudo mv homebrew /usr/local/homebrew
+Check if `Mono` is installed with Visual Studio.
+Open Visual Studio for Mac and click on 'Visual Studio' in the top menu bar. 
+Select 'About Visual Studio' from the dropdown menu and, in the dialog that opens, you should see version information and installed components.
+If `Mono` is not listed, download and install [Mono](https://www.mono-project.com/download/stable/)
 
-- Add an alias and path in the ~/.zshrc file
-    
-      #If you come from bash you might have to change your $PATH.
-      #need this for x86_64 brew
-      export PATH=$HOME/bin:/usr/local/bin:$PATH
-      #for intel x86_64 brew
-      alias axbrew='arch -x86_64 /usr/local/homebrew/bin/brew'  
-        
-- Install boost and suitesparse for x86_64 architecture
-    
-      axbrew install boost suitesparse glew libpng
+Download the latest [RhinoVisualStudioExtensions](https://github.com/mcneel/RhinoCommonXamarinStudioAddin/releases).
+Launch Visual Studio => Navigate to Visual Studio>Extensions.. => Click "Install from file" => Select the .mpack file.
 
-3. Set the correct paths to find boost and suitesparse before building
-- Create a new file to store the required environment variables
-    
-      touch ~/.rhino_elastic_rod_env
+Quit and Restart Visual Studio => Navigate to Extensions Studio>Add-ins..>Installed tab => Verify that RhinoCommon Plugin Support exists under the Debugging category.
 
-- Copy and paste the following variables in .rhino_elastic_rod_env
-    
-      #Environment variables for compiling elastic rods for X86_64 on m1
-      export SUITESPARSE_ROOT=/usr/local/homebrew/opt/suitesparse
-      export SUITESPARSE_INC=/usr/local/homebrew/include/
-      export CHOLMODDIR=/usr/local/homebrew/include/
-      export Boost_INCLUDE_DIR=/usr/local/homebrew/include/boost
-      export BOOST_ROOT=/usr/local/homebrew/opt/boost
-      export GLEW_ROOT=/usr/local/homebrew/opt/glew
-      export GLEW_INC=/usr/local/homebrew/include
-      export PNG_ROOT=/usr/local/homebrew/opt/libpng
-      export PNG_INC=/usr/local/homebrew/include
+## Building 
+Open .sln project from `erodGH/src/erod/` in Visual Studio and build it. This will copy all the .dll and .gha files (plugin files) in `erodGH/bin/erod`. The bin folder already contains the C++ library (.dylib file).
 
-- Before building, always update the PATH (.rhino_env is not updated frequently).
-    
-      source ~/.rhino_env
-
-- [OPTIONAL] To run the jupyter notebooks, please install the correct Python version for the x86_64 architecture. To do that, copy and paste the following line after creating the environment:
-
-      conda config --env --set subdir osx-64
-
-4. Generate the build files.
-
-5. [IMPORTANT] After generating the build files, go to the catamary directory inside MeshFem. The catamary directory is only created after generating the build files. 
-- Use the following in the CMake file to force building x86_64 architecture when detecting Arm64:
-
-       if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-           if(RHINO7_COMPATIBILITY)
-               target_compile_definitions(catamari INTERFACE -DDARWIN -DX86 -DCATAMARI_HAVE_FENV_DISABLE_DENORMS -DCATAMARI_HAVE_BLAS -DCATAMARI_HAVE_LAPACK -DQUOTIENT_USE_64BIT)
-           else()
-               target_compile_definitions(catamari INTERFACE -DDARWIN -DARM -DCATAMARI_HAVE_FENV_DISABLE_DENORMS -DCATAMARI_HAVE_BLAS -DCATAMARI_HAVE_LAPACK -DQUOTIENT_USE_64BIT)
-           endif() 
-      
-6. Re-generate the build files and build.
-
-7. Install Visual Studio 2019 (2022 not yet tested) from
-https://visualstudio.microsoft.com/vs/mac/
-
-8. Check if Mono Framework is installed with Visual Studio. If not download and install Mono from:
-https://www.mono-project.com/download/stable/
-
-9. Download the latest Rhino/Grasshopper extension (.mpack file) for Visual Studio Mac from:
-https://github.com/mcneel/RhinoCommonXamarinStudioAddin/releases
-
-10. Launch Visual Studio for Mac => Navigate to Visual Studio>Extensions.. => Click "Install from file" => Select the .mpack file.
-
-11. Quit and Restart Visual Studio for Mac => Navigate to Extensions Studio>Add-ins..>Installed tab => Verify that RhinoCommon Plugin Support exists under the Debugging category.
-
-12. Open .sln project from elastic_rods/erodGH/ElasticRod/ in Visual studio Mac and Build it. This will copy all the .dll and .gha files (plugin files) in elastic_rods/erodGH/ElasticRod/bin. The bin folder already contains a .dylib file with all the wrapped functions from elastic_rods.
-
-13. After compiling the plugin, open Rhino. Enter "GrasshopperDeveloperSettings" into the Command console and the bin folder into the Library Folders.
-
-14. Restart Rhino
+If the 'bin' folder is not referenced in Grasshopper, open Rhino, enter `GrasshopperDeveloperSettings` into the Command console, and add the path to the 'bin' folder to the Library Folders. Restart Rhino
