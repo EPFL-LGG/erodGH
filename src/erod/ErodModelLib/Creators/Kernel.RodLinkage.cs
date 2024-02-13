@@ -201,6 +201,10 @@ namespace ErodModelLib.Creators
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellSetRestLengthsSolveDoFs")]
             internal static extern void ErodXShellSetRestLengthsSolveDoFs(IntPtr linkage, double[] outDoFs, int numDoFs);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXSHellGetJointAngles")]
+            internal static extern void ErodXSHellGetJointAngles(IntPtr linkage, out IntPtr outAngles, out long numAngles);
         }
     }
 }

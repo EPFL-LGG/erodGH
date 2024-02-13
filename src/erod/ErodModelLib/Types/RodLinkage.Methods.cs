@@ -424,5 +424,19 @@ namespace ErodModelLib.Types
         {
             Kernel.RodLinkage.ErodXShellSetRestLengthsSolveDoFs(Model, dofs, dofs.Length);
         }
+
+        public double[] GetJointAngles()
+        {
+            IntPtr angPtr;
+            long numAng;
+            Kernel.RodLinkage.ErodXSHellGetJointAngles(Model, out angPtr, out numAng);
+
+            double[] angles = new double[numAng];
+
+            Marshal.Copy(angPtr, angles, 0, (int)numAng);
+            Marshal.FreeCoTaskMem(angPtr);
+
+            return angles;
+        }
     }
 }

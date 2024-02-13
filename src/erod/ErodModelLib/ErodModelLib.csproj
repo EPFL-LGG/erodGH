@@ -101,6 +101,8 @@
     <Compile Include="Types\Material.cs" />
     <Compile Include="Creators\Kernel.Material.cs" />
     <Compile Include="Utils\GraphPlotter.cs" />
+    <Compile Include="Types\JointVis.cs" />
+    <Compile Include="Types\QuadAreas.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Creators\" />

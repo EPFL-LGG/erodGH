@@ -1003,6 +1003,17 @@ namespace ElasticRodsGH
         *use_restKappa = dpc.restKappa;
     }
 
+    EROD_API void erodXSHellGetJointAngles(RodLinkage *linkage, double **outAngles, size_t *numAngles)
+    {
+        const auto joints = linkage->joints();
+        std::vector<double> angles; 
+        for (const auto &j : joints) angles.push_back(j.alpha());
+
+        *numAngles = angles.size();
+        auto sizeAngles = (*numAngles) * sizeof(double);
+        *outAngles = static_cast<double *>(malloc(sizeAngles));
+        std::memcpy(*outAngles, angles.data(), sizeAngles);
+    }
     // Solver
     EROD_API int erodPeriodicElasticRodNewtonSolver(PeriodicRod *pRod, int numIterations, int numSupports, int numForces, int *supports, double *inForces,
                                                     double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection,

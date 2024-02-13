@@ -140,6 +140,8 @@ namespace ElasticRodsGH
 
     EROD_API void erodXShellGetDesignParameterConfig(RodLinkage *linkage, int *use_restLen, int *use_restKappa);
 
+    EROD_API void erodXSHellGetJointAngles(RodLinkage *linkage, double **outAngles, size_t *numAngles);
+
     // Material
     EROD_API RodMaterial *erodMaterialBuild(int sectionType, double E, double nu, double *params, int numParams, int axisType);
 
