@@ -8,6 +8,7 @@
 #include "MeshFEM/Fields.hh"
 #include "RodMaterial.hh"
 #include "SurfaceAttractedLinkage.hh"
+#include "ElasticRod.hh"
 
 extern "C"
 {
@@ -339,6 +340,7 @@ namespace ElasticRodsGH
                 {
                     pts.emplace_back(inInteriorCoords[startOff + 3 * j], inInteriorCoords[startOff + 3 * j + 1], inInteriorCoords[startOff + 3 * j + 2]);
                 }
+                ElasticRod rod(pts);
                 startOff = endOff;
 
                 // Rod segments
@@ -347,7 +349,7 @@ namespace ElasticRodsGH
                     startJoint = (size_t)inStartJoints[i];
                 if (inEndJoints[i] != -1)
                     endJoint = (size_t)inEndJoints[i];
-                rodSegments.emplace_back(startJoint, endJoint, pts);
+                rodSegments.emplace_back(startJoint, endJoint, std::move(rod));
 
                 // // Edges
                 size_t e0 = inEdges[2 * i], e1 = inEdges[2 * i + 1];

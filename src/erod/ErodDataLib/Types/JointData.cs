@@ -80,23 +80,23 @@ namespace ErodDataLib.Types
             NumB = numB;
             Normal = normal;
 
-            // Adjuts the sign of edge vector B after initializing all values
-            EdgeB = AdjustVectorBToAcuteAngle(edgeA, edgeB);
-            // Check the cross product of both vectors
-            Vector3d sourceNormal = Vector3d.CrossProduct(EdgeA,EdgeB);
+            //// Adjuts the sign of edge vector B after initializing all values
+            //EdgeB = AdjustVectorBToAcuteAngle(edgeA, edgeB);
+            //// Check the cross product of both vectors
+            //Vector3d sourceNormal = Vector3d.CrossProduct(EdgeA,EdgeB);
 
-            // Flip data if sourceNormal and input normals don't match
-            if (sourceNormal * normal < 0)
-            {
-                EdgeA = EdgeB;
-                EdgeB = edgeA;
-                SegmentsA = segmentsB;
-                SegmentsB = segmentsA;
-                IsStartA = isStartB;
-                IsStartB = isStartA;
-                NumA = numB;
-                NumB = numA;
-            }
+            //// Flip data if sourceNormal and input normals don't match
+            //if (sourceNormal * normal < 0)
+            //{
+            //    EdgeA = EdgeB;
+            //    EdgeB = edgeA;
+            //    SegmentsA = segmentsB;
+            //    SegmentsB = segmentsA;
+            //    IsStartA = isStartB;
+            //    IsStartB = isStartA;
+            //    NumA = numB;
+            //    NumB = numA;
+            //}
         }
 
         // Function to pick the sign of vectorB so that angle "alpha" between vectors A and B is acute, not obtuse.

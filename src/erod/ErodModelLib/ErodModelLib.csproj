@@ -62,6 +62,18 @@
       <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="FSharp.Core">
+      <HintPath>..\packages\FSharp.Core.6.0.2\lib\netstandard2.0\FSharp.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Giraffe.ViewEngine">
+      <HintPath>..\packages\Giraffe.ViewEngine.1.4.0\lib\netstandard2.0\Giraffe.ViewEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamicObj">
+      <HintPath>..\packages\DynamicObj.2.0.0\lib\netstandard2.0\DynamicObj.dll</HintPath>
+    </Reference>
+    <Reference Include="Plotly.NET">
+      <HintPath>..\packages\Plotly.NET.4.0.0\lib\netstandard2.0\Plotly.NET.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -88,6 +100,7 @@
     <Compile Include="Utils\RenderData.cs" />
     <Compile Include="Types\Material.cs" />
     <Compile Include="Creators\Kernel.Material.cs" />
+    <Compile Include="Utils\GraphPlotter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Creators\" />
@@ -96,6 +109,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="..\..\..\bin\liberod\liberod.dylib">
+      <Link>liberod.dylib</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ErodDataLib\ErodDataLib.csproj">
@@ -103,12 +120,6 @@
       <Name>ErodDataLib</Name>
       <Private>False</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\..\..\bin\liberod\liberod.dylib">
-      <Link>liberod.dylib</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\RhinoCommon.7.10.21256.17001\build\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.7.10.21256.17001\build\RhinoCommon.targets')" />
