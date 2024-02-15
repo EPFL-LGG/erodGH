@@ -30,10 +30,11 @@ namespace ErodModelLib.Utils
         {
             Defaults.DefaultTemplate = ChartTemplates.lightMirrored;
             int maxNumGroups = 20;
+            string[] multiText = Enumerable.Range(1, maxNumGroups + 1).Select(i => i.ToString()).ToArray();
             double maxBnd = Math.PI;
             var xbins = Bins.init(0.0, maxBnd, maxBnd / maxNumGroups);
             var chart1 = Chart2D.Chart.Histogram<double, double, string>(
-                X: angles, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue),
+                X: angles, MultiText: multiText, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue),
                 Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, XBins: xbins
             );
             var chart2 = Chart2D.Chart.Column<double, string, string, string, string>(values: angles);
@@ -58,7 +59,8 @@ namespace ErodModelLib.Utils
         {
             Defaults.DefaultTemplate = ChartTemplates.lightMirrored;
             int maxNumGroups = 10;
-            var chart1 = Chart2D.Chart.Histogram<double, double, string>(X: areas, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue), Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, NBinsX: maxNumGroups);
+            string[] multiText = Enumerable.Range(1, maxNumGroups+1).Select( i => i.ToString()).ToArray();
+            var chart1 = Chart2D.Chart.Histogram<double, double, string>(X: areas, MultiText: multiText, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue), Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, NBinsX: maxNumGroups);
             var chart2 = Chart2D.Chart.Column<double, string, string, string, string>(values: areas);
 
             chart1.WithTitle("Quads " + quadType + " Distribution");
@@ -71,13 +73,25 @@ namespace ErodModelLib.Utils
         {
             Defaults.DefaultTemplate = ChartTemplates.lightMirrored;
             int maxNumGroups = 10;
-            var chart1 = Chart2D.Chart.Histogram<double, double, string>(X: data, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue), Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, NBinsX: maxNumGroups);
+            string[] multiText = Enumerable.Range(1, maxNumGroups + 1).Select(i => i.ToString()).ToArray();
+            var chart1 = Chart2D.Chart.Histogram<double, double, string>(X: data, MultiText: multiText, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue), Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, NBinsX: maxNumGroups);
             var chart2 = Chart2D.Chart.Column<double, string, string, string, string>(values: data);
 
             chart1.WithTitle("Segments " + segmentType + " Distribution");
             chart2.WithTitle("Segments " + segmentType);
             chart1.Show();
             chart2.Show();
+        }
+
+        public static void HistogramLinkagesScalarFields(double[] data, string linkageType)
+        {
+            Defaults.DefaultTemplate = ChartTemplates.darkMirrored;
+            int maxNumGroups = 10;
+            string[] multiText = Enumerable.Range(1, maxNumGroups + 1).Select(i => i.ToString()).ToArray();
+            var chart1 = Chart2D.Chart.Histogram<double, double, string>(X: data, MultiText: multiText, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue), Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, NBinsX: maxNumGroups);
+
+            chart1.WithTitle(linkageType + " Distribution");
+            chart1.Show();
         }
     }
 }

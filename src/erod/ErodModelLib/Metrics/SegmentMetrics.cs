@@ -25,6 +25,7 @@ namespace ErodModelLib.Metrics
 		private Mesh[] _meshes;
         private Point3d[] _points;
         private Color[] _colors;
+        private Color _wireColor;
         private double[] _radius;
         private readonly double _scaleFactor = 3;
         private readonly int _initialSize = 2;
@@ -35,6 +36,8 @@ namespace ErodModelLib.Metrics
             Color[] colormap;
             int numSegments;
             double min, max, range;
+            _wireColor = Color.FromArgb(alpha, 250, 235, 215); // AntiqueWhite
+
             switch (SType){
                 case SegmentMetricTypes.RestLengths:
                     numSegments = segments.Count();
@@ -141,7 +144,6 @@ namespace ErodModelLib.Metrics
                     for (int i = 0; i < _meshes.Length; i++)
                     {
                         var m = _meshes[i];
-                        //args.Pipeline.DrawMeshWires(m, _colors[i]);
                         int numFaces = m.Faces.Count;
 
                         Point3f p0, p1, p2, p3;
@@ -166,11 +168,7 @@ namespace ErodModelLib.Metrics
             switch (SType)
             {
                 case SegmentMetricTypes.RestLengths:
-                    for (int i = 0; i < _meshes.Length; i++)
-                    {
-                        var m = _meshes[i];
-                        args.Pipeline.DrawMeshWires(m, Color.Black);
-                    }
+                    for (int i = 0; i < _meshes.Length; i++) args.Pipeline.DrawMeshWires(_meshes[i], _wireColor);
                     break;
                 case SegmentMetricTypes.RestKappas:
                     for (int i = 0; i < _points.Length; i++) args.Pipeline.DrawPoint(_points[i], PointStyle.RoundSimple, (float)(_radius[i]), _colors[i]);

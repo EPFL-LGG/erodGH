@@ -1,26 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using ErodModelLib.Types;
-using ErodModelLib.Utils;
-using Grasshopper.Kernel;
-using System.Linq;
 using ErodModel.Model;
-using GH_IO.Serialization;
 using ErodModelLib.Metrics;
-using static ErodModelLib.Metrics.JointMetrics;
+using ErodModelLib.Types;
+using GH_IO.Serialization;
+using Grasshopper.Kernel;
+using static ErodModelLib.Metrics.RodLinkageMetrics;
+using System.Linq;
+using static ErodModelLib.Utils.ColorMaps;
+using ErodModelLib.Utils;
 
 namespace ErodModel.Analysis
 {
-    public class MetricsJointsGH : GH_Component
+    public class MetricsRodLinkageGH : GH_Component
     {
-        int metrics;
-        List<List<string>> metricsAttributes;
+        int metricIdx, cmapIdx;
+        List<List<string>> menuAttributes;
         List<string> selection;
         bool buildAttributes = true;
 
         #region dropdownmenu content
-        readonly List<string> categories = new List<string>(new string[] { "Metrics" });
-        readonly List<string> metricTypes = ((JointMetricTypes[])Enum.GetValues(typeof(JointMetricTypes))).Select(t => t.ToString()).ToList();
+        readonly List<string> categories = new List<string>(new string[] { "Metrics", "ColorMaps" });
+        readonly List<string> metricTypes = ((LinkageMetricTypes[])Enum.GetValues(typeof(LinkageMetricTypes))).Select( t => t.ToString() ).ToList();
+        readonly List<string> cmapTypes = ((ColorMapTypes[])Enum.GetValues(typeof(ColorMapTypes))).Select(t => t.ToString()).ToList();
         #endregion
 
         /// <summary>
@@ -30,10 +32,10 @@ namespace ErodModel.Analysis
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public MetricsJointsGH()
-          : base("MetricsJoints", "MeJoints",
-                "Joint metrics of a linkage.",
-                "Erod", "Analysis")
+        public MetricsRodLinkageGH()
+          : base("MetricsRodLinkage", "MetricsRodLinkage",
+            "RodLinkage metrics.",
+            "Erod", "Analysis")
         {
         }
 
@@ -44,23 +46,31 @@ namespace ErodModel.Analysis
                 FunctionToSetSelectedContent(0, 0);
                 buildAttributes = false;
             }
-            m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, metricsAttributes, selection, categories);
+            m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, menuAttributes, selection, categories);
         }
 
         public void FunctionToSetSelectedContent(int dropdownListId, int selectedItemId)
         {
-            if (metricsAttributes == null)
+            if (menuAttributes == null)
             {
-                metricsAttributes = new List<List<string>>();
+                menuAttributes = new List<List<string>>();
                 selection = new List<string>();
-                metricsAttributes.Add(metricTypes);
-                selection.Add(metricTypes[metrics]);
+                menuAttributes.Add(metricTypes);
+                menuAttributes.Add(cmapTypes);
+                selection.Add(metricTypes[metricIdx]);
+                selection.Add(cmapTypes[cmapIdx]);
             }
 
             if (dropdownListId == 0)
             {
-                metrics = selectedItemId;
-                selection[0] = metricsAttributes[0][selectedItemId];
+                metricIdx = selectedItemId;
+                selection[0] = menuAttributes[0][selectedItemId];
+            }
+
+            if (dropdownListId == 1)
+            {
+                cmapIdx = selectedItemId;
+                selection[1] = menuAttributes[1][selectedItemId];
             }
 
             Params.OnParametersChanged();
@@ -73,11 +83,9 @@ namespace ErodModel.Analysis
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Size", "Size", "Size of the joints.", GH_ParamAccess.item, 1);
-            pManager.AddBooleanParameter("UniformSize", "UniformSize", "Set uniform size.", GH_ParamAccess.item, true);
+            pManager.AddNumberParameter("Alpha", "Alpha", "Set the alpha value (from 0.0 to 1.0) to control the transparency of the visualization", GH_ParamAccess.item, 0.3);
             pManager.AddBooleanParameter("ShowPlots", "ShowPlots", "Generate graph plots", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
-            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -85,8 +93,8 @@ namespace ErodModel.Analysis
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Metrics", "Metrics", "Joint metrics visualization.", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Data", "Data", "Data calculated based on the metric type.", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Metrics", "Metrics", "RodLinkage metrics visualization.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Data", "Data", "Sacalr data field calculated based on the metric type.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -97,48 +105,43 @@ namespace ErodModel.Analysis
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             RodLinkage linkage = null;
-            bool show = false, uSize=true;
-            double size = 10.0;
+            bool show = false;
+            double alpha = 0.3;
             if (!DA.GetData(0, ref linkage)) return;
-            DA.GetData(1, ref size);
-            DA.GetData(2, ref uSize);
-            DA.GetData(3, ref show);
+            DA.GetData(1, ref alpha);
+            DA.GetData(2, ref show);
 
-            JointMetricTypes jType = ((JointMetricTypes[])Enum.GetValues(typeof(JointMetricTypes)))[metrics];
+            LinkageMetricTypes linkageType = ((LinkageMetricTypes[])Enum.GetValues(typeof(LinkageMetricTypes)))[metricIdx];
+            ColorMapTypes cmapType = ((ColorMapTypes[])Enum.GetValues(typeof(ColorMapTypes)))[cmapIdx];
 
-            JointMetrics jointMetrics = new JointMetrics(linkage.Joints, jType, size, uSize);
-            double[] data;
-            switch (jType)
-            {
-                case JointMetricTypes.Angles:
-                    data = jointMetrics.Data;
-                    break;
-                case JointMetricTypes.AngleDeviations:
-                    data = jointMetrics.NormalizedData;
-                    break;
-                default:
-                    data = jointMetrics.Data;
-                    break;
-            }
+            RodLinkageMetrics linkageMetrics = new RodLinkageMetrics(linkage, linkageType, cmapType, (int)(alpha * 255));
+            double[] data = linkageMetrics.Data;
 
-            if (show) GraphPlotter.HistogramAngles(data, jType);
+            if (show) GraphPlotter.HistogramLinkagesScalarFields(data, linkageType.ToString());
 
-            DA.SetData(0, jointMetrics);
+            DA.SetData(0, linkageMetrics);
             DA.SetDataList(1, data);
         }
 
         public override bool Write(GH_IWriter writer)
         {
-            writer.SetInt32("metrics", metrics);
+            writer.SetInt32("metricsIdx", metricIdx);
+            writer.SetInt32("cmapIdx", cmapIdx);
             return base.Write(writer);
         }
 
         public override bool Read(GH_IReader reader)
         {
-            if (reader.TryGetInt32("metrics", ref metrics))
+            if (reader.TryGetInt32("metricsIdx", ref metricIdx))
             {
-                FunctionToSetSelectedContent(0, metrics);
-                m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, metricsAttributes, selection, categories);
+                FunctionToSetSelectedContent(0, metricIdx);
+                m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, menuAttributes, selection, categories);
+            }
+
+            if (reader.TryGetInt32("cmapIdx", ref cmapIdx))
+            {
+                FunctionToSetSelectedContent(1, cmapIdx);
+                m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, menuAttributes, selection, categories);
             }
             return base.Read(reader);
         }
@@ -169,7 +172,7 @@ namespace ErodModel.Analysis
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("5ce8f3c6-e3b7-4625-9b7c-b4b9ca3cec3f"); }
+            get { return new Guid("7e50fa56-ea94-4fd7-bd68-873896f3b63e"); }
         }
     }
 }

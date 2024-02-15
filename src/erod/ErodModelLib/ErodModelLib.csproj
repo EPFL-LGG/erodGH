@@ -108,6 +108,7 @@
     <Compile Include="Metrics\JointMetrics.cs" />
     <Compile Include="Metrics\QuadMetrics.cs" />
     <Compile Include="Metrics\SegmentMetrics.cs" />
+    <Compile Include="Metrics\RodLinkageMetrics.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Creators\" />

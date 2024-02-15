@@ -22,11 +22,7 @@ namespace ErodModel.Analysis
 
         #region dropdownmenu content
         readonly List<string> categories = new List<string>(new string[] { "Metrics" });
-        readonly List<string> metricTypes = new List<string>(new string[]
-        {
-            "RestLengths",
-            "RestKappas"
-        });
+        readonly List<string> metricTypes = ((SegmentMetricTypes[])Enum.GetValues(typeof(SegmentMetricTypes))).Select(t => t.ToString()).ToList();
         #endregion
 
         /// <summary>

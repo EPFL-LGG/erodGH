@@ -6,16 +6,13 @@ namespace ErodModelLib.Utils
 {
     public partial class ColorMaps
     {
-        public enum ColorMapTypes { EmptyCMap, Plasma, Viridis, Blues, BuGn, YlGnBu, CoolWarm, Cool, Turbo }
+        public enum ColorMapTypes { Plasma, Viridis, Blues, BuGn, YlGnBu, CoolWarm, Cool, Turbo }
 
         public static Color[] GetColorMap(ColorMapTypes colorMapType, int alpha)
         {
             Color[] colormap;
             switch (colorMapType)
             {
-                case ColorMapTypes.EmptyCMap:
-                    colormap = ColorMaps.EmptyCMap.GetColors(alpha);
-                    break;
                 case ColorMapTypes.Plasma:
                     colormap = ColorMaps.Plasma.GetColors(alpha);
                     break;
@@ -47,17 +44,6 @@ namespace ErodModelLib.Utils
             }
 
             return colormap;
-        }
-
-        private static class EmptyCMap
-        {
-            public static Color[] GetColors(int alpha = 255)
-            {
-                Color[] colorRange = { };
-
-                return colorRange;
-            }
-
         }
 
         #region Perceptually Uniform Sequential colormaps

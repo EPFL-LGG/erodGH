@@ -23,12 +23,7 @@ namespace ErodModel.Analysis
 
         #region dropdownmenu content
         readonly List<string> categories = new List<string>(new string[] { "Metrics" });
-        readonly List<string> metricTypes = new List<string>(new string[]
-        {
-            "Areas",
-            "AspectRatio",
-            "Laplacian"
-        });
+        readonly List<string> metricTypes = ((QuadMetricTypes[])Enum.GetValues(typeof(QuadMetricTypes))).Select(t => t.ToString()).ToList();
         #endregion
 
         /// <summary>

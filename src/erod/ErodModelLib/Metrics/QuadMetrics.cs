@@ -19,6 +19,7 @@ namespace ErodModelLib.Metrics
         public QuadMetricTypes QTypes { get; private set; }
 
         private Color[] _colors;
+        private Color _wireColor;
         private Mesh _mesh;
 
         public QuadMetrics(Curve[] edges, QuadMetricTypes qType, ColorMapTypes colorMapType=ColorMapTypes.Blues, int alpha=75)
@@ -30,6 +31,7 @@ namespace ErodModelLib.Metrics
             NormalizedData = new double[numFaces];
             Centroids = new Point3d[numFaces];
             _colors = new Color[numFaces];
+            _wireColor = Color.FromArgb(alpha, 250, 235, 215); // AntiqueWhite
 
             for (int i = 0; i < numFaces; i++)
             {
@@ -101,7 +103,7 @@ namespace ErodModelLib.Metrics
 
         public void DrawViewportWires(GH_PreviewWireArgs args)
         {
-            args.Pipeline.DrawMeshWires(_mesh, Color.AntiqueWhite);
+            args.Pipeline.DrawMeshWires(_mesh, _wireColor);
         }
 
         #region GH_Methods
