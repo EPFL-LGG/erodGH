@@ -31,9 +31,11 @@ namespace ErodModel.Analysis
         {
             pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("UseAspectRatio", "UseAspectRatio", "Use quads aspect ratio", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("ShowLaplacian", "ShowLaplacian", "Show the difference of the quad area with its neighbors", GH_ParamAccess.item, false);
             pManager.AddBooleanParameter("ShowPlots", "ShowPlots", "Generate graph plots", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
             pManager[2].Optional = true;
+            pManager[3].Optional = true;
         }
 
         /// <summary>
@@ -54,10 +56,11 @@ namespace ErodModel.Analysis
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             RodLinkage linkage = null;
-            bool show = false, useAspect= true;
+            bool show = false, useAspect = true, showLap = false;
             if (!DA.GetData(0, ref linkage)) return;
             DA.GetData(1, ref useAspect);
-            DA.GetData(2, ref show);
+            DA.GetData(2, ref showLap);
+            DA.GetData(3, ref show);
 
             int numSeg = linkage.Segments.Count();
             Curve[] edges = new Curve[numSeg];
@@ -75,12 +78,15 @@ namespace ErodModel.Analysis
                 edges[i] = new LineCurve(pos0, pos1);
             }
 
-            QuadAreas quadMesh = new QuadAreas(edges, useAspect);
-            double[] areas = quadMesh.NormalizedData;
+            QuadAreas quadMesh = new QuadAreas(edges, useAspect, showLap);
+            double[] areas;
 
+            if (showLap) areas = quadMesh.DataLaplacian;
+            else areas = quadMesh.Data;
+            
             if (show) GraphPlotter.HistogramAreas(areas, useAspect);
 
-            DA.SetDataList(0, quadMesh.Data);
+            DA.SetDataList(0, areas);
             DA.SetDataList(1, quadMesh.Centroids);
             DA.SetData(2, quadMesh);
         }

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using Plotly.NET;
-
-
+using Plotly.NET.LayoutObjects;
+using Plotly.NET.TraceObjects;
 namespace ErodModelLib.Utils
 {
 	public static class GraphPlotter
@@ -37,11 +37,26 @@ namespace ErodModelLib.Utils
             }
 
             Defaults.DefaultTemplate = ChartTemplates.lightMirrored;
-            int maxNumGroups = 10;
-            var chart1 = Chart2D.Chart.Histogram<double, double, string>(X: angles, MultiText: jointIndexes, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue), Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, NBinsX: maxNumGroups);
+            int maxNumGroups = 20;
+            double maxBnd = toDegrees ? 180 : Math.PI;
+            var xbins = Bins.init(0.0, maxBnd, maxBnd / maxNumGroups);
+            var chart1 = Chart2D.Chart.Histogram<double, double, string>(
+                X: angles, MultiText: jointIndexes, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue),
+                Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, XBins: xbins
+            );
             var chart2 = Chart2D.Chart.Column<double, string, string, string, string>(values: angles);
 
-            chart1.WithTitle("Angle distribution " + txt);
+            LinearAxis xaxis = LinearAxis.init<double, double, double, string, double, double>(
+                AutoRange: StyleParam.AutoRange.False,
+                Title: Title.init("Angle"),
+                Range: StyleParam.Range.ofMinMax(0.0, maxBnd)
+            );
+            chart1.WithXAxis(xaxis);
+
+            var minmax = new Tuple<IConvertible, IConvertible>(0.0, maxBnd);
+            var domain = new Tuple<IConvertible, IConvertible>(0.0, maxBnd);
+            chart1.WithXAxisStyle(Title.init("Angle"), MinMax: minmax, Domain: domain);
+            chart1.WithTitle("CM " + txt);
             chart2.WithTitle("Joint angles " + txt);
             chart1.Show();
             chart2.Show();

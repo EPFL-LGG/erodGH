@@ -103,6 +103,7 @@
     <Compile Include="Utils\GraphPlotter.cs" />
     <Compile Include="Types\JointVis.cs" />
     <Compile Include="Types\QuadAreas.cs" />
+    <Compile Include="Utils\ColorMaps.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Creators\" />

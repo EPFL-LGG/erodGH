@@ -15,3 +15,5 @@ packages/
 __pycache__
 .ipynb_checkpoints
 python/MeshFEM/
+colors/
+python/ElasticRods/
