@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using ErodModelLib.Types;
 using ErodModelLib.Utils;
@@ -126,6 +125,11 @@ namespace ErodModelLib.Metrics
                     _points = new Point3d[] { };
                     break;
             }
+        }
+
+        public override string ToString()
+        {
+            return "SegmentMetrics"; 
         }
 
         public BoundingBox ClippingBox

@@ -94,6 +94,11 @@ namespace ErodModelLib.Metrics
             }
         }
 
+        public override string ToString()
+        {
+            return "JointMetrics";
+        }
+
         public BoundingBox ClippingBox
         {
             get

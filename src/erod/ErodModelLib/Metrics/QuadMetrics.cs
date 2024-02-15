@@ -81,6 +81,11 @@ namespace ErodModelLib.Metrics
             }
         }
 
+        public override string ToString()
+        {
+            return "QuadMetrics";
+        }
+
         public BoundingBox ClippingBox
         {
             get

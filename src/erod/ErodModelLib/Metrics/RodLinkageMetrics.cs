@@ -64,6 +64,11 @@ namespace ErodModelLib.Metrics
             }
         }
 
+        public override string ToString()
+        {
+            return "LinkageMetrics";
+        }
+
         public bool BakeGeometry(RhinoDoc doc, ObjectAttributes att, out Guid obj_guid)
         {
             obj_guid = Guid.Empty;
