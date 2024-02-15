@@ -63,7 +63,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.6.0.2\lib\netstandard2.0\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.8.0.200\lib\netstandard2.0\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="Giraffe.ViewEngine">
       <HintPath>..\packages\Giraffe.ViewEngine.1.4.0\lib\netstandard2.0\Giraffe.ViewEngine.dll</HintPath>
@@ -72,7 +72,10 @@
       <HintPath>..\packages\DynamicObj.2.0.0\lib\netstandard2.0\DynamicObj.dll</HintPath>
     </Reference>
     <Reference Include="Plotly.NET">
-      <HintPath>..\packages\Plotly.NET.4.0.0\lib\netstandard2.0\Plotly.NET.dll</HintPath>
+      <HintPath>..\packages\Plotly.NET.4.2.0\lib\netstandard2.0\Plotly.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Giraffe.ViewEngine.StrongName">
+      <HintPath>..\packages\Giraffe.ViewEngine.StrongName.2.0.0-alpha1\lib\netstandard2.0\Giraffe.ViewEngine.StrongName.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -101,14 +104,16 @@
     <Compile Include="Types\Material.cs" />
     <Compile Include="Creators\Kernel.Material.cs" />
     <Compile Include="Utils\GraphPlotter.cs" />
-    <Compile Include="Types\JointVis.cs" />
-    <Compile Include="Types\QuadAreas.cs" />
     <Compile Include="Utils\ColorMaps.cs" />
+    <Compile Include="Metrics\JointMetrics.cs" />
+    <Compile Include="Metrics\QuadMetrics.cs" />
+    <Compile Include="Metrics\SegmentMetrics.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Creators\" />
     <Folder Include="Types\" />
     <Folder Include="Utils\" />
+    <Folder Include="Metrics\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

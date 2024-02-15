@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using ErodDataLib.Utils;
 using ErodModelLib.Creators;
 using GH_IO.Serialization;
 using Grasshopper.Kernel.Types;
@@ -188,6 +189,15 @@ namespace ErodModelLib.Types
             Marshal.Copy(qPtr, outQuads, 0, numQuads);
             Marshal.FreeCoTaskMem(cPtr);
             Marshal.FreeCoTaskMem(qPtr);
+        }
+
+        public Mesh GetMesh()
+        {
+            double[] coords;
+            int[] quads;
+            GetMeshData(out coords, out quads);
+
+            return Helpers.GetQuadMesh(coords, quads);
         }
 
         public double[] GetStretchingStiffnesses()

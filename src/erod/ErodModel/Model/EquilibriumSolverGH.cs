@@ -167,7 +167,7 @@ namespace ErodModel.Model
 
         public override bool Read(GH_IReader reader)
         {
-            if (reader.TryGetInt32("interleaving", ref graphics))
+            if (reader.TryGetInt32("graphics", ref graphics))
             {
                 FunctionToSetSelectedContent(0, graphics);
                 m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, graphicAttributes, selection, categories);

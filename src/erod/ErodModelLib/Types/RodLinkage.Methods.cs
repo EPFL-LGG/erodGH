@@ -8,6 +8,7 @@ using Rhino.Geometry;
 using System.Linq;
 using System.IO;
 using Newtonsoft.Json;
+using System.Windows.Forms;
 
 namespace ErodModelLib.Types
 {
@@ -437,6 +438,27 @@ namespace ErodModelLib.Types
             Marshal.FreeCoTaskMem(angPtr);
 
             return angles;
+        }
+
+        public LineCurve[] GetSegmentsAsLines()
+        {
+            int numSegments = Segments.Length;
+            LineCurve[] edges = new LineCurve[numSegments];
+            for (int i = 0; i < numSegments; i++)
+            {
+                int idx0 = Segments[i].GetStartJoint();
+                int idx1 = Segments[i].GetEndJoint();
+
+                double[] p0 = Joints[idx0].GetPosition();
+                double[] p1 = Joints[idx1].GetPosition();
+
+                Point3d pos0 = new Point3d(p0[0], p0[1], p0[2]);
+                Point3d pos1 = new Point3d(p1[0], p1[1], p1[2]);
+
+                edges[i] = new LineCurve(pos0, pos1);
+            }
+
+            return edges;
         }
     }
 }

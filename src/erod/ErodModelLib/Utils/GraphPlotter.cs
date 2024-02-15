@@ -3,6 +3,8 @@ using System.Linq;
 using Plotly.NET;
 using Plotly.NET.LayoutObjects;
 using Plotly.NET.TraceObjects;
+using static ErodModelLib.Metrics.JointMetrics;
+
 namespace ErodModelLib.Utils
 {
 	public static class GraphPlotter
@@ -24,31 +26,21 @@ namespace ErodModelLib.Utils
             chart.Show();
         }
 
-        public static void HistogramAngles(double[] angleInRadians, bool toDegrees = true)
+        public static void HistogramAngles(double[] angles, JointMetricTypes jType)
         {
-            int numJoints = angleInRadians.Length;
-            double[] angles = new double[numJoints];
-            string[] jointIndexes = new string[numJoints];
-            string txt = toDegrees ? "(in degrees)" : "(in radians)";
-            for (int i = 0; i < numJoints; i++)
-            {
-                angles[i] = toDegrees ? (angleInRadians[i] * 180 / Math.PI) : angleInRadians[i];
-                jointIndexes[i] = i.ToString();
-            }
-
             Defaults.DefaultTemplate = ChartTemplates.lightMirrored;
             int maxNumGroups = 20;
-            double maxBnd = toDegrees ? 180 : Math.PI;
+            double maxBnd = Math.PI;
             var xbins = Bins.init(0.0, maxBnd, maxBnd / maxNumGroups);
             var chart1 = Chart2D.Chart.Histogram<double, double, string>(
-                X: angles, MultiText: jointIndexes, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue),
+                X: angles, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue),
                 Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, XBins: xbins
             );
             var chart2 = Chart2D.Chart.Column<double, string, string, string, string>(values: angles);
 
             LinearAxis xaxis = LinearAxis.init<double, double, double, string, double, double>(
                 AutoRange: StyleParam.AutoRange.False,
-                Title: Title.init("Angle"),
+                Title: Title.init(jType.ToString()),
                 Range: StyleParam.Range.ofMinMax(0.0, maxBnd)
             );
             chart1.WithXAxis(xaxis);
@@ -56,25 +48,34 @@ namespace ErodModelLib.Utils
             var minmax = new Tuple<IConvertible, IConvertible>(0.0, maxBnd);
             var domain = new Tuple<IConvertible, IConvertible>(0.0, maxBnd);
             chart1.WithXAxisStyle(Title.init("Angle"), MinMax: minmax, Domain: domain);
-            chart1.WithTitle("CM " + txt);
-            chart2.WithTitle("Joint angles " + txt);
+            chart1.WithTitle("CM (" + jType.ToString() +")");
+            chart2.WithTitle("Joint (" + jType.ToString() + ")");
             chart1.Show();
             chart2.Show();
         }
 
-        public static void HistogramAreas(double[] areas, bool useAspect=false)
+        public static void HistogramAreas(double[] areas, string quadType)
         {
-            int numJoints = areas.Length;
-            string[] quadIndexes = new string[numJoints];
-            for (int i = 0; i < numJoints; i++) quadIndexes[i] = i.ToString();
-
             Defaults.DefaultTemplate = ChartTemplates.lightMirrored;
             int maxNumGroups = 10;
-            var chart1 = Chart2D.Chart.Histogram<double, double, string>(X: areas, MultiText: quadIndexes, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue), Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, NBinsX: maxNumGroups);
+            var chart1 = Chart2D.Chart.Histogram<double, double, string>(X: areas, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue), Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, NBinsX: maxNumGroups);
             var chart2 = Chart2D.Chart.Column<double, string, string, string, string>(values: areas);
 
-            chart1.WithTitle(useAspect ? "Quad aspect-ration distribution" : "Quad area distribution");
-            chart2.WithTitle(useAspect ? "Quad aspect-rations" : "Quad areas");
+            chart1.WithTitle("Quads " + quadType + " Distribution");
+            chart2.WithTitle("Quads " + quadType);
+            chart1.Show();
+            chart2.Show();
+        }
+
+        public static void HistogramSegments(double[] data, string segmentType)
+        {
+            Defaults.DefaultTemplate = ChartTemplates.lightMirrored;
+            int maxNumGroups = 10;
+            var chart1 = Chart2D.Chart.Histogram<double, double, string>(X: data, MarkerColor: Color.fromKeyword(ColorKeyword.CadetBlue), Opacity: 0.75, HistFunc: StyleParam.HistFunc.Avg, HistNorm: StyleParam.HistNorm.None, NBinsX: maxNumGroups);
+            var chart2 = Chart2D.Chart.Column<double, string, string, string, string>(values: data);
+
+            chart1.WithTitle("Segments " + segmentType + " Distribution");
+            chart2.WithTitle("Segments " + segmentType);
             chart1.Show();
             chart2.Show();
         }

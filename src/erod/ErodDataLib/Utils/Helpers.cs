@@ -47,6 +47,7 @@ namespace ErodDataLib.Utils
                 m.Faces.AddFace(new MeshFace(quads[i * 4], quads[i * 4 + 1], quads[i * 4 + 2], quads[i * 4 + 3]));
             }
             m.UnifyNormals();
+            m.Normals.ComputeNormals();
 
             return m;
         }
@@ -66,6 +67,7 @@ namespace ErodDataLib.Utils
                 m.Faces.AddFace(new MeshFace(trias[i * 3], trias[i * 3 + 1], trias[i * 3 + 2]));
             }
             m.UnifyNormals();
+            m.Normals.ComputeNormals();
 
             return m;
         }

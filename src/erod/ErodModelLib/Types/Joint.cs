@@ -4,6 +4,7 @@ using ErodDataLib.Types;
 using ErodModelLib.Creators;
 using GH_IO.Serialization;
 using Grasshopper.Kernel.Types;
+using Rhino.Geometry;
 
 namespace ErodModelLib.Types
 {
@@ -14,6 +15,12 @@ namespace ErodModelLib.Types
         public Joint(IntPtr linkage, int index)
         {
             _ptr = Kernel.LinkageJoint.ErodJointBuild(linkage, index);
+        }
+
+        public Point3d GetPositionAsPoint3d()
+        {
+            double[] coords = GetPosition();
+            return new Point3d(coords[0], coords[1], coords[2]);
         }
 
         public double[] GetPosition()
