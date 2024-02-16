@@ -49,7 +49,7 @@ namespace ErodModelLib.Utils
             var minmax = new Tuple<IConvertible, IConvertible>(0.0, maxBnd);
             var domain = new Tuple<IConvertible, IConvertible>(0.0, maxBnd);
             chart1.WithXAxisStyle(Title.init("Angle"), MinMax: minmax, Domain: domain);
-            chart1.WithTitle("CM (" + jType.ToString() +")");
+            chart1.WithTitle("Joint Distribution (" + jType.ToString() +")");
             chart2.WithTitle("Joint (" + jType.ToString() + ")");
             chart1.Show();
             chart2.Show();
