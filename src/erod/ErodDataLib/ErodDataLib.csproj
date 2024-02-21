@@ -109,8 +109,8 @@
     <Compile Include="Types\TargetSurfaceData.cs" />
     <Compile Include="Utils\SSHConnector.cs" />
     <Compile Include="Utils\WeavingOpt.cs" />
-    <Compile Include="Properties\ForceData.cs" />
     <Compile Include="Types\OptimizationOptions.cs" />
+    <Compile Include="Types\ForceData.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Types\" />
