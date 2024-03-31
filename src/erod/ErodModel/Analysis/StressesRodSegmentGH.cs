@@ -41,6 +41,7 @@ namespace ErodModel.Analysis
             pManager.AddNumberParameter("MaxBend", "MaxBend", "Maximum bending stresses (per node).", GH_ParamAccess.list);
             pManager.AddNumberParameter("MinBend", "MinBend", "Minimum bending stresses (per node).", GH_ParamAccess.list);
             pManager.AddNumberParameter("SqrtBend", "SqrtBend", "Sqrt bending energies (per node).", GH_ParamAccess.list);
+            pManager.AddNumberParameter("VonMises", "VonMises", "Von Mises stresses (per node).", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -58,12 +59,14 @@ namespace ErodModel.Analysis
             double[] maxStress = seg.GetMaxBendingStresses();
             double[] minStress = seg.GetMinBendingStresses();
             double[] sqrtBend = seg.GetSqrtBendingEnergies();
+            double[] vonMises = seg.GetVonMisesStresses();
 
             DA.SetDataList(0, stretch);
             DA.SetDataList(1, twist);
             DA.SetDataList(2, maxStress);
             DA.SetDataList(3, minStress);
             DA.SetDataList(4, sqrtBend);
+            DA.SetDataList(5, vonMises);
         }
 
         /// <summary>

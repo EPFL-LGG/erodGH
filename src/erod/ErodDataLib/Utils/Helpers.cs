@@ -6,6 +6,7 @@ namespace ErodDataLib.Utils
 {
     public static class Helpers
     {
+
         public static double[] FlattenDoubleArray(double[][] data)
         {
             List<double> list = new List<double>();

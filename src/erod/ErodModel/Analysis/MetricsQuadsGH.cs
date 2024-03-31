@@ -107,7 +107,7 @@ namespace ErodModel.Analysis
             QuadMetricTypes quadType = ((QuadMetricTypes[])Enum.GetValues(typeof(QuadMetricTypes)))[metrics]; 
             Curve[] edges = linkage.GetSegmentsAsLines();
 
-            QuadMetrics quadMetrics = new QuadMetrics(edges, quadType, ColorMaps.ColorMapTypes.Blues, (int)(alpha * 255));
+            QuadMetrics quadMetrics = new QuadMetrics(edges, quadType, ColorMaps.ColorMapTypes.Blues_Sequential, (int)(alpha * 255));
             double[] data = quadMetrics.Data;
 
             if (show) GraphPlotter.HistogramAreas(data, quadType.ToString());

@@ -9,6 +9,8 @@
 #include "RodMaterial.hh"
 #include "SurfaceAttractedLinkage.hh"
 #include "ElasticRod.hh"
+#include "CrossSectionStressAnalysis.hh"
+#include "python_bindings/visualization.hh"
 
 extern "C"
 {
@@ -431,7 +433,7 @@ namespace ElasticRodsGH
             default:
                 stiffAxis = RodMaterial::StiffAxis::D1;
         }
-        bool keepCrossSectionMesh = false;
+        bool keepCrossSectionMesh = true;
 
         RodMaterial mat;
         mat.setContourGH(E, nu, vertices, lines, holesPts, stiffAxis, keepCrossSectionMesh);
@@ -479,7 +481,7 @@ namespace ElasticRodsGH
         default:
             stiffAxis = RodMaterial::StiffAxis::D1;
         }
-        bool keepCrossSectionMesh = false;
+        bool keepCrossSectionMesh = true;
 
         const RodMaterial mat(type, E, nu, inParams, stiffAxis, keepCrossSectionMesh);
         linkage->setMaterial(mat);
@@ -904,6 +906,16 @@ namespace ElasticRodsGH
         std::memcpy(*outField, field.data(), sizeField);
     }
 
+    EROD_API void erodXShellScalarFieldVonMisesStresses(RodLinkage *linkage, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(linkage->visualizationField(linkage->maxVonMisesStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
     EROD_API void erodXShellScalarFieldMinBendingStresses(RodLinkage *linkage, double **outField, size_t *numField)
     {
         ScalarField<Real> field(linkage->visualizationField(linkage->minBendingStresses()));
@@ -1014,6 +1026,7 @@ namespace ElasticRodsGH
         *outAngles = static_cast<double *>(malloc(sizeAngles));
         std::memcpy(*outAngles, angles.data(), sizeAngles);
     }
+    
     // Solver
     EROD_API int erodPeriodicElasticRodNewtonSolver(PeriodicRod *pRod, int numIterations, int numSupports, int numForces, int *supports, double *inForces,
                                                     double gradTol, double beta, int includeForces, int verbose, int useIdentityMetric, int useNegativeCurvatureDirection,
@@ -1399,7 +1412,7 @@ namespace ElasticRodsGH
         default:
             stiffAxis = RodMaterial::StiffAxis::D1;
         }
-        bool keepCrossSectionMesh = false;
+        bool keepCrossSectionMesh = true;
 
         return new RodMaterial(type, E, nu, inParams, stiffAxis, keepCrossSectionMesh);
     }
@@ -1436,7 +1449,7 @@ namespace ElasticRodsGH
             default:
                 stiffAxis = RodMaterial::StiffAxis::D1;
         }
-        bool keepCrossSectionMesh = false;
+        bool keepCrossSectionMesh = true;
 
         auto mat = new RodMaterial();
         mat->setContourGH(E, nu, vertices, lines, holesPts, stiffAxis, keepCrossSectionMesh);
@@ -2204,6 +2217,15 @@ namespace ElasticRodsGH
         std::memcpy(*outSrcTwist, srcTwist.data(), sizeSrcTwist);
     }
 
+    EROD_API void erodRodSegmentGetVonMisesStresses(RodLinkage::RodSegment *segment, double **outData, size_t *numData){
+        auto stresses = segment->rod.maxStresses(CrossSectionStressAnalysis::StressType::VonMises);
+        // Stress Data
+        *numData = stresses.size();
+        auto sizeData = (*numData) * sizeof(double);
+        *outData = static_cast<double *>(malloc(sizeData));
+        std::memcpy(*outData, stresses.data(), sizeData);
+    }
+
     // ElasticRod
     EROD_API ElasticRod *erodElasticRodBuild(int numPoints, double *inCoords, const char **errorMessage)
     {
@@ -2344,7 +2366,7 @@ namespace ElasticRodsGH
         default:
             stiffAxis = RodMaterial::StiffAxis::D1;
         }
-        bool keepCrossSectionMesh = false;
+        bool keepCrossSectionMesh = true;
 
         rod->setMaterial(RodMaterial(type, E, nu, inParams, stiffAxis, keepCrossSectionMesh));
     }
@@ -2565,7 +2587,7 @@ namespace ElasticRodsGH
         default:
             stiffAxis = RodMaterial::StiffAxis::D1;
         }
-        bool keepCrossSectionMesh = false;
+        bool keepCrossSectionMesh = true;
 
         pRod->setMaterial(RodMaterial(type, E, nu, inParams, stiffAxis, keepCrossSectionMesh));
     }

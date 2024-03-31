@@ -139,6 +139,9 @@ namespace ErodModelLib.Creators
                                                 out IntPtr outDirCoords, out IntPtr outSrcThetas, out IntPtr outSrcTwist,
                                                 out int outNumPtsCoords, out int outNumThetas, out int outNumTgtCoords,
                                                 out int outNumDirCoords, out int outNumSrcThetas, out int outNumSrcTwist);
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodRodSegmentGetVonMisesStresses")]
+            internal static extern void ErodRodSegmentGetVonMisesStresses(IntPtr segment, out IntPtr outData, out int numData);
         }
     }
 }

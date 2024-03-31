@@ -179,6 +179,10 @@ namespace ErodModelLib.Creators
             internal static extern void ErodXShellScalarFieldStretchingStresses(IntPtr linkage, out IntPtr outDoFs, out int numDoFs);
 
             [SuppressUnmanagedCodeSecurity]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellScalarFieldVonMisesStresses")]
+            internal static extern void ErodXShellScalarFieldVonMisesStresses(IntPtr linkage, out IntPtr outDoFs, out int numDoFs);
+
+            [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetInitialMinRestLength")]
             internal static extern double ErodXShellGetInitialMinRestLength(IntPtr linkage);
 

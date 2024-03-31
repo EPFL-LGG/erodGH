@@ -126,6 +126,18 @@ namespace ErodModelLib.Types
             return outField;
         }
 
+        public double[] GetScalarFieldVonMisesStresses()
+        {
+            int numField;
+            IntPtr cPtr;
+            Kernel.RodLinkage.ErodXShellScalarFieldVonMisesStresses(Model, out cPtr, out numField);
+
+            double[] outField = new double[numField];
+            Marshal.Copy(cPtr, outField, 0, numField);
+            Marshal.FreeCoTaskMem(cPtr);
+            return outField;
+        }
+
         public override void SetMaterial(int sectionType, double E, double poisonRatio, double[] sectionParams, int axisType)
         {
             Kernel.RodLinkage.ErodXShellSetMaterial(Model, sectionType, E, poisonRatio, sectionParams, sectionParams.Length, axisType);

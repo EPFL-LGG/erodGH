@@ -63,7 +63,7 @@ namespace ErodModelLib.Metrics
                     max = Data.Max();
                     range = max - min;
 
-                    colormap = ColorMaps.GetColorMap(ColorMapTypes.Turbo, alpha);
+                    colormap = ColorMaps.GetColorMap(ColorMapTypes.Turbo_Miscellaneous, alpha);
                     for (int i = 0; i < numSegments; i++)
                     {
                         NormalizedData[i] = (Data[i] - min) / range;
@@ -99,7 +99,7 @@ namespace ErodModelLib.Metrics
                     double scale = 1.0 / (1.0e-8 + 2.0 * (max - mean > mean - min ? max - mean : mean - min));
                     range = max - min;
 
-                    colormap = ColorMaps.GetColorMap(ColorMapTypes.CoolWarm, 255);
+                    colormap = ColorMaps.GetColorMap(ColorMapTypes.CoolWarm_Diverging, 255);
 
                     int numData = tempData.Count();
                     Data = tempData.ToArray();

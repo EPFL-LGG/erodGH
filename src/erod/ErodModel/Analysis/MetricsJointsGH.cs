@@ -8,19 +8,22 @@ using ErodModel.Model;
 using GH_IO.Serialization;
 using ErodModelLib.Metrics;
 using static ErodModelLib.Metrics.JointMetrics;
+using static ErodModelLib.Metrics.RodLinkageMetrics;
+using static ErodModelLib.Utils.ColorMaps;
 
 namespace ErodModel.Analysis
 {
     public class MetricsJointsGH : GH_Component
     {
-        int metrics;
-        List<List<string>> metricsAttributes;
+        int metricIdx, cmapIdx;
+        List<List<string>> menuAttributes;
         List<string> selection;
         bool buildAttributes = true;
 
         #region dropdownmenu content
-        readonly List<string> categories = new List<string>(new string[] { "Metrics" });
+        readonly List<string> categories = new List<string>(new string[] { "Metrics", "ColorMaps" });
         readonly List<string> metricTypes = ((JointMetricTypes[])Enum.GetValues(typeof(JointMetricTypes))).Select(t => t.ToString()).ToList();
+        readonly List<string> cmapTypes = ((ColorMapTypes[])Enum.GetValues(typeof(ColorMapTypes))).Select(t => t.ToString()).ToList();
         #endregion
 
         /// <summary>
@@ -44,23 +47,31 @@ namespace ErodModel.Analysis
                 FunctionToSetSelectedContent(0, 0);
                 buildAttributes = false;
             }
-            m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, metricsAttributes, selection, categories);
+            m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, menuAttributes, selection, categories);
         }
 
         public void FunctionToSetSelectedContent(int dropdownListId, int selectedItemId)
         {
-            if (metricsAttributes == null)
+            if (menuAttributes == null)
             {
-                metricsAttributes = new List<List<string>>();
+                menuAttributes = new List<List<string>>();
                 selection = new List<string>();
-                metricsAttributes.Add(metricTypes);
-                selection.Add(metricTypes[metrics]);
+                menuAttributes.Add(metricTypes);
+                menuAttributes.Add(cmapTypes);
+                selection.Add(metricTypes[metricIdx]);
+                selection.Add(cmapTypes[cmapIdx]);
             }
 
             if (dropdownListId == 0)
             {
-                metrics = selectedItemId;
-                selection[0] = metricsAttributes[0][selectedItemId];
+                metricIdx = selectedItemId;
+                selection[0] = menuAttributes[0][selectedItemId];
+            }
+
+            if (dropdownListId == 1)
+            {
+                cmapIdx = selectedItemId;
+                selection[1] = menuAttributes[1][selectedItemId];
             }
 
             Params.OnParametersChanged();
@@ -75,9 +86,14 @@ namespace ErodModel.Analysis
             pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.item);
             pManager.AddNumberParameter("Size", "Size", "Size of the joints.", GH_ParamAccess.item, 1);
             pManager.AddBooleanParameter("UniformSize", "UniformSize", "Set uniform size.", GH_ParamAccess.item, true);
+            pManager.AddNumberParameter("LowerBound", "LowerBound", "Lower bound of the data set. If no value is explicitly provided, the minimum value of the data set is assumed.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("UpperBound", "UpperBound", "Upper bound of the data set. If no value is explicitly provided, the maximum value of the data set is assumed.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("ShowPlots", "ShowPlots", "Generate graph plots", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
             pManager[2].Optional = true;
+            pManager[3].Optional = true;
+            pManager[4].Optional = true;
+            pManager[5].Optional = true;
         }
 
         /// <summary>
@@ -98,15 +114,18 @@ namespace ErodModel.Analysis
         {
             RodLinkage linkage = null;
             bool show = false, uSize=true;
-            double size = 10.0;
+            double size = 10.0, lowerBound = default, upperBound = default;
             if (!DA.GetData(0, ref linkage)) return;
             DA.GetData(1, ref size);
             DA.GetData(2, ref uSize);
-            DA.GetData(3, ref show);
+            DA.GetData(3, ref lowerBound);
+            DA.GetData(4, ref upperBound);
+            DA.GetData(5, ref show);
 
-            JointMetricTypes jType = ((JointMetricTypes[])Enum.GetValues(typeof(JointMetricTypes)))[metrics];
+            JointMetricTypes jType = ((JointMetricTypes[])Enum.GetValues(typeof(JointMetricTypes)))[metricIdx];
+            ColorMapTypes cmapType = ((ColorMapTypes[])Enum.GetValues(typeof(ColorMapTypes)))[cmapIdx];
 
-            JointMetrics jointMetrics = new JointMetrics(linkage.Joints, jType, size, uSize);
+            JointMetrics jointMetrics = new JointMetrics(linkage.Joints, jType, cmapType, size, uSize, lowerBound, upperBound);
             double[] data;
             switch (jType)
             {
@@ -129,16 +148,23 @@ namespace ErodModel.Analysis
 
         public override bool Write(GH_IWriter writer)
         {
-            writer.SetInt32("metrics", metrics);
+            writer.SetInt32("metricsIdx", metricIdx);
+            writer.SetInt32("cmapIdx", cmapIdx);
             return base.Write(writer);
         }
 
         public override bool Read(GH_IReader reader)
         {
-            if (reader.TryGetInt32("metrics", ref metrics))
+            if (reader.TryGetInt32("metricsIdx", ref metricIdx))
             {
-                FunctionToSetSelectedContent(0, metrics);
-                m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, metricsAttributes, selection, categories);
+                FunctionToSetSelectedContent(0, metricIdx);
+                m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, menuAttributes, selection, categories);
+            }
+
+            if (reader.TryGetInt32("cmapIdx", ref cmapIdx))
+            {
+                FunctionToSetSelectedContent(1, cmapIdx);
+                m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, menuAttributes, selection, categories);
             }
             return base.Read(reader);
         }

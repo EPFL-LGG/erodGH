@@ -5,6 +5,7 @@ using ErodModelLib.Creators;
 using GH_IO.Serialization;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+//using Rhino.Render.ChangeQueue;
 
 namespace ErodModelLib.Types
 {
@@ -340,6 +341,20 @@ namespace ErodModelLib.Types
             Marshal.FreeCoTaskMem(outData);
 
             return data;
+        }
+
+        public double[] GetVonMisesStresses()
+        {
+            IntPtr outData;
+            int outDataCount;
+
+            Kernel.RodSegment.ErodRodSegmentGetVonMisesStresses(_ptr, out outData, out outDataCount);
+
+            double []stresses = new double[outDataCount];
+            Marshal.Copy(outData, stresses, 0, outDataCount);
+            Marshal.FreeCoTaskMem(outData);
+
+            return stresses;
         }
 
         public double GetInitialMinRestLength()

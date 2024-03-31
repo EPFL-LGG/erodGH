@@ -22,7 +22,7 @@ namespace ErodModelLib.Metrics
         private Color _wireColor;
         private Mesh _mesh;
 
-        public QuadMetrics(Curve[] edges, QuadMetricTypes qType, ColorMapTypes colorMapType=ColorMapTypes.Blues, int alpha=75)
+        public QuadMetrics(Curve[] edges, QuadMetricTypes qType, ColorMapTypes colorMapType=ColorMapTypes.Blues_Sequential, int alpha=75)
         {
             _mesh = Mesh.CreateFromLines(edges, 4, 1e-3);
             

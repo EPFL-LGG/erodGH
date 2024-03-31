@@ -5,6 +5,7 @@ using ErodModelLib.Types;
 using ErodModelLib.Utils;
 using GH_IO.Serialization;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino;
 using Rhino.DocObjects;
@@ -15,19 +16,19 @@ namespace ErodModelLib.Metrics
 {
 	public class RodLinkageMetrics : IGH_PreviewData, IGH_Goo, IGH_BakeAwareData
     {
-        public enum LinkageMetricTypes {   SqrtBendingEnergies, MaxBendingStresses, MinBendingStresses, TwistingStresses }
+        public enum LinkageMetricTypes {   SqrtBendingEnergies, MaxBendingStresses, MinBendingStresses, TwistingStresses, VonMises }
 
         public double[] Data { get; private set; }
         public double[] NormalizedData { get; private set; }
         public LinkageMetricTypes LTypes { get; private set; }
 
-        private Mesh _mesh;
+        public Mesh Mesh { get; private set; }
         private Color _wireColor;
 
-        public RodLinkageMetrics(RodLinkage linkage, LinkageMetricTypes lType, ColorMapTypes cMap, int alpha)
+        public RodLinkageMetrics(RodLinkage linkage, LinkageMetricTypes lType, ColorMapTypes cMap, int alpha, double lowerBound=default, double upperBound=default)
 		{
             LTypes = lType;
-            _mesh = linkage.MeshVis.DuplicateMesh();
+            Mesh = linkage.MeshVis.DuplicateMesh();
 
             switch (LTypes)
             {
@@ -43,24 +44,30 @@ namespace ErodModelLib.Metrics
                 case LinkageMetricTypes.TwistingStresses:
                     Data = linkage.GetScalarFieldTwistingStresses();
                     break;
+                case LinkageMetricTypes.VonMises:
+                    Data = linkage.GetScalarFieldVonMisesStresses();
+                    break;
                 default:
                     Data = linkage.GetScalarFieldSqrtBendingEnergies();
                     break;
             }
-
-            double min = Data.Min();
-            double max = Data.Max();
-            double range = max - min;
+            double tol = +1.0e-8;
+            double min = lowerBound == default ? Data.Min() : lowerBound == 0 ? tol : lowerBound;
+            double max = upperBound==default ? Data.Max() : upperBound;
+            double range = max - min + tol;
 
             Color[] colormap = ColorMaps.GetColorMap(cMap, alpha==0 ? 1 : alpha);
+            int lastColor = colormap.Length-1;
             _wireColor = Color.FromArgb(alpha,250,235,215); // AntiqueWhite
             NormalizedData = new double[Data.Length];
             for (int i = 0; i < Data.Length; i++)
             {
                 NormalizedData[i] = (Data[i] - min) / range;
 
-                int colorIndex = (int)(NormalizedData[i] * (colormap.Length - 1));
-                _mesh.VertexColors.Add(colormap[colorIndex]);
+                int colorIndex = (int)(NormalizedData[i] * lastColor);
+                if (colorIndex < 0) colorIndex = 0;
+                else if (colorIndex > lastColor) colorIndex = lastColor;
+                Mesh.VertexColors.Add(colormap[colorIndex]);
             }
         }
 
@@ -81,7 +88,7 @@ namespace ErodModelLib.Metrics
             ObjectAttributes att1 = att.Duplicate();
             att1.AddToGroup(idxGr);
 
-            doc.Objects.AddMesh(_mesh);
+            doc.Objects.AddMesh(Mesh);
 
             return true;
         }
@@ -90,18 +97,18 @@ namespace ErodModelLib.Metrics
         {
             get
             {
-                return new BoundingBox(_mesh.Vertices.ToPoint3dArray());
+                return new BoundingBox(Mesh.Vertices.ToPoint3dArray());
             }
         }
 
         public void DrawViewportMeshes(GH_PreviewMeshArgs args)
         {
-            args.Pipeline.DrawMeshFalseColors(_mesh);
+            args.Pipeline.DrawMeshFalseColors(Mesh);
         }
 
         public void DrawViewportWires(GH_PreviewWireArgs args)
         {
-            args.Pipeline.DrawMeshWires(_mesh, _wireColor);
+            args.Pipeline.DrawMeshWires(Mesh, _wireColor);
         }
 
         #region GH_Methods

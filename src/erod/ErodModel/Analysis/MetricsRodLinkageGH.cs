@@ -84,8 +84,13 @@ namespace ErodModel.Analysis
         {
             pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.item);
             pManager.AddNumberParameter("Alpha", "Alpha", "Set the alpha value (from 0.0 to 1.0) to control the transparency of the visualization", GH_ParamAccess.item, 0.3);
+            pManager.AddNumberParameter("LowerBound", "LowerBound", "Lower bound of the data set. If no value is explicitly provided, the minimum value of the data set is assumed.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("UpperBound", "UpperBound", "Upper bound of the data set. If no value is explicitly provided, the maximum value of the data set is assumed.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("ShowPlots", "ShowPlots", "Generate graph plots", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
+            pManager[2].Optional = true;
+            pManager[3].Optional = true;
+            pManager[4].Optional = true;
         }
 
         /// <summary>
@@ -93,7 +98,7 @@ namespace ErodModel.Analysis
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Metrics", "Metrics", "RodLinkage metrics visualization.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mesh", "M", "RodLinkage mesh color coded with selected metrics.", GH_ParamAccess.item);
             pManager.AddNumberParameter("Data", "Data", "Sacalr data field calculated based on the metric type.", GH_ParamAccess.list);
         }
 
@@ -106,20 +111,22 @@ namespace ErodModel.Analysis
         {
             RodLinkage linkage = null;
             bool show = false;
-            double alpha = 0.3;
+            double alpha = 0.3, lowerBound=default, upperBound=default;
             if (!DA.GetData(0, ref linkage)) return;
             DA.GetData(1, ref alpha);
-            DA.GetData(2, ref show);
+            DA.GetData(2, ref lowerBound);
+            DA.GetData(3, ref upperBound);
+            DA.GetData(4, ref show);
 
             LinkageMetricTypes linkageType = ((LinkageMetricTypes[])Enum.GetValues(typeof(LinkageMetricTypes)))[metricIdx];
             ColorMapTypes cmapType = ((ColorMapTypes[])Enum.GetValues(typeof(ColorMapTypes)))[cmapIdx];
 
-            RodLinkageMetrics linkageMetrics = new RodLinkageMetrics(linkage, linkageType, cmapType, (int)(alpha * 255));
+            RodLinkageMetrics linkageMetrics = new RodLinkageMetrics(linkage, linkageType, cmapType, (int)(alpha * 255), lowerBound, upperBound);
             double[] data = linkageMetrics.Data;
 
             if (show) GraphPlotter.HistogramLinkagesScalarFields(data, linkageType.ToString());
 
-            DA.SetData(0, linkageMetrics);
+            DA.SetData(0, linkageMetrics.Mesh);
             DA.SetDataList(1, data);
         }
 

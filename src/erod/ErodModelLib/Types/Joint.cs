@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using ErodDataLib.Types;
 using ErodModelLib.Creators;
 using GH_IO.Serialization;
 using Grasshopper.Kernel.Types;
@@ -11,10 +10,12 @@ namespace ErodModelLib.Types
     public class Joint : IGH_Goo
     {
         private IntPtr _ptr;
+        public double RestAlpha { get; private set; }
 
         public Joint(IntPtr linkage, int index)
         {
             _ptr = Kernel.LinkageJoint.ErodJointBuild(linkage, index);
+            RestAlpha = GetAlpha();
         }
 
         public Point3d GetPositionAsPoint3d()

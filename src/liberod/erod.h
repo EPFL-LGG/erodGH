@@ -125,6 +125,8 @@ namespace ElasticRodsGH
     EROD_API void erodXShellScalarFieldSqrtBendingEnergies(RodLinkage *linkage, double **outField, size_t *numField);
 
     EROD_API void erodXShellScalarFieldMaxBendingStresses(RodLinkage *linkage, double **outField, size_t *numField);
+    
+    EROD_API void erodXShellScalarFieldVonMisesStresses(RodLinkage *linkage, double **outField, size_t *numField);
 
     EROD_API void erodXShellScalarFieldMinBendingStresses(RodLinkage *linkage, double **outField, size_t *numField);
 
@@ -287,6 +289,8 @@ namespace ElasticRodsGH
                                                 size_t *outNumPtsCoords, size_t *outNumThetas, size_t *outNumTgtCoords,
                                                 size_t *outNumDirCoords, size_t *outNumSrcThetas, size_t *outNumSrcTwist);
     
+    EROD_API void erodRodSegmentGetVonMisesStresses(RodLinkage::RodSegment *segment, double **outData, size_t *numData);
+
     // ElasticRod
     EROD_API ElasticRod *erodElasticRodBuild(int numPoints, double *inCoords, const char **errorMessage);
 
