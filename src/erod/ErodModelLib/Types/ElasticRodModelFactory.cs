@@ -64,7 +64,7 @@ namespace ErodModelLib.Types
         {
             if (data.Forces.Count > 0)
             {
-                foreach (ForceData force in data.Forces)
+                foreach (UnaryForceData force in data.Forces)
                 {
                     model.AddForces(force);
                 }

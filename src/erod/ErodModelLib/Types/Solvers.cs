@@ -8,7 +8,7 @@ namespace ErodModelLib.Types
 {
     public static class NewtonSolver
     {
-        public static bool Optimize(ElasticModel model, NewtonSolverOpts options, out ConvergenceReport report, bool updateMesh = true, double deployedAngle=0, bool lastStep=false)
+        public static bool Optimize(ElasticModel model, NewtonSolverOpts options, out ConvergenceReport report, bool updateMesh = true, double deployedAngle=0, bool lastStep=false, bool includeTemporarySupports=true)
         {
             int numIterations = options.NumIterations;
             bool writeReport = false;
@@ -20,8 +20,10 @@ namespace ErodModelLib.Types
             }
 
             // Supports
-            HashSet<int> allSupports = new HashSet<int>(model.Supports);
-            int[] supports = allSupports.Concat(model.TemporarySupports).ToArray();
+            int[] supports = model.Supports.GetSupportsDoFsIndices(includeTemporarySupports);
+
+            // Forces
+            double[] forces = model.ComputeForceVars();
 
             IntPtr ptrReport;
             int errorCode;
@@ -29,19 +31,19 @@ namespace ErodModelLib.Types
             switch (model.ModelType)
             {
                 case ModelTypes.ElasticRod:
-                    errorCode = Kernel.Solvers.ErodElasticRodNewtonSolver(model.Model, numIterations, supports.Length, model.Forces.Length, supports, model.Forces, options.GradTol, options.Beta, Convert.ToInt32(options.IncludeForces),
+                    errorCode = Kernel.Solvers.ErodElasticRodNewtonSolver(model.Model, numIterations, supports.Length, forces.Length, supports, forces, options.GradTol, options.Beta, Convert.ToInt32(options.IncludeForces),
                                                                     Convert.ToInt32(options.Verbose), Convert.ToInt32(options.UseIdentityMetric), Convert.ToInt32(options.UseNegativeCurvatureDirection), Convert.ToInt32(options.FeasibilitySolve), Convert.ToInt32(options.VerboseNonPosDef), Convert.ToInt32(writeReport), out ptrReport, out model.Error);
                     break;
                 case ModelTypes.PeriodicRod:
-                    errorCode = Kernel.Solvers.ErodPeriodicElasticRodNewtonSolver(model.Model, numIterations, supports.Length, model.Forces.Length, supports, model.Forces, options.GradTol, options.Beta, Convert.ToInt32(options.IncludeForces),
+                    errorCode = Kernel.Solvers.ErodPeriodicElasticRodNewtonSolver(model.Model, numIterations, supports.Length, forces.Length, supports, forces, options.GradTol, options.Beta, Convert.ToInt32(options.IncludeForces),
                                                                     Convert.ToInt32(options.Verbose), Convert.ToInt32(options.UseIdentityMetric), Convert.ToInt32(options.UseNegativeCurvatureDirection), Convert.ToInt32(options.FeasibilitySolve), Convert.ToInt32(options.VerboseNonPosDef), Convert.ToInt32(writeReport), out ptrReport, out model.Error);
                     break;
                 case ModelTypes.RodLinkage:
-                    errorCode = Kernel.Solvers.ErodXShellNewtonSolver(model.Model, numIterations, deployedAngle, supports.Length, model.Forces.Length, supports, model.Forces, options.GradTol, options.Beta, Convert.ToInt32(options.IncludeForces),
+                    errorCode = Kernel.Solvers.ErodXShellNewtonSolver(model.Model, numIterations, deployedAngle, supports.Length, forces.Length, supports, forces, options.GradTol, options.Beta, Convert.ToInt32(options.IncludeForces),
                                                                     Convert.ToInt32(options.Verbose), Convert.ToInt32(options.UseIdentityMetric), Convert.ToInt32(options.UseNegativeCurvatureDirection), Convert.ToInt32(options.FeasibilitySolve), Convert.ToInt32(options.VerboseNonPosDef), Convert.ToInt32(writeReport), out ptrReport, out model.Error);
                     break;
                 case ModelTypes.AttractedSurfaceRodLinkage:
-                    errorCode = Kernel.Solvers.ErodXShellAttractedLinkageNewtonSolver(model.Model, numIterations, deployedAngle, supports.Length, model.Forces.Length, supports, model.Forces, options.GradTol, options.Beta, Convert.ToInt32(options.IncludeForces),
+                    errorCode = Kernel.Solvers.ErodXShellAttractedLinkageNewtonSolver(model.Model, numIterations, deployedAngle, supports.Length, forces.Length, supports, forces, options.GradTol, options.Beta, Convert.ToInt32(options.IncludeForces),
                                                                     Convert.ToInt32(options.Verbose), Convert.ToInt32(options.UseIdentityMetric), Convert.ToInt32(options.UseNegativeCurvatureDirection), Convert.ToInt32(options.FeasibilitySolve), Convert.ToInt32(options.VerboseNonPosDef), Convert.ToInt32(writeReport), out ptrReport, out model.Error);
                     break;
                 default:

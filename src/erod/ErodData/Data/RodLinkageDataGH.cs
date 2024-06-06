@@ -1,5 +1,4 @@
-﻿
-using ErodDataLib.Types;
+﻿using ErodDataLib.Types;
 using ErodDataLib.Utils;
 using GH_IO.Serialization;
 using Grasshopper;
@@ -8,6 +7,7 @@ using Grasshopper.Kernel.Data;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace ErodData.Data
@@ -84,10 +84,12 @@ namespace ErodData.Data
             pManager.AddGenericParameter("Normals", "Norm", "Normals.", GH_ParamAccess.list);
             pManager.AddGenericParameter("Material", "Mat", "Material.", GH_ParamAccess.list);
             pManager.AddGenericParameter("TargetSurface", "TargetSrf", "TargetSurface.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Cables", "C", "Cables.", GH_ParamAccess.list);
             pManager[1].Optional = true;
             pManager[2].Optional = true;
             pManager[3].Optional = true;
             pManager[5].Optional = true;
+            pManager[6].Optional = true;
         }
 
         /// <summary>
@@ -108,7 +110,8 @@ namespace ErodData.Data
         {
             List<SegmentData> edges = new List<SegmentData>();
             List<SupportData> supports = new List<SupportData>();
-            List<ForceData> forces = new List<ForceData>();
+            List<UnaryForceData> forces = new List<UnaryForceData>();
+            List<CableForceData> cables = new List<CableForceData>();
             List<NormalData> normals = new List<NormalData>();
             List<MaterialData> materials = new List<MaterialData>();
             TargetSurfaceData targetSrf = null;
@@ -118,6 +121,7 @@ namespace ErodData.Data
             DA.GetDataList(3, normals);
             DA.GetDataList(4, materials);
             DA.GetData(5, ref targetSrf);
+            DA.GetDataList(6, cables);
 
             // Set worldZ in case no normal is provided
             if (normals.Count == 0)
@@ -155,9 +159,13 @@ namespace ErodData.Data
             {
                 data.AddSupport(s);
             }
-            foreach (ForceData f in forces)
+            foreach (UnaryForceData f in forces)
             {
                 data.AddForce(f);
+            }
+            foreach (CableForceData f in cables)
+            {
+                data.AddCable(f);
             }
             foreach (MaterialData m in materials)
             {

@@ -4,20 +4,21 @@ using Rhino.Geometry;
 
 namespace ErodDataLib.Types
 {
-    public class ForceData : ElementData
+    public class UnaryForceData : ElementData
     {
-        public int[] Indexes { get; set; }
+        public int[] Indices { get; set; }
         public Vector3d Vector { get; set; }
-        public ForceData(JToken data) : base(1)
+
+        public UnaryForceData(JToken data) : base(1)
         {
             // Indexes
-            var token = data["Indexes"];
+            var token = data["Indices"];
             int count = token.Count();
-            Indexes = new int[count];
+            Indices = new int[count];
             for (int i = 0; i < count; i++)
             {
                 var p = token[i];
-                Indexes[i] = (int)token[i];
+                Indices[i] = (int)token[i];
             }
 
             // Vector force
@@ -25,9 +26,9 @@ namespace ErodDataLib.Types
             Vector = new Vector3d( (double)token["X"], (double)token["Y"], (double)token["Z"] );
         }
 
-        public ForceData(Point3d p) : base(p)
+        public UnaryForceData(Point3d p) : base(p)
         {
-            Indexes = new int[1];
+            Indices = new int[1];
         }
 
         public override string ToString()

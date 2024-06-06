@@ -41,10 +41,10 @@ namespace ErodDataLib.Types
 
             // Forces
             var fData = data["Forces"];
-            Forces = new List<ForceData>();
+            Forces = new List<UnaryForceData>();
             foreach (var f in fData)
             {
-                Forces.Add(new ForceData(f));
+                Forces.Add(new UnaryForceData(f));
             }
 
             // Materials
@@ -69,7 +69,8 @@ namespace ErodDataLib.Types
             Joints = new List<JointData>();
             Segments = new List<SegmentData>();
             Supports = new List<SupportData>();
-            Forces = new List<ForceData>();
+            Forces = new List<UnaryForceData>();
+            Cables = new List<CableForceData>();
             MaterialData = new List<MaterialData>();
             Interleaving = (int)interleavingType;
             Vertices = new PointCloud();

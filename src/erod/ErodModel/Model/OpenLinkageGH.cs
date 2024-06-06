@@ -11,7 +11,7 @@ namespace ErodModel.Model
 {
     public class OpenLinkageGH : GH_Component
     {
-        private bool run;
+        private bool run, includeTemporarySupports;
         private int steps = 1;//, openingSteps = 0;
         private RodLinkage copy;
         private NewtonSolverOpts opts;
@@ -148,6 +148,7 @@ namespace ErodModel.Model
                     copy = (RodLinkage)model.Clone();
                     report = new ConvergenceReport();
 
+                    includeTemporarySupports = true;
                     closedAngle = copy.GetAverageJointAngle();
                     refAngle = (deployedAngle - closedAngle) / opts.OpeningSteps;
                     steps = 1;
@@ -155,7 +156,7 @@ namespace ErodModel.Model
 
                 if (run)
                 {
-                    if (steps >= suppIndicator) copy.ClearTemporarySupports();
+                    if (steps >= suppIndicator) includeTemporarySupports=false;
                     if (steps < opts.OpeningSteps)
                     {
                         this.Message = "Opening Step " + steps;
@@ -163,11 +164,11 @@ namespace ErodModel.Model
 
                         if (graphics == 0)
                         {
-                            NewtonSolver.Optimize(copy, opts, out report, true, angle);
+                            NewtonSolver.Optimize(copy, opts, out report, true, angle, false, includeTemporarySupports);
                         }
                         else
                         {
-                            NewtonSolver.Optimize(copy, opts, out report, false, angle);
+                            NewtonSolver.Optimize(copy, opts, out report, false, angle, includeTemporarySupports);
                         }
                         report.OpeningStep = steps;
                         steps++;
@@ -177,11 +178,11 @@ namespace ErodModel.Model
                     {
                         if (graphics == 0)
                         {
-                            NewtonSolver.Optimize(copy, opts, out report, true, deployedAngle, true);
+                            NewtonSolver.Optimize(copy, opts, out report, true, deployedAngle, true, includeTemporarySupports);
                         }
                         else
                         {
-                            NewtonSolver.Optimize(copy, opts, out report, false, deployedAngle, true);
+                            NewtonSolver.Optimize(copy, opts, out report, false, deployedAngle, true, includeTemporarySupports);
                         }
                         report.OpeningStep = steps;
                         steps++;

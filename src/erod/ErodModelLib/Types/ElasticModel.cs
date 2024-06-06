@@ -16,15 +16,12 @@ namespace ErodModelLib.Types
     {
         protected double oldEnergy = 0;
         public Mesh MeshVis { get; protected set; }
-        public List<Point3d> SupportVis { get; protected set; }
-        public List<Point3d> TemporarySupportVis { get; protected set; }
 
         public IntPtr Error;
         public IntPtr Model { get;  protected set; }
-        public int[] Supports { get; set; }
-        public int[] TemporarySupports { get; set; }
-        public double[] Forces { get; set; }
         public ModelTypes ModelType { get; protected set; }
+        public SupportCollection Supports { get; set; }
+        public ForceCollection Forces { get; set; }
 
         protected abstract void Init();
 
@@ -40,7 +37,9 @@ namespace ErodModelLib.Types
 
         public abstract void AddSupports(SupportData anchor);
 
-        public abstract void AddForces(ForceData force);
+        public abstract void AddForces(CableForceData force);
+
+        public abstract void AddForces(UnaryForceData force);
 
         public abstract object Clone();
 
@@ -48,27 +47,7 @@ namespace ErodModelLib.Types
 
         public abstract int[] GetCentralSupportVars();
 
-        public abstract void ClearTemporarySupports();
-
-        public bool EquilibriumFound(double threshold = 1e-6, bool isMeshUpdated = true)
-        {
-            double newEnergy = GetEnergy();
-            if (Math.Abs(oldEnergy - newEnergy) <= threshold)
-            {
-                if (!isMeshUpdated) this.UpdateMesh();
-                return true;
-            }
-            else
-            {
-                oldEnergy = newEnergy;
-                return false;
-            }
-        }
-
-        public void LockCentralSupportVars()
-        {
-            Supports = GetCentralSupportVars();
-        }
+        public abstract double[] ComputeForceVars();
 
         #region GH_Methods
         public bool IsValid

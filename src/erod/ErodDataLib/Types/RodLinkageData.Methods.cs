@@ -87,17 +87,30 @@ namespace ErodDataLib.Types
             }
         }
 
-        public void AddForce(ForceData force)
+        public void AddForce(UnaryForceData force)
         {
             Point3d p = force.GetPoint(0);
 
             int idx = Vertices.ClosestPoint(p);
             if (idx != -1)
             {
-                force.Indexes[0] = idx;
+                force.Indices[0] = idx;
 
                 Forces.Add(force);
             }
+        }
+
+        public void AddCable(CableForceData force)
+        {
+            Point3d p0 = force.GetPoint(0);
+            int idx0 = Vertices.ClosestPoint(p0);
+            if (idx0 != -1) force.Indices[0] = idx0;
+
+            Point3d p1 = force.GetPoint(1);
+            int idx1 = Vertices.ClosestPoint(p1);
+            if (idx1 != -1) force.Indices[1] = idx1;
+
+            Cables.Add(force);
         }
 
         public void AddNormal(NormalData normal)

@@ -21,25 +21,19 @@ namespace ErodModelLib.Types
             if (Model != IntPtr.Zero)
             {
                 Init();
-                Supports = (int[])model.Supports.Clone();
-                TemporarySupports = (int[])model.TemporarySupports.Clone();
 
                 _jointsCloud = new PointCloud(model._jointsCloud);
                 _nodesCloud = new PointCloud(model._nodesCloud);
                 Layout = new RodLinkageLayout(model.Layout);
                 TargetAngle = model.TargetAngle;
-                SupportVis = new List<Point3d>(model.SupportVis);
-                TemporarySupportVis = new List<Point3d>(model.TemporarySupportVis);
+
+                Supports = (SupportCollection) model.Supports.Clone();
+                Forces = (ForceCollection)model.Forces.Clone();
 
                 HomogenousMaterial = new MaterialData(model.HomogenousMaterial);
                 RodMaterials = model.RodMaterials;
                 ModelType = model.ModelType;
 
-                if (model.Forces.Length != 0)
-                {
-                    Forces = new double[model.Forces.Length];
-                    Array.Copy(model.Forces, Forces, model.Forces.Length);
-                }
                 InitMesh();
             }
             else
@@ -198,12 +192,9 @@ namespace ErodModelLib.Types
 
         protected override void Init()
         {
-            Supports = new int[0];
-            TemporarySupports = new int[0];
-            Forces = new double[0];
+            Forces = new ForceCollection();
             ModelType = ModelTypes.RodLinkage;
-            SupportVis = new List<Point3d>();
-            TemporarySupportVis = new List<Point3d>();
+            Supports = new SupportCollection();
             InitJoints();
             InitSegments();
             InitNodes();

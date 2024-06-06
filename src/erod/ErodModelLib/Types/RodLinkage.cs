@@ -56,18 +56,24 @@ namespace ErodModelLib.Types
 
         private void AddSupportData(RodLinkageData data)
         {
-            if (data.Supports.Count > 0)
-            {
-                foreach (SupportData anchor in data.Supports) AddSupports(anchor);
-            }
+            if (data.Supports.Count > 0) foreach (SupportData anchor in data.Supports) AddSupports(anchor);
             else AddCentralSupport();
         }
+
 
         private void AddForceData(RodLinkageData data)
         {
             if (data.Forces.Count > 0)
             {
-                foreach (ForceData force in data.Forces)
+                foreach (UnaryForceData force in data.Forces)
+                {
+                    AddForces(force);
+                }
+            }
+
+            if (data.Cables.Count > 0)
+            {
+                foreach (CableForceData force in data.Cables)
                 {
                     AddForces(force);
                 }

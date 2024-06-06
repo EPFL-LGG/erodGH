@@ -90,6 +90,7 @@ namespace ErodModel.Model
         {
             pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.item);
             pManager.AddGenericParameter("Report", "Report", "Convergence report", GH_ParamAccess.item);
+            pManager.AddGenericParameter("DoFs", "DoFs", "DoFs", GH_ParamAccess.list);
         }
 
         protected override void AfterSolveInstance()
@@ -157,6 +158,7 @@ namespace ErodModel.Model
 
             DA.SetData(0, copy);
             DA.SetData(1, report);
+            DA.SetDataList(2, copy.Forces);
         }
 
         public override bool Write(GH_IWriter writer)

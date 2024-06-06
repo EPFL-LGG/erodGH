@@ -58,7 +58,7 @@ namespace ErodData.Data
             Curve crv = null;
             bool removeCurvatures = true;
             List<SupportData> supports = new List<SupportData>();
-            List<ForceData> forces = new List<ForceData>();
+            List<UnaryForceData> forces = new List<UnaryForceData>();
             List<MaterialData> materials = new List<MaterialData>();
             DA.GetData(0, ref crv);
             DA.GetDataList(1, supports);
@@ -84,7 +84,7 @@ namespace ErodData.Data
                 {
                     ElasticRodDataFactory.AddSupport(s, ref data);
                 }
-                foreach (ForceData f in forces)
+                foreach (UnaryForceData f in forces)
                 {
                     ElasticRodDataFactory.AddForce(f, ref data);
                 }

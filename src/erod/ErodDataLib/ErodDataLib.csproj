@@ -110,7 +110,8 @@
     <Compile Include="Utils\SSHConnector.cs" />
     <Compile Include="Utils\WeavingOpt.cs" />
     <Compile Include="Types\OptimizationOptions.cs" />
-    <Compile Include="Types\ForceData.cs" />
+    <Compile Include="Types\UnaryForceData.cs" />
+    <Compile Include="Types\CableForceData.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Types\" />

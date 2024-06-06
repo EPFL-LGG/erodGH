@@ -98,15 +98,10 @@ namespace ErodModelLib.Types
             if (Model != IntPtr.Zero)
             {
                 Init();
-                Supports = (int[]) model.Supports.Clone();
-                TemporarySupports = (int[])model.TemporarySupports.Clone();
+                Supports = (SupportCollection)model.Supports.Clone();
+                Forces = (ForceCollection)model.Forces.Clone();
 
                 _nodesCloud = new PointCloud(model._nodesCloud);
-                if (model.Forces.Length != 0)
-                {
-                    Forces = new double[model.Forces.Length];
-                    Array.Copy(model.Forces, Forces, model.Forces.Length);
-                }
                 InitMesh();
             }
             else
@@ -128,12 +123,9 @@ namespace ErodModelLib.Types
 
         protected override void Init()
         {
-            Supports = new int[0];
-            TemporarySupports = new int[0];
-            SupportVis = new List<Point3d>();
-            TemporarySupportVis = new List<Point3d>();
+            Supports = new SupportCollection();
+            Forces = new ForceCollection();
 
-            Forces = new double[0];
             if (IsPeriodicRod) ModelType = ModelTypes.PeriodicRod;
             else ModelType = ModelTypes.ElasticRod;
         }
@@ -195,20 +187,6 @@ namespace ErodModelLib.Types
             }
         }
 
-        public override void ClearTemporarySupports()
-        {
-            TemporarySupports = new int[0];
-            TemporarySupportVis.Clear();
-
-            if (SupportVis.Count == 0)
-            {
-                BoundingBox bb = new BoundingBox(_nodesCloud.GetPoints());
-                Point3d p = bb.PointAt(0.5, 0.5, 0.5);
-
-                AddSupports(new SupportData(_nodesCloud.PointAt(_nodesCloud.ClosestPoint(p)), new int[] { 0, 1, 2, 3, 4, 5 }));
-            }
-        }
-
         public override void AddSupports(SupportData anchor)
         {
             Point3d p = anchor.GetPoint(0);
@@ -217,43 +195,24 @@ namespace ErodModelLib.Types
 
             int idx = _nodesCloud.ClosestPoint(p);
 
+            int[] outVars = new int[dof.Length];
+            for (int i = 0; i < dof.Length; i++) outVars[i] = idx * 3 + dof[i];
 
-            // TODO: Include orientation constraint
-            List<int> outVars = new List<int>(Supports);
-            for (int i=0; i<dof.Length; i++)
-            {
-                if (dof[i] <= 2)
-                {
-                    outVars.Add(idx * 3 + dof[i]);
-                }
-            }
-
-            if (anchor.IsTemporary)
-            {
-                TemporarySupportVis.Add(_nodesCloud[idx].Location);
-                TemporarySupports = TemporarySupports.Concat(outVars).ToArray();
-            }
-            else
-            {
-                SupportVis.Add(_nodesCloud[idx].Location);
-                Supports = Supports.Concat(outVars).ToArray();
-            }
+            Support sp = new Support(p, outVars, anchor.IsTemporary);
+            Supports.Add(sp);
         }
 
-        public override void AddForces(ForceData force)
+        public override void AddForces(UnaryForceData force)
         {
-            if (Forces.Length == 0)
-            {
-                Forces = new double[GetDoFCount()];
-            }
+            int idx = _nodesCloud.ClosestPoint(force.GetPoint(0));
+            Force f = new UnaryForce(idx, force.Vector, false);
+            Forces.Add(f);
+        }
 
-            Point3d p = force.GetPoint(0);
-
-            int idx = _nodesCloud.ClosestPoint(p);
-
-            Forces[idx*3] = force.Vector[0];
-            Forces[idx * 3 + 1] = force.Vector[1];
-            Forces[idx * 3 + 2] = force.Vector[2];
+        // TODO: implement cable forces for nodes
+        public override void AddForces(CableForceData force)
+        {
+            throw new NotImplementedException();
         }
 
         public override int[] GetCentralSupportVars()
@@ -370,6 +329,12 @@ namespace ErodModelLib.Types
                 Kernel.ElasticRod.ErodElasticRodGetSqrtBendingEnergies(Model, stresses, VerticesCount);
             }
             return stresses;
+        }
+
+        //TODO: Implemet compute forces
+        public override double[] ComputeForceVars()
+        {
+            return new double[0];
         }
     }
 }

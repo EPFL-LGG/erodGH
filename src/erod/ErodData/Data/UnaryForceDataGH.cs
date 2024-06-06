@@ -5,12 +5,12 @@ using System;
 
 namespace ErodData.Data
 {
-    public class ForceGH : GH_Component
+    public class UnaryForceDataGH : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the ForceVectorGH class.
         /// </summary>
-        public ForceGH()
+        public UnaryForceDataGH()
           : base("Force", "Force",
               "External force.",
               "Erod", "Data")
@@ -45,7 +45,7 @@ namespace ErodData.Data
             DA.GetData(0, ref pos);
             DA.GetData(1, ref vec);
 
-            ForceData force = new ForceData(pos);
+            UnaryForceData force = new UnaryForceData(pos);
             force.Vector = vec;
 
             DA.SetData(0, force);

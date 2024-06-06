@@ -49,7 +49,7 @@ namespace ErodModel.Model
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             RodLinkage model = null;
-            List<ForceData> forces = new List<ForceData>();
+            List<UnaryForceData> forces = new List<UnaryForceData>();
             DA.GetData(0, ref model);
             DA.GetDataList(1, forces);
 

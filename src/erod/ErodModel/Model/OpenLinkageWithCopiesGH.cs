@@ -9,7 +9,7 @@ namespace ErodModel.Model
 {
     public class OpenLinkageWithCopiesGH : GH_Component
     {
-        private bool run;
+        private bool run, includeTemporarySupports;
         private int steps = 1;//, openingSteps = 0;
         private RodLinkage mainCopy;
         private NewtonSolverOpts opts;
@@ -99,12 +99,14 @@ namespace ErodModel.Model
             else
             {
                 double deployedAngle = angleDegrees * Math.PI / 180;
+                double suppIndicator = opts.OpeningSteps * opts.TemporarySupportIndicator;
 
                 if (reset || mainCopy == null)
                 {
                     this.Message = "Reset";
                     mainCopy = (RodLinkage)model.Clone();
                     report = new ConvergenceReport();
+                    includeTemporarySupports = true;
 
                     closedAngle = mainCopy.GetAverageJointAngle();
                     refAngle = (deployedAngle - closedAngle) / opts.OpeningSteps;
@@ -116,12 +118,13 @@ namespace ErodModel.Model
 
                 if (run)
                 {
+                    if (steps >= suppIndicator) includeTemporarySupports = false;
                     if (steps < opts.OpeningSteps)
                     {
                         this.Message = "Opening Step " + steps;
                         double angle = closedAngle + refAngle * steps;
 
-                        NewtonSolver.Optimize(mainCopy, opts, out report, true, angle);
+                        NewtonSolver.Optimize(mainCopy, opts, out report, true, angle, false, includeTemporarySupports);
                         copies.Add((RodLinkage)mainCopy.Clone());
  
                         report.OpeningStep = steps;
@@ -130,7 +133,7 @@ namespace ErodModel.Model
                     }
                     else if (steps == opts.OpeningSteps)
                     {
-                        NewtonSolver.Optimize(mainCopy, opts, out report, true, deployedAngle, true);
+                        NewtonSolver.Optimize(mainCopy, opts, out report, true, deployedAngle, true, includeTemporarySupports);
                         copies.Add((RodLinkage)mainCopy.Clone());
                         report.OpeningStep = steps;
                         steps++;

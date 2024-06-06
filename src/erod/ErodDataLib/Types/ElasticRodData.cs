@@ -10,7 +10,7 @@ namespace ErodDataLib.Types
     {
         public List<NodeData> Nodes { get; set; }
         public List<SupportData> Supports { get; set; }
-        public List<ForceData> Forces { get; set; }
+        public List<UnaryForceData> Forces { get; set; }
         public List<MaterialData> MaterialData { get; set; }
         public double MinLength { get; set; }
         public double MaxLength { get; set; }
@@ -22,7 +22,7 @@ namespace ErodDataLib.Types
         {
             Nodes = new List<NodeData>();
             Supports = new List<SupportData>();
-            Forces = new List<ForceData>();
+            Forces = new List<UnaryForceData>();
             MaterialData = new List<MaterialData>();
             Cloud = new PointCloud();
             IsPeriodic = false;

@@ -109,6 +109,12 @@
     <Compile Include="Metrics\QuadMetrics.cs" />
     <Compile Include="Metrics\SegmentMetrics.cs" />
     <Compile Include="Metrics\RodLinkageMetrics.cs" />
+    <Compile Include="Types\Support.cs" />
+    <Compile Include="Types\SupportCollection.cs" />
+    <Compile Include="Types\CableForce.cs" />
+    <Compile Include="Types\Force.cs" />
+    <Compile Include="Types\ForceCollection.cs" />
+    <Compile Include="Types\UnaryForce.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Creators\" />

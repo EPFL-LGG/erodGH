@@ -37,14 +37,14 @@ namespace ErodDataLib.Types
             }
         }
 
-        public static void AddForce(ForceData force, ref ElasticRodData data)
+        public static void AddForce(UnaryForceData force, ref ElasticRodData data)
         {
             Point3d p = force.GetPoint(0);
 
             int idx = data.Cloud.ClosestPoint(p);
             if (idx != -1)
             {
-                force.Indexes[0] = idx;
+                force.Indices[0] = idx;
 
                 data.Forces.Add(force);
             }

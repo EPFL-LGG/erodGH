@@ -118,6 +118,8 @@ namespace ElasticRodsGH
     
     EROD_API void erodXShellGetDoFs(RodLinkage *linkage, double **outDoFs, size_t *numDoFs);
 
+    EROD_API void erodXShellSetDoFs(RodLinkage *linkage, double *inDoFs, size_t numDoFs);
+
     EROD_API void erodXShellGetRestLengthsSolveDoFs(RodLinkage *linkage, double **outDoFs, size_t *numDoFs);
 
     EROD_API void erodXShellSetRestLengthsSolveDoFs(RodLinkage *linkage, double *outDoFs, size_t numDoFs);

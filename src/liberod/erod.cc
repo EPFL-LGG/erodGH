@@ -813,9 +813,14 @@ namespace ElasticRodsGH
         std::memcpy(*outDoFs, data.data(), sizeData);
     }
 
-    EROD_API void erodXShellSetRestLengthsSolveDoFs(RodLinkage *linkage, double *outDoFs, size_t numDoFs){
-        Eigen::VectorXd dofs = Eigen::Map<Eigen::VectorXd>(outDoFs, numDoFs, 1);
+    EROD_API void erodXShellSetRestLengthsSolveDoFs(RodLinkage *linkage, double *inDoFs, size_t numDoFs){
+        Eigen::VectorXd dofs = Eigen::Map<Eigen::VectorXd>(inDoFs, numDoFs, 1);
         linkage->setRestlenSolveDoF(dofs);
+    }
+
+    EROD_API void erodXShellSetDoFs(RodLinkage *linkage, double *inDoFs, size_t numDoFs){
+        Eigen::VectorXd dofs = Eigen::Map<Eigen::VectorXd>(inDoFs, numDoFs, 1);
+        linkage->setDoFs(dofs);
     }
 
     EROD_API void erodXShellGetRestKappaVars(RodLinkage *linkage, double **outData, size_t *numData)

@@ -86,6 +86,10 @@ namespace ErodModelLib.Creators
             internal static extern void ErodXShellGetDoFs(IntPtr linkage, out IntPtr outDoFs, out int numDoFs);
 
             [SuppressUnmanagedCodeSecurity]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellSetDoFs")]
+            internal static extern void ErodXShellSetDoFs(IntPtr linkage, [In] double[] inDoFs, [In] int numDoFs);
+
+            [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetAverageJointAngle")]
             internal static extern double ErodXShellGetAverageJointAngle(IntPtr linkage);
 

@@ -1,25 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using ErodModelLib.Types;
 using GH_IO.Serialization;
-using Grasshopper;
 using Grasshopper.Kernel;
+using System.Collections.Generic;
 using Rhino.Geometry;
+using System.Linq;
 
 namespace ErodModel.Model
 {
-    public class OpenLinkageMultiGH : GH_Component
+    public class OpenLinkageWithTargetPositionsGH : GH_Component
     {
         private bool run, includeTemporarySupports;
         private int steps = 1;//, openingSteps = 0;
+        private RodLinkage copy;
         private NewtonSolverOpts opts;
-        private List<RodLinkage> copies;
-        private List<ConvergenceReport> reports;
-        private List<int> modelsInEquilibrium;
-        private int numModels;
-        private List<double> closedAngle;
-        private List<double> refAngle;
-        private List<double> deployedAngle;
+        private ConvergenceReport report;
+
+        double refStep = 0;
 
         int graphics;
         List<List<string>> graphicAttributes;
@@ -39,17 +36,11 @@ namespace ErodModel.Model
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public OpenLinkageMultiGH()
-          : base("SolverDeploymentMulti", "SolverDeploymentMulti",
-            "Open multiple linkages.",
+        public OpenLinkageWithTargetPositionsGH()
+          : base("SolverDeploymentWithPositions", "SolverDeploymentWithPositions",
+            "Open linkage with target positions.",
             "Erod", "Model")
         {
-            copies = new List<RodLinkage>();
-            reports = new List<ConvergenceReport>();
-            modelsInEquilibrium = new List<int>();
-            refAngle = new List<double>();
-            closedAngle = new List<double>();
-            deployedAngle = new List<double>();
         }
 
         public override void CreateAttributes()
@@ -87,9 +78,8 @@ namespace ErodModel.Model
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.item);
             pManager.AddGenericParameter("Opts", "Opts", "Newton solver options.", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Angle", "Angle", "Target deployment angle for opening the linkage (in degrees).", GH_ParamAccess.list);
             pManager.AddBooleanParameter("Run", "Run", "Compute equilibrium.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Reset", "Reset", "Restart computation.", GH_ParamAccess.item);
             pManager[1].Optional = true;
@@ -100,8 +90,8 @@ namespace ErodModel.Model
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Report", "Report", "Convergence report", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Report", "Report", "Convergence report", GH_ParamAccess.item);
         }
 
         protected override void AfterSolveInstance()
@@ -115,7 +105,7 @@ namespace ErodModel.Model
                     document.ScheduleSolution(1, callback);
                 }
             }
-            else if (steps > opts.OpeningSteps) this.Message = numModels + " Deployed Linkages";
+            else if (steps > opts.OpeningSteps) this.Message = "Linkage Opened";
             else this.Message = "Stop at step " + steps;
         }
 
@@ -131,88 +121,72 @@ namespace ErodModel.Model
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            List<RodLinkage> models = new List<RodLinkage>();
+            RodLinkage model = null;
             bool reset = false;
             run = false;
-            List<double> angleDegrees = new List<double>(); ;
-            DA.GetDataList(0, models);
+            DA.GetData(0, ref model);
             if (!DA.GetData(1, ref opts)) opts = new NewtonSolverOpts(20, 20);
-            DA.GetDataList(2, angleDegrees);
-            DA.GetData(3, ref run);
-            DA.GetData(4, ref reset);
+            DA.GetData(2, ref run);
+            DA.GetData(3, ref reset);
 
-            double suppIndicator = opts.OpeningSteps * opts.TemporarySupportIndicator;
-            if (reset || copies.Count == 0)
+            if (model.ModelType != ModelTypes.RodLinkage)
             {
-                copies = new List<RodLinkage>();
-                reports = new List<ConvergenceReport>();
-                modelsInEquilibrium = new List<int>();
-                includeTemporarySupports = true;
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The input model should be a RodLinkage. The current model is a " + model.ModelType.ToString());
+            }
+            else
+            {
+                double suppIndicator = opts.OpeningSteps * opts.TemporarySupportIndicator;
 
-                this.Message = "Reset";
-                for (int i = 0; i < models.Count; i++)
+                if (reset || copy == null)
                 {
-                    ElasticModel m = models[i];
-                    if (m.ModelType != ModelTypes.RodLinkage) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The input model should be a RodLinkage. The current model is a " + m.ModelType.ToString());
-                    if (m != null)
-                    {
-                        var c = (RodLinkage)m.Clone();
-                        copies.Add(c);
-                        reports.Add(new ConvergenceReport());
+                    this.Message = "Reset";
+                    copy = (RodLinkage)model.Clone();
+                    report = new ConvergenceReport();
+                    includeTemporarySupports = true;
 
-                        double averAng = c.GetAverageJointAngle();
-                        double tgtAng = angleDegrees.Count == models.Count ? angleDegrees[i] * Math.PI / 180 : angleDegrees[0] * Math.PI / 180;
-                        double stepAng = (tgtAng - averAng) / opts.OpeningSteps;
-
-                        closedAngle.Add(averAng);
-                        deployedAngle.Add(tgtAng);
-                        refAngle.Add(stepAng);
-                    }
+                    refStep = 1.0 / (opts.OpeningSteps-1);
+                    steps = 1;
                 }
 
-                numModels = copies.Count;
-                steps = 1;
-            }
-
-            if (run)
-            {
-                if (steps >= suppIndicator) includeTemporarySupports = false;
-                if (steps < opts.OpeningSteps)
+                if (run)
                 {
-                    this.Message = "Opening Step " + steps;
-
-                    for (int i = 0; i < numModels; i++)
+                    if (steps >= suppIndicator) includeTemporarySupports = false;
+                    if (steps < opts.OpeningSteps)
                     {
-                        RodLinkage c = copies[i];
-                        double angle = closedAngle[i] + refAngle[i] * steps;
+                        this.Message = "Opening Step " + steps;
 
-                        ConvergenceReport r;
-                        if (graphics == 0) NewtonSolver.Optimize(c, opts, out r, true, angle, false, includeTemporarySupports);
-                        else NewtonSolver.Optimize(c, opts, out r, false, angle, includeTemporarySupports);
-                        r.OpeningStep = steps;
-                        reports[i] = r;
+                        double[] dofs = copy.GetDoFs();
+                        // Update positions of supports
+                        foreach (Support sp in copy.Supports)
+                        {
+                            // Compute linear interpolation between initial position and target position
+                            Line ln = new Line(sp.InitialPosition, sp.TargetPosition);
+                            sp.Position = ln.PointAt(refStep * (steps-1));
+                            // Only update dofs linked with the position
+                            dofs[sp.LockedDoFs[0]] = sp.Position.X;
+                            dofs[sp.LockedDoFs[1]] = sp.Position.Y;
+                            dofs[sp.LockedDoFs[2]] = sp.Position.Z;
+                        }
+                        copy.SetDoFs(dofs);
+
+                        if (graphics == 0) NewtonSolver.Optimize(copy, opts, out report, true, 0, false, includeTemporarySupports);
                     }
+                    else NewtonSolver.Optimize(copy, opts, out report, false, 0, false, includeTemporarySupports);
+                    report.OpeningStep = steps;
                     steps++;
                     if (steps == opts.OpeningSteps) this.Message = "Final Step";
                 }
                 else if (steps == opts.OpeningSteps)
                 {
-                    for (int i = 0; i < numModels; i++)
-                    {
-                        RodLinkage c = copies[i];
-                        ConvergenceReport r;
-                        if (graphics == 0) NewtonSolver.Optimize(c, opts, out r, true, deployedAngle[i], true, includeTemporarySupports);
-                        else NewtonSolver.Optimize(c, opts, out r, false, deployedAngle[i], true, includeTemporarySupports);
-                        r.OpeningStep = steps;
-                        reports[i] = r;
-                    }
+                    if (graphics == 0) NewtonSolver.Optimize(copy, opts, out report, true, 0, true);
+                    else NewtonSolver.Optimize(copy, opts, out report, false, 0, true);
+                    report.OpeningStep = steps;
                     steps++;
                 }
             }
 
-            DA.SetDataList(0, copies);
-            DA.SetDataList(1, reports);
-
+            DA.SetData(0, copy);
+            DA.SetData(1, report);
         }
 
         public override bool Write(GH_IWriter writer)
@@ -233,7 +207,7 @@ namespace ErodModel.Model
 
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.quarternary; }
+            get { return GH_Exposure.secondary; }
         }
 
         /// <summary>
@@ -257,7 +231,8 @@ namespace ErodModel.Model
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("6bae462d-9980-4549-934d-d254c227dc8e"); }
+            get { return new Guid("ed855f8d-440d-47cb-a26f-75650e1a76c1"); }
         }
     }
 }
+

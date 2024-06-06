@@ -11,10 +11,12 @@ namespace ErodModelLib.Types
     {
         private IntPtr _ptr;
         public double RestAlpha { get; private set; }
+        public int Index { get; private set;     }
 
         public Joint(IntPtr linkage, int index)
         {
             _ptr = Kernel.LinkageJoint.ErodJointBuild(linkage, index);
+            Index = index;
             RestAlpha = GetAlpha();
         }
 

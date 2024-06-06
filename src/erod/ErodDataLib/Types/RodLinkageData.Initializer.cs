@@ -29,7 +29,8 @@ namespace ErodDataLib.Types
         public List<JointData> Joints { get; set; }
         public List<SegmentData> Segments { get; set; }
         public List<SupportData> Supports { get; set; }
-        public List<ForceData> Forces { get; set; }
+        public List<UnaryForceData> Forces { get; set; }
+        public List<CableForceData> Cables { get; set; }
         public List<MaterialData> MaterialData { get; set; }
         public int Interleaving { get; set; }
         public SparseMatrixData EdgeRestLenMapTranspose { get; protected set; }

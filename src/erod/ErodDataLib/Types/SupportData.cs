@@ -7,9 +7,10 @@ namespace ErodDataLib.Types
 {
     public class SupportData : ElementData
     {
-        public int[] Indexes { get; set; }
-        public int[] LockedDOF { get; set; }
-        public bool IsTemporary { get; set; }
+        public int[] Indexes { get; private set; }
+        public int[] LockedDOF { get; private set; }
+        public bool IsTemporary { get; private set; }
+        public Point3d TargetPosition { get; set; }
 
         public SupportData(JToken data) : base(1)
         {
@@ -33,7 +34,12 @@ namespace ErodDataLib.Types
                 LockedDOF[i] = (int)token[i];
             }
 
+            // Temporary
             IsTemporary = (bool) data["IsTemporary"];
+
+            // Locked DOF
+            token = data["TargetPosition"];
+            TargetPosition = new Point3d((double)token[0], (double)token[1], (double)token[2]);
         }
 
         public SupportData(Point3d p, int[] DOF = default, bool temporarySupport = false) : base(p)
@@ -49,6 +55,7 @@ namespace ErodDataLib.Types
             }
 
             IsTemporary = temporarySupport;
+            TargetPosition = Point3d.Unset;
         }
 
         public override string ToString()
