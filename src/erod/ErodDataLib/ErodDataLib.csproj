@@ -89,29 +89,33 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Types\SegmentData.cs" />
-    <Compile Include="Types\ElasticRodData.cs" />
-    <Compile Include="Types\ElasticRodDataFactory.cs" />
-    <Compile Include="Types\JointData.cs" />
-    <Compile Include="Types\MaterialData.cs" />
-    <Compile Include="Types\NormalData.cs" />
-    <Compile Include="Types\RodLinkageData.cs" />
-    <Compile Include="Types\RodLinkageData.Initializer.cs" />
-    <Compile Include="Types\RodLinkageData.Methods.cs" />
-    <Compile Include="Types\RodLinkageLayout.cs" />
+    <Compile Include="Types\SegmentIO.cs" />
+    <Compile Include="Types\RodIO.cs" />
+    <Compile Include="Types\JointIO.cs" />
+    <Compile Include="Types\MaterialIO.cs" />
+    <Compile Include="Types\NormalIO.cs" />
+    <Compile Include="Types\LinkageIO.cs" />
+    <Compile Include="Types\LinkageIO.Initializer.cs" />
+    <Compile Include="Types\RibbonsLayout.cs" />
     <Compile Include="Types\ElementData.cs" />
-    <Compile Include="Types\NodeData.cs" />
-    <Compile Include="Types\SupportData.cs" />
+    <Compile Include="Types\SupportIO.cs" />
     <Compile Include="Utils\Helpers.cs" />
     <Compile Include="Utils\PyCallback.cs" />
-    <Compile Include="Types\RodLinkageData.EdgeRestLenMap.cs" />
     <Compile Include="Utils\SparseMatrixData.cs" />
     <Compile Include="Types\TargetSurfaceData.cs" />
     <Compile Include="Utils\SSHConnector.cs" />
     <Compile Include="Utils\WeavingOpt.cs" />
     <Compile Include="Types\OptimizationOptions.cs" />
-    <Compile Include="Types\UnaryForceData.cs" />
-    <Compile Include="Types\CableForceData.cs" />
+    <Compile Include="Types\ForceCableIO.cs" />
+    <Compile Include="Types\ModelIO.cs" />
+    <Compile Include="Types\MaterialIOCollection.cs" />
+    <Compile Include="Types\SupportIOCollection.cs" />
+    <Compile Include="Types\EdgeGraph.cs" />
+    <Compile Include="Types\SegmentIOCollection.cs" />
+    <Compile Include="Types\JointIOCollection.cs" />
+    <Compile Include="Types\ForceIO.cs" />
+    <Compile Include="Types\ForceIOCollection.cs" />
+    <Compile Include="Types\ForceExternalIO.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Types\" />

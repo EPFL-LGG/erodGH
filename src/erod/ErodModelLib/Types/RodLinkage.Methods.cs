@@ -8,29 +8,13 @@ using Rhino.Geometry;
 using System.Linq;
 using System.IO;
 using Newtonsoft.Json;
-using System.Windows.Forms;
-using GH_IO.Serialization;
 
 namespace ErodModelLib.Types
 {
     public partial class RodLinkage
     {
-        public void WriteJsonFile(string path, string filename)
-        {
-            // Serialize JSON directly to a file
-            using (StreamWriter file = File.CreateText(@path + filename + ".json"))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Serialize(file, this);
-            }
-        }
 
-        public override object Clone()
-        {
-            return new RodLinkage(this);
-        }
-
-        public override void UpdateMesh()
+        public void UpdateMesh()
         {
             double[] outCoords;
             int[] outQuads;
@@ -41,18 +25,6 @@ namespace ErodModelLib.Types
             {
                 MeshVis.Vertices.SetVertex(i, outCoords[i * 3], outCoords[i * 3 + 1], outCoords[i * 3 + 2]);
             }
-        }
-
-        public double[] GetCenterLinePositions()
-        {
-            int numCoords;
-            IntPtr cPtr;
-            Kernel.RodLinkage.ErodXShellGetCenterLinePositions(Model, out cPtr, out numCoords);
-
-            double[] outCoords = new double[numCoords];
-            Marshal.Copy(cPtr, outCoords, 0, numCoords);
-            Marshal.FreeCoTaskMem(cPtr);
-            return outCoords;
         }
 
         public double[] GetDoFs()
@@ -199,127 +171,41 @@ namespace ErodModelLib.Types
             Kernel.RodLinkage.ErodXShellSetStiffenRegions(Model, factor, coords, numBoxes);
         }
 
-        public override void AddSupports(SupportData anchor)
+        public override double[] GetForceVars(bool includeExternalForces= true, bool includeCables=false)
         {
-            Point3d p = anchor.GetPoint(0);
+            if(ModelIO.Forces.Count==0) return new double[0];
 
-            int[] dof = anchor.LockedDOF;
-            int[] outVars = new int[dof.Length];
-
-            int idxJ = _jointsCloud.ClosestPoint(p);
-            int idxN = _nodesCloud.ClosestPoint(p);
-
-            if (p.DistanceTo(_jointsCloud[idxJ].Location) < p.DistanceTo(_nodesCloud[idxN].Location))
-            {
-                Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Model, idxJ, dof, dof.Length, outVars);
-                p = _jointsCloud[idxJ].Location;
-            }
-            else
-            {
-                Kernel.RodLinkage.ErodXShellGetDofOffsetForCenterLinePos(Model, idxN, dof, dof.Length, outVars);
-                p = _nodesCloud[idxN].Location;
-            }
-
-            Support sp = new Support(p, outVars, anchor.IsTemporary, anchor.TargetPosition);
-            Supports.Add(sp);
-        }
-
-        public void AddCentralSupport()
-        {
-            double x = _jointsCloud.GetPoints().Average(p => p.X);
-            double y = _jointsCloud.GetPoints().Average(p => p.Y);
-            double z = _jointsCloud.GetPoints().Average(p => p.Z);
-            Point3d pos = new Point3d(x, y, z);
-
-            int idxJ = _jointsCloud.ClosestPoint(pos);
-            int[] dof = new int[] { 0, 1, 2, 3, 4, 5 };
-            int[] outVars = new int[dof.Length];
-            Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Model, idxJ, dof, dof.Length, outVars);
-
-            Support sp = new Support(_jointsCloud[idxJ].Location, outVars);
-            Supports.Add(sp);
-        }
-
-        public override void AddForces(UnaryForceData force)
-        {
-            Point3d p = force.GetPoint(0);
-
-            int idxJ = _jointsCloud.ClosestPoint(p);
-            int idxN = _nodesCloud.ClosestPoint(p);
-
-            int[] outVars = new int[3];
-            Force f;
-            if (p.DistanceTo(_jointsCloud[idxJ].Location) < p.DistanceTo(_nodesCloud[idxN].Location)) f = new UnaryForce(idxJ, force.Vector, true);
-            else f = new UnaryForce(idxN, force.Vector, false);
-            Forces.Add(f);
-        }
-
-
-        public override void AddForces(CableForceData force)
-        {
-            Point3d[] positions = new Point3d[2];
-            int[] indices = new int[2];
-            bool[] isJoint = new bool[2];
-            for (int i=0; i<2; i++)
-            {
-                Point3d p = force.GetPoint(i);
-
-                int idxJ = _jointsCloud.ClosestPoint(p);
-                int idxN = _nodesCloud.ClosestPoint(p);
-
-                int[] outVars = new int[3];
-                if (p.DistanceTo(_jointsCloud[idxJ].Location) < p.DistanceTo(_nodesCloud[idxN].Location))
-                {
-                    positions[i] = _jointsCloud[idxJ].Location;
-                    indices[i] = idxJ;
-                    isJoint[i] = true;
-                }
-                else
-                {
-                    positions[i] = _nodesCloud[idxN].Location;
-                    indices[i] = idxN;
-                    isJoint[i] = false;
-                }
-            }
-
-            CableForce f = new CableForce(positions, indices, isJoint, force.E, force.A, force.RestLength);
-            Forces.Add(f);
-        }
-
-        public override double[] ComputeForceVars()
-        {
             double[] forceVars = new double[GetDoFCount()];
 
-            foreach (Force f in Forces)
+            foreach (ForceIO f in ModelIO.Forces)
             {
-                var isJoint = f.IsJoint;
-                var indices = f.Indices;
-                Vector3d[] forceVectors = f.CalculateForces(this);
-
-                // TODO: Cable forces on nodes need to be implemented
-                for (int i = 0; i < indices.Length; i++)
+                if ((includeCables && f.ForceType == ForceIOType.Cable) ||
+                    (includeExternalForces && f.ForceType == ForceIOType.External))
                 {
-                    int[] outVars = new int[3];
-                    int idx = indices[i];
-
-                    if (ModelType == ModelTypes.RodLinkage)
+                    int numPositions = f.NumPositions;
+                    // Calculate forces using updated positions
+                    Point3d[] pos = new Point3d[numPositions];
+                    for (int i = 0; i < numPositions; i++)
                     {
-                        if (isJoint[i]) Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Model, idx, new[] { 0, 1, 2 }, 3, outVars);
-                        else break;
+                        int idx = f.Indices[i];
+                        if (f.IsJoint[i]) pos[i] = Joints[idx].Position;
+                        else pos[i] = Segments.Nodes[idx];
                     }
-                    else if (ModelType == ModelTypes.ElasticRod || ModelType == ModelTypes.PeriodicRod) outVars = new int[] { idx * 3, idx * 3 + 1, idx * 3 + 2 };
-                    else break;
+                    Vector3d[] forces = f.CalculateForce(pos);
 
-                    forceVars[outVars[0]] += forceVectors[i].X;
-                    forceVars[outVars[1]] += forceVectors[i].Y;
-                    forceVars[outVars[2]] += forceVectors[i].Z;
+                    // Set vars
+                    for (int i = 0; i < numPositions; i++)
+                    {
+                        int[] indicesDoFs = f.IndicesDoFs[i];
+                        for (int j = 0; j < indicesDoFs.Length; j++) forceVars[indicesDoFs[j]] += forces[i][j];
+                    }
                 }
             }
 
             return forceVars;
         }
 
-        public override int[] GetCentralSupportVars()
+        public int[] GetCentralSupportVars()
         {
             int jdo = GetCentralJointIndex();
             return new int[] { jdo, jdo + 1, jdo + 2, jdo + 3, jdo + 4, jdo + 5 };
@@ -421,18 +307,6 @@ namespace ErodModelLib.Types
             return Kernel.RodLinkage.ErodXShellGetInitialMinRestLength(Model);
         }
 
-        public double[] GetPerSegmentRestLength()
-        {
-            IntPtr ptr;
-            int numRestLengths;
-            Kernel.RodLinkage.ErodXShellGetPerSegmentRestLength(Model, out ptr, out numRestLengths);
-
-            double[] outRL = new double[numRestLengths];
-            Marshal.Copy(ptr, outRL, 0, numRestLengths);
-            Marshal.FreeCoTaskMem(ptr);
-            return outRL;
-        }
-
         public SparseMatrixData GetSegmentRestLenToEdgeRestLenMapTranspose()
         {
             IntPtr ptrAx, ptrAi, ptrAp;
@@ -493,11 +367,30 @@ namespace ErodModelLib.Types
             Kernel.RodLinkage.ErodXShellSetRestLengthsSolveDoFs(Model, dofs, dofs.Length);
         }
 
+        public double[] GetPerSegmentRestLenghts()
+        {
+            IntPtr ptrLengths;
+            long numLengths;
+            Kernel.RodLinkage.ErodXShellGetPerSegmentRestLengths(Model, out ptrLengths, out numLengths);
+
+            double[] lengths = new double[numLengths];
+
+            Marshal.Copy(ptrLengths, lengths, 0, (int)numLengths);
+            Marshal.FreeCoTaskMem(ptrLengths);
+
+            return lengths;
+        }
+
+        public void SetPerSegmentRestLenghts(double[] lengths)
+        {
+            Kernel.RodLinkage.ErodXShellSetPerSegmentRestLengths(Model, lengths, lengths.Length);
+        }
+
         public double[] GetJointAngles()
         {
             IntPtr angPtr;
             long numAng;
-            Kernel.RodLinkage.ErodXSHellGetJointAngles(Model, out angPtr, out numAng);
+            Kernel.RodLinkage.ErodXShellGetJointAngles(Model, out angPtr, out numAng);
 
             double[] angles = new double[numAng];
 
@@ -509,7 +402,7 @@ namespace ErodModelLib.Types
 
         public LineCurve[] GetSegmentsAsLines()
         {
-            int numSegments = Segments.Length;
+            int numSegments = Segments.Count;
             LineCurve[] edges = new LineCurve[numSegments];
             for (int i = 0; i < numSegments; i++)
             {

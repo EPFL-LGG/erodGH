@@ -9,11 +9,12 @@ using GH_IO.Serialization;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using static ErodModelLib.Metrics.SegmentMetrics;
+using static ErodModelLib.Metrics.LinkageSegmentMetrics;
+using static ErodModelLib.Metrics.RodMetrics;
 
 namespace ErodModel.Analysis
 {
-    public class MetricsSegmentsGH : GH_Component
+    public class MetricsRodsGH : GH_Component
     {
         int metrics;
         List<List<string>> metricsAttributes;
@@ -32,9 +33,9 @@ namespace ErodModel.Analysis
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public MetricsSegmentsGH()
+        public MetricsRodsGH()
           : base("MetricsSegments", "MeSegments",
-            "Segment metrics of a linkage.",
+            "Metrics of a rod segment from a linkage or an elastic rod.",
                     "Erod", "Analysis")
         {
         }
@@ -74,7 +75,7 @@ namespace ErodModel.Analysis
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Rods", "Rods", "List of rod segments or elastic rods.", GH_ParamAccess.list);
             pManager.AddNumberParameter("Alpha", "Alpha", "Set the alpha value (from 0.0 to 1.0) to control the transparency of the visualization", GH_ParamAccess.item, 0.3);
             pManager.AddBooleanParameter("ShowPlots", "ShowPlots", "Generate graph plots", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
@@ -85,8 +86,8 @@ namespace ErodModel.Analysis
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Metrics", "Metrics", "Segment metrics visualization.", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Data", "Data", "Data calculated based on the metric type.", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Metrics", "Metrics", "Rod metrics visualization.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Data", "Data", "Data calculated based on the metric type.", GH_ParamAccess.tree);
         }
 
         /// <summary>
@@ -96,21 +97,41 @@ namespace ErodModel.Analysis
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            RodLinkage linkage = null;
+            List<object> rods = new List<object>();
             bool show = false;
             double alpha = 0.3;
-            if (!DA.GetData(0, ref linkage)) return;
+
+            DA.GetDataList(0, rods);
             DA.GetData(1, ref alpha);
             DA.GetData(2, ref show);
 
             SegmentMetricTypes segmentType = ((SegmentMetricTypes[]) Enum.GetValues(typeof(SegmentMetricTypes)))[metrics];
-            SegmentMetrics segmentMetrics = new SegmentMetrics(linkage.Segments, segmentType, (int)(alpha * 255));
-            double[] data = segmentMetrics.Data.Select( d => Math.Abs(d)).ToArray();
 
-            if (show) GraphPlotter.HistogramSegments(data, segmentType.ToString());
+            List<ElasticRod> rodList = rods.OfType<ElasticRod>().ToList();
+            List<RodSegment> segmentList = rods.OfType<RodSegment>().ToList();
 
-            DA.SetData(0, segmentMetrics);
-            DA.SetDataList(1, data);
+            List<IGH_Goo> metricsList = new List<IGH_Goo>();
+            GH_Structure<GH_Number> data = new GH_Structure<GH_Number>();
+            int path = 0;
+            if (rodList.Count > 0)
+            {
+                RodMetrics rM = new RodMetrics(rodList, segmentType, (int)(alpha * 255));
+                metricsList.Add(rM);
+                data.AppendRange(rM.Data.Select(d => new GH_Number(Math.Abs(d))).ToArray(), new GH_Path(path));
+                path++;
+                if (show) GraphPlotter.HistogramSegments(rM.Data.Select(d => Math.Abs(d)).ToArray(), segmentType.ToString());
+            }
+            if (segmentList.Count > 0)
+            {
+                LinkageSegmentMetrics sM = new LinkageSegmentMetrics(segmentList, segmentType, (int)(alpha * 255));
+                metricsList.Add(sM);
+                data.AppendRange(sM.Data.Select(d => new GH_Number(Math.Abs(d))).ToArray(), new GH_Path(path));
+                path++;
+                if (show) GraphPlotter.HistogramSegments(sM.Data.Select(d => Math.Abs(d)).ToArray(), segmentType.ToString());
+            }
+
+            DA.SetDataList(0, metricsList);
+            DA.SetDataTree(1, data);
         }
 
         public override bool Write(GH_IWriter writer)
@@ -131,7 +152,7 @@ namespace ErodModel.Analysis
 
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.tertiary; }
+            get { return GH_Exposure.secondary; }
         }
 
         /// <summary>
@@ -142,9 +163,7 @@ namespace ErodModel.Analysis
         {
             get
             {
-                // You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
-                return null;
+                return Properties.Resources.Resources.metrics_rods;
             }
         }
 

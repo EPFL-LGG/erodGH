@@ -9,7 +9,7 @@ namespace ErodModelLib.Types
         public bool Verbose { get; set; }
         public double GradTol { get; set; }
         public double Beta { get; set; }
-        public int OpeningSteps { get; private set; }
+        public int DeploymentSteps { get; private set; }
         // Maximum number of newton iterations per opening step
         public int NumIterations { get; set; }
         // Whether to force the use of the identity matrix for Hessian modification (instead of the problem's custom metric)
@@ -25,8 +25,9 @@ namespace ErodModelLib.Types
         public int WriteConvergenceReport { get; set; }
         public bool IncludeForces { get; set; }
         public int IterationMultiplier { get; set; }
-        // Indicator, from 0 (undeploy) to 1(deploy), for removing temporary supports. 
-        public double TemporarySupportIndicator { get; set; }
+        // Specify the step at which temporary supports are released; if no step is provided, the middle of the total number of steps is used
+        public int ReleaseStep { get; private set; }
+
 
         public NewtonSolverOpts(int iterationsPerStep=20, int openingSteps=1)
         {
@@ -40,10 +41,19 @@ namespace ErodModelLib.Types
             FeasibilitySolve = true;
             VerboseNonPosDef = false;
             WriteConvergenceReport = 0;
-            IncludeForces = true;
+            IncludeForces = false;
             IterationMultiplier = 1;
-            OpeningSteps = openingSteps;
-            TemporarySupportIndicator = 0.5;
+            DeploymentSteps = openingSteps;
+            ReleaseStep = (int) Math.Floor(openingSteps * 0.5);
+        }
+
+        public bool SetReleaseStep(int step)
+        {
+            if (step < 0) return false;
+            if (step>DeploymentSteps) return false;
+
+            ReleaseStep = step;
+            return true;
         }
 
         public override string ToString()

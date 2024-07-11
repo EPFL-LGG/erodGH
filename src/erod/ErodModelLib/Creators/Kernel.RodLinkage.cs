@@ -38,7 +38,7 @@ namespace ErodModelLib.Creators
                                                                      [In] double[] inEdgesA, [In] double[] inEdgesB,
                                                                      [In] int[] inSegmentsA, [In] int[] inSegmentsB,
                                                                      [In] int[] inIsStartA, [In] int[] inIsStartB,
-                                                                     [In] int[] inJointForVertex, [In] int[] inEdges, int inFirstJointVtx,
+                                                                     [In] int[] inJointForVertex, [In] int[] inEdges, [In] int[] isCurvedEdges, int inFirstJointVtx,
                                                                      int interleavingType, int checkConsistentNormals, int initConsistentAngle, out IntPtr errorMessage);
 
             [SuppressUnmanagedCodeSecurity]
@@ -191,10 +191,6 @@ namespace ErodModelLib.Creators
             internal static extern double ErodXShellGetInitialMinRestLength(IntPtr linkage);
 
             [SuppressUnmanagedCodeSecurity]
-            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetPerSegmentRestLength")]
-            internal static extern void ErodXShellGetPerSegmentRestLength(IntPtr linkage, out IntPtr outRestLengths, out int numRestLengths);
-
-            [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetSegmentRestLenToEdgeRestLenMapTranspose")]
             internal static extern int ErodXShellGetSegmentRestLenToEdgeRestLenMapTranspose(IntPtr linkage, out IntPtr outAx, out IntPtr outAi, out IntPtr outAp, out long outM, out long outN, out long outNZ, out IntPtr errorMessage);
 
@@ -211,8 +207,16 @@ namespace ErodModelLib.Creators
             internal static extern void ErodXShellSetRestLengthsSolveDoFs(IntPtr linkage, double[] outDoFs, int numDoFs);
 
             [SuppressUnmanagedCodeSecurity]
-            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXSHellGetJointAngles")]
-            internal static extern void ErodXSHellGetJointAngles(IntPtr linkage, out IntPtr outAngles, out long numAngles);
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetPerSegmentRestLengths")]
+            internal static extern void ErodXShellGetPerSegmentRestLengths(IntPtr linkage, out IntPtr outLengths, out long numLengths);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellSetPerSegmentRestLengths")]
+            internal static extern void ErodXShellSetPerSegmentRestLengths(IntPtr linkage, double[] inLengths, int numLengths);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellGetJointAngles")]
+            internal static extern void ErodXShellGetJointAngles(IntPtr linkage, out IntPtr outAngles, out long numAngles);
         }
     }
 }

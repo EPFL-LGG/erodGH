@@ -7,113 +7,65 @@ using ErodModelLib.Creators;
 using ErodDataLib.Types;
 using System.Linq;
 
-
 namespace ErodModelLib.Types
 {
     public partial class ElasticRod : ElasticModel
     {
-        protected PointCloud _nodesCloud;
-        public bool IsPeriodicRod { get; private set; }
-        public bool RemoveRestCurvature { get; private set; }
+        public RodIO ModelIO => (RodIO)_modelIO;
         public int EdgeCount { get; private set; }
-        public int VerticesCount { get; private set; }
+        public int NodesCount { get; private set; }
 
-        public ElasticRod(double[] coords, bool removeRestCurvature, bool periodicRod)
+        private PointCloud _nodes { get; set; }
+
+        public ElasticRod(RodIO modelIO) : base(modelIO)
         {
-            // Initialize vertices
-            int numPoints = coords.Length / 3;
-
-            // Initialize RodLinkage
-            if (coords.Length == 0 || coords == null)
+            try
             {
-                throw new MissingFieldException("Missing vertex data.");
-            }
-            else
-            {
-                IsPeriodicRod = periodicRod;
-                RemoveRestCurvature = removeRestCurvature;
+                // Initialize vertices
+                double[] coords = modelIO.GetCenterLineCoordinates();
+                int numPoints = coords.Length / 3;
 
-                if (periodicRod)
+                if (ModelIO.IsPeriodic)
                 {
-                    Model = Kernel.PeriodicRod.ErodPeriodicElasticRodBuild(numPoints, coords, Convert.ToInt32(RemoveRestCurvature), out Error);
+                    Model = Kernel.PeriodicRod.ErodPeriodicElasticRodBuild(numPoints, coords, Convert.ToInt32(ModelIO.RemoveRestCurvature), out Error);
                     EdgeCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetEdgesCount(Model);
-                    VerticesCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetVerticesCount(Model);
+                    NodesCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetVerticesCount(Model);
                 }
                 else
                 {
                     Model = Kernel.ElasticRod.ErodElasticRodBuild(numPoints, coords, out Error);
                     EdgeCount = Kernel.ElasticRod.ErodElasticRodGetEdgesCount(Model);
-                    VerticesCount = Kernel.ElasticRod.ErodElasticRodGetVerticesCount(Model);
-                    if (RemoveRestCurvature)
-                    {
-                        Kernel.ElasticRod.ErodElasticRodRemoveRestCurvatures(Model);
-                    }
-
+                    NodesCount = Kernel.ElasticRod.ErodElasticRodGetVerticesCount(Model);
+                    if (ModelIO.RemoveRestCurvature) Kernel.ElasticRod.ErodElasticRodRemoveRestCurvatures(Model);
                 }
 
-                if (Model != IntPtr.Zero)
+                if (Model != IntPtr.Zero) Init();
+                else throw new Exception(Marshal.PtrToStringAnsi(Error));
+            }
+            catch (Exception e) { Console.Write(e.ToString()); }
+        }
+
+        public ElasticRod(ElasticRod model) : base((RodIO)model.ModelIO.Clone())
+        {
+            try
+            {
+                if (ModelIO.IsPeriodic)
                 {
-                    Init();
-                    _nodesCloud = new PointCloud();
-                    for(int i=0; i<numPoints; i++)
-                    {
-                        _nodesCloud.Add(new Point3d(coords[i*3], coords[i * 3+1], coords[i * 3+2]));
-                    }
+                    Model = Kernel.PeriodicRod.ErodPeriodicElasticRodCopy(model.Model, out Error);
+                    EdgeCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetEdgesCount(Model);
+                    NodesCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetVerticesCount(Model);
                 }
                 else
                 {
-                    string errorMsg = Marshal.PtrToStringAnsi(Error);
-                    throw new Exception(errorMsg);
+                    Model = Kernel.ElasticRod.ErodElasticRodCopy(model.Model, out Error);
+                    EdgeCount = Kernel.ElasticRod.ErodElasticRodGetEdgesCount(Model);
+                    NodesCount = Kernel.ElasticRod.ErodElasticRodGetVerticesCount(Model);
                 }
-            }
-        }
 
-        public ElasticRod(ElasticRod model)
-        {
-            int numPoints = model._nodesCloud.Count;
-            double[] coords = new double[numPoints*3];
-            for(int i=0; i < numPoints; i++)
-            {
-                Point3d p = model._nodesCloud[i].Location;
-                coords[i*3] = p.X;
-                coords[i * 3+1] = p.Y;
-                coords[i * 3+2] = p.Z;
+                if (Model != IntPtr.Zero) Init();
+                else throw new Exception(Marshal.PtrToStringAnsi(Error));
             }
-
-            IsPeriodicRod = model.IsPeriodicRod;
-            RemoveRestCurvature = model.RemoveRestCurvature;
-            if (model.IsPeriodicRod)
-            {
-                Model = Kernel.PeriodicRod.ErodPeriodicElasticRodCopy(model.Model, out Error);
-                EdgeCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetEdgesCount(Model);
-                VerticesCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetVerticesCount(Model);
-            }
-            else
-            {
-                Model = Kernel.ElasticRod.ErodElasticRodCopy(model.Model, out Error);
-                EdgeCount = Kernel.ElasticRod.ErodElasticRodGetEdgesCount(Model);
-                VerticesCount = Kernel.ElasticRod.ErodElasticRodGetVerticesCount(Model);
-            }
-
-            if (Model != IntPtr.Zero)
-            {
-                Init();
-                Supports = (SupportCollection)model.Supports.Clone();
-                Forces = (ForceCollection)model.Forces.Clone();
-
-                _nodesCloud = new PointCloud(model._nodesCloud);
-                InitMesh();
-            }
-            else
-            {
-                string errorMsg = Marshal.PtrToStringAnsi(Error);
-                throw new Exception(errorMsg);
-            }
-        }
-
-        public override string ToString()
-        {
-            return ModelType.ToString();
+            catch(Exception e) { Console.Write(e.ToString()); }
         }
 
         public override object Clone()
@@ -123,17 +75,31 @@ namespace ErodModelLib.Types
 
         protected override void Init()
         {
-            Supports = new SupportCollection();
-            Forces = new ForceCollection();
-
-            if (IsPeriodicRod) ModelType = ModelTypes.PeriodicRod;
-            else ModelType = ModelTypes.ElasticRod;
+            InitMaterials();
+            InitNodes();
+            InitSupports();
+            InitForces();
+            InitMesh();
         }
 
         public override void SetMaterial(int sectionType, double E, double poisonRatio, double[] sectionParams, int axisType)
         {
-            if (IsPeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodSetMaterial(Model, sectionType, E, poisonRatio, sectionParams, sectionParams.Length, axisType);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodSetMaterial(Model, sectionType, E, poisonRatio, sectionParams, sectionParams.Length, axisType);
             else Kernel.ElasticRod.ErodElasticRodSetMaterial(Model, sectionType, E, poisonRatio, sectionParams, sectionParams.Length, axisType);
+        }
+
+        private void InitMaterials()
+        {
+            int numMaterials = ModelIO.Materials.Count;
+            if (numMaterials == 0) throw new Exception("No material has been assigned to the rod.");
+
+            var mat = ModelIO.Materials[0];
+            SetMaterial(mat.CrossSectionType, mat.E, mat.PoisonsRatio, mat.Parameters, mat.Orientation);
+        }
+
+        private void InitNodes()
+        {
+            _nodes = new PointCloud(GetCenterLinePositionsAsPoint3d());
         }
 
         public override void InitMesh()
@@ -144,14 +110,13 @@ namespace ErodModelLib.Types
             GetMeshData(out outCoords, out outQuads);
 
             MeshVis = Helpers.GetQuadMesh(outCoords, outQuads);
-            if (!MeshVis.IsValid) throw new Exception("Errors during the construction of the xshell. There might be some incompatibilities with the joint normals.");
         }
 
         protected override void GetMeshData(out double[] outCoords, out int[] outQuads)
         {
             int numCoords, numQuads;
             IntPtr cPtr, qPtr;
-            if (IsPeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetMeshData(Model, out cPtr, out qPtr, out numCoords, out numQuads);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetMeshData(Model, out cPtr, out qPtr, out numCoords, out numQuads);
             else Kernel.ElasticRod.ErodElasticRodGetMeshData(Model, out cPtr, out qPtr, out numCoords, out numQuads);
 
             outCoords = new double[numCoords];
@@ -162,7 +127,7 @@ namespace ErodModelLib.Types
             Marshal.FreeCoTaskMem(qPtr);
         }
 
-        public override void UpdateMesh()
+        public void UpdateMesh()
         {
             double[] outCoords;
             int[] outQuads;
@@ -175,166 +140,364 @@ namespace ErodModelLib.Types
             }
         }
 
+        public override void Update()
+        {
+            UpdateMesh();
+            InitNodes();
+        }
+
         public override int GetDoFCount()
         {
-            if (IsPeriodicRod)
+            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetDoFCount(Model);
+            else return Kernel.ElasticRod.ErodElasticRodGetDoFCount(Model);
+        }
+
+        public void InitSupports()
+        {
+            if (ModelIO.Supports.Count == 0) ModelIO.AddCentralSupport();
+
+            foreach (SupportIO sp in ModelIO.Supports)
             {
-                return Kernel.PeriodicRod.ErodPeriodicElasticRodGetDoFCount(Model);
-            }
-            else
-            {
-                return Kernel.ElasticRod.ErodElasticRodGetDoFCount(Model);
-            }
-        }
-
-        public override void AddSupports(SupportData anchor)
-        {
-            Point3d p = anchor.GetPoint(0);
-
-            int[] dof = anchor.LockedDOF;
-
-            int idx = _nodesCloud.ClosestPoint(p);
-
-            int[] outVars = new int[dof.Length];
-            for (int i = 0; i < dof.Length; i++) outVars[i] = idx * 3 + dof[i];
-
-            Support sp = new Support(p, outVars, anchor.IsTemporary);
-            Supports.Add(sp);
-        }
-
-        public override void AddForces(UnaryForceData force)
-        {
-            int idx = _nodesCloud.ClosestPoint(force.GetPoint(0));
-            Force f = new UnaryForce(idx, force.Vector, false);
-            Forces.Add(f);
-        }
-
-        // TODO: implement cable forces for nodes
-        public override void AddForces(CableForceData force)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int[] GetCentralSupportVars()
-        {
-            int jdo = _nodesCloud.Count/2;
-            return new int[] { jdo, jdo + 1, jdo + 2 };
-        }
-
-        public override double GetEnergy()
-        {
-            if (IsPeriodicRod)
-            {
-                return Kernel.PeriodicRod.ErodPeriodicElasticRodGetEnergy(Model);
-            }
-            else
-            {
-                return Kernel.ElasticRod.ErodElasticRodGetEnergy(Model);
+                if (sp.IndexMap == -1)
+                {
+                    sp.IndexMap = _nodes.ClosestPoint(sp.ReferencePosition);
+                    for (int i = 0; i < 3; i++) sp.SetIndexDoF(i, sp.IndexMap * 3 + i);
+                }
+                sp.ReferencePosition = _nodes[sp.IndexMap].Location;
             }
         }
 
-        public double[] GetVertexCoordinates()
+        public void InitForces()
         {
-            double[] coords = new double[VerticesCount * 3];
-            if (IsPeriodicRod)
+            var allForces = ModelIO.Forces;
+
+            // Check for forces with unset reference positions. These will be global forces that are applied to all joints 
+            var tempForces = allForces.Where(f => f.Positions[0] == Point3d.Unset);
+            List<ForceIO> forces = new List<ForceIO>();
+            if (tempForces.Count() != 0)
             {
-                Kernel.PeriodicRod.ErodPeriodicElasticRodGetCenterLinePositions(Model, coords, VerticesCount);
+                int nodeCount = ModelIO.IsPeriodic ? _nodes.Count - 2 : _nodes.Count;
+
+                foreach (var f in tempForces)
+                {
+                    if (f is ForceExternalIO)
+                    {
+                        ForceExternalIO extForce = (ForceExternalIO)f;
+
+                        for (int i = 0; i < _nodes.Count; i++)
+                        {
+                            ForceExternalIO newForce = new ForceExternalIO(_nodes[i].Location, extForce.Force);
+                            newForce.SetIndexMap(0, i, false, new int[] { i * 3, i * 3 + 1, i * 3 + 2 });
+                            forces.Add(newForce);
+                        }
+                    }
+                }
             }
-            else
+
+            tempForces = allForces.Where(f => f.Positions[0] != Point3d.Unset);
+            foreach (var f in tempForces)
             {
-                Kernel.ElasticRod.ErodElasticRodGetCenterLinePositions(Model, coords, VerticesCount);
+                for (int i = 0; i < f.Positions.Length; i++)
+                {
+                    Point3d p = f.Positions[i];
+                    int idx = _nodes.ClosestPoint(p);
+                    f.SetIndexMap(i, idx, false, new int[] { idx * 3, idx * 3 + 1, idx * 3 + 2 });
+                }
+                forces.Add((ForceIO) f.Clone());
             }
+
+            ModelIO.SetForces(forces);
+        }
+
+        public double[] GetCenterLineCoordinates()
+        {
+            double[] coords = new double[NodesCount * 3];
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetCenterLinePositions(Model, coords, NodesCount);
+            else Kernel.ElasticRod.ErodElasticRodGetCenterLinePositions(Model, coords, NodesCount);
             return coords;
         }
 
         public double[] GetRestLengths()
         {
             double[] restLengths = new double[EdgeCount];
-            if (IsPeriodicRod)
-            {
-                Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestLengths(Model, restLengths, EdgeCount);
-            }
-            else
-            {
-                Kernel.ElasticRod.ErodElasticRodGetRestLengths(Model, restLengths, EdgeCount);
-            }
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestLengths(Model, restLengths, EdgeCount);
+            else Kernel.ElasticRod.ErodElasticRodGetRestLengths(Model, restLengths, EdgeCount);
             return restLengths;
         }
 
         public double[] GetStretchingStresses()
         {
             double[] stresses = new double[EdgeCount];
-            if (IsPeriodicRod)
-            {
-                Kernel.PeriodicRod.ErodPeriodicElasticRodGetStretchingStresses(Model, stresses, EdgeCount);
-            }
-            else
-            {
-                Kernel.ElasticRod.ErodElasticRodGetStretchingStresses(Model, stresses, EdgeCount);
-            }
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetStretchingStresses(Model, stresses, EdgeCount);
+            else Kernel.ElasticRod.ErodElasticRodGetStretchingStresses(Model, stresses, EdgeCount);
             return stresses;
         }
 
         public double[] GetTwistingStresses()
         {
-            double[] stresses = new double[VerticesCount];
-            if (IsPeriodicRod)
-            {
-                Kernel.PeriodicRod.ErodPeriodicElasticRodGetTwistingStresses(Model, stresses, VerticesCount);
-            }
-            else
-            {
-                Kernel.ElasticRod.ErodElasticRodGetTwistingStresses(Model, stresses, VerticesCount);
-            }
+            double[] stresses = new double[NodesCount];
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetTwistingStresses(Model, stresses, NodesCount);
+            else Kernel.ElasticRod.ErodElasticRodGetTwistingStresses(Model, stresses, NodesCount);
             return stresses;
         }
 
         public double[] GetMaxBendingStresses()
         {
-            double[] stresses = new double[VerticesCount];
-            if (IsPeriodicRod)
-            {
-                Kernel.PeriodicRod.ErodPeriodicElasticRodGetMaxBendingStresses(Model, stresses, VerticesCount);
-            }
-            else
-            {
-                Kernel.ElasticRod.ErodElasticRodGetMaxBendingStresses(Model, stresses, VerticesCount);
-            }
+            double[] stresses = new double[NodesCount];
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetMaxBendingStresses(Model, stresses, NodesCount);
+            else Kernel.ElasticRod.ErodElasticRodGetMaxBendingStresses(Model, stresses, NodesCount);
             return stresses;
         }
 
         public double[] GetMinBendingStresses()
         {
-            double[] stresses = new double[VerticesCount];
-            if (IsPeriodicRod)
-            {
-                Kernel.PeriodicRod.ErodPeriodicElasticRodGetMinBendingStresses(Model, stresses, VerticesCount);
-            }
-            else
-            {
-                Kernel.ElasticRod.ErodElasticRodGetMinBendingStresses(Model, stresses, VerticesCount);
-            }
+            double[] stresses = new double[NodesCount];
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetMinBendingStresses(Model, stresses, NodesCount);
+            else Kernel.ElasticRod.ErodElasticRodGetMinBendingStresses(Model, stresses, NodesCount);
             return stresses;
         }
 
         public double[] GetSqrtBendingEnergies()
         {
-            double[] stresses = new double[VerticesCount];
-            if (IsPeriodicRod)
-            {
-                Kernel.PeriodicRod.ErodPeriodicElasticRodGetSqrtBendingEnergies(Model, stresses, VerticesCount);
-            }
-            else
-            {
-                Kernel.ElasticRod.ErodElasticRodGetSqrtBendingEnergies(Model, stresses, VerticesCount);
-            }
+            double[] stresses = new double[NodesCount];
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetSqrtBendingEnergies(Model, stresses, NodesCount);
+            else Kernel.ElasticRod.ErodElasticRodGetSqrtBendingEnergies(Model, stresses, NodesCount);
             return stresses;
         }
 
-        //TODO: Implemet compute forces
-        public override double[] ComputeForceVars()
+        public double[] GetDoFs()
         {
-            return new double[0];
+            int numDoFs;
+            IntPtr cPtr;
+            if (ModelType == ElasticModelType.ElasticRod) Kernel.ElasticRod.ErodElasticRodGetDoFs(Model, out cPtr, out numDoFs);
+            else Kernel.PeriodicRod.ErodPeriodicElasticRodGetDoFs(Model, out cPtr, out numDoFs);
+
+            double[] outDoFs = new double[numDoFs];
+            Marshal.Copy(cPtr, outDoFs, 0, numDoFs);
+            Marshal.FreeCoTaskMem(cPtr);
+            return outDoFs;
         }
+
+        public void SetDoFs(double[] dofs)
+        {
+            if (ModelType == ElasticModelType.ElasticRod) Kernel.ElasticRod.ErodElasticRodSetDoFs(Model, dofs, dofs.Length);
+            else Kernel.PeriodicRod.ErodPeriodicElasticRodSetDoFs(Model, dofs, dofs.Length);
+        }
+
+        public Point3d[] GetCenterLinePositionsAsPoint3d()
+        {
+            double[] coords = GetCenterLineCoordinates();
+
+            int count = (int)coords.Length / 3;
+            Point3d[] pts = new Point3d[count];
+            for (int i = 0; i < count; i++)
+            {
+                pts[i] = new Point3d(coords[i * 3], coords[i * 3 + 1], coords[i * 3 + 2]);
+            }
+            return pts;
+        }
+
+        public Plane[] GetMaterialFames()
+        {
+            IntPtr outCoordsD1, outCoordsD2;
+            int outCoordsCount;
+
+            if (ModelType == ElasticModelType.ElasticRod) Kernel.ElasticRod.ErodElasticRodGetMaterialFrame(Model, out outCoordsCount, out outCoordsD1, out outCoordsD2);
+            else Kernel.PeriodicRod.ErodPeriodicElasticRodGetMaterialFrame(Model, out outCoordsCount, out outCoordsD1, out outCoordsD2);
+
+            double[] coordsD1 = new double[outCoordsCount];
+            double[] coordsD2 = new double[outCoordsCount];
+            Marshal.Copy(outCoordsD1, coordsD1, 0, outCoordsCount);
+            Marshal.Copy(outCoordsD2, coordsD2, 0, outCoordsCount);
+            Marshal.FreeCoTaskMem(outCoordsD1);
+            Marshal.FreeCoTaskMem(outCoordsD2);
+
+            int numFrames = outCoordsCount / 3;
+            Plane[] frames = new Plane[numFrames];
+            Point3d[] pts = GetCenterLinePositionsAsPoint3d();
+            for (int i = 0; i < numFrames; i++)
+            {
+                Vector3d x = new Vector3d(coordsD1[i * 3], coordsD1[i * 3 + 1], coordsD1[i * 3 + 2]);
+                Vector3d y = new Vector3d(coordsD2[i * 3], coordsD2[i * 3 + 1], coordsD2[i * 3 + 2]);
+                Point3d orig = (pts[i + 1] + pts[i]) * 0.5;
+                frames[i] = new Plane(orig, x, y);
+            }
+
+            return frames;
+        }
+
+        public override double[] GetForceVars(bool includeExternalForces = true, bool includeCables=false)
+        {
+            if (ModelIO.Forces.Count == 0) return new double[0];
+
+            double[] forceVars = new double[GetDoFCount()];
+
+            foreach (ForceIO f in ModelIO.Forces)
+            {
+                if ((includeCables && f.ForceType == ForceIOType.Cable) ||
+                    (includeExternalForces && f.ForceType == ForceIOType.External))
+                {
+                    int numPositions = f.NumPositions;
+                    // Calculate forces using updated positions
+                    Point3d[] pos = new Point3d[numPositions];
+                    for (int i = 0; i < numPositions; i++) pos[i] = _nodes[f.Indices[i]].Location;
+                    Vector3d[] forces = f.CalculateForce(pos);
+
+                    // Set vars
+                    for (int i = 0; i < numPositions; i++)
+                    {
+                        int[] indicesDoFs = f.IndicesDoFs[i];
+                        for (int j = 0; j < indicesDoFs.Length; j++) forceVars[indicesDoFs[j]] += forces[i][j];
+                    }
+                }
+            }
+
+            return forceVars;
+        }
+
+        public override int[] GetFixedVars(bool includeTemporarySupports, double step = 1.0)
+        {
+            if (step < 0) step = 0;
+            if (step > 1) step = 1;
+
+            double[] dofs = GetDoFs();
+            // Update positions of supports
+            foreach (SupportIO sp in ModelIO.Supports)
+            {
+                if (sp.ReferencePosition.DistanceTo(sp.TargetPosition) < 1e-3) continue;
+
+                // Compute linear interpolation between initial position and target position
+                Line ln = new Line(sp.ReferencePosition, sp.TargetPosition);
+                var pos = ln.PointAt(step);
+                // Only update dofs linked with the position
+                int[] indicesDoFs = sp.IndicesDoFs;
+                for (int j = 0; j < indicesDoFs.Length; j++) dofs[indicesDoFs[j]] = pos[j];
+            }
+            SetDoFs(dofs);
+
+            return ModelIO.Supports.GetSupportsDoFsIndices(includeTemporarySupports);
+        }
+
+        public Mesh GetMesh()
+        {
+            double[] coords;
+            int[] quads;
+            GetMeshData(out coords, out quads);
+
+            return Helpers.GetQuadMesh(coords, quads);
+        }
+
+        public override Line[] GetCablesAsLines()
+        {
+            {
+                if (_modelIO.Forces.Count == 0) return new Line[0];
+
+                return _modelIO.Forces.Where(f => f.ForceType == ForceIOType.Cable).Select(f => new Line(_nodes[f.Indices[0]].Location, _nodes[f.Indices[1]].Location)).ToArray();
+            }
+        }
+
+        public double GetInitialMinRestLength()
+        {
+            if (ModelType == ElasticModelType.PeriodicRod) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetInitialMinRestLength(Model);
+            else return Kernel.ElasticRod.ErodElasticRodGetInitialMinRestLength(Model);
+        }
+
+        public Curve GetInterpolatedCurve(int degree = 3)
+        {
+            return Curve.CreateInterpolatedCurve(GetCenterLinePositionsAsPoint3d(), degree);
+        }
+
+        public double[] GetRestKappas()
+        {
+            IntPtr ptrData;
+            int numData;
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestKappas(Model, out ptrData, out numData);
+            else Kernel.ElasticRod.ErodElasticRodGetRestKappas(Model, out ptrData, out numData);
+
+            double[] data = new double[numData];
+            Marshal.Copy(ptrData, data, 0, numData);
+            Marshal.FreeCoTaskMem(ptrData);
+            return data;
+        }
+
+        public double[] GetScalarFieldSqrtBendingEnergies()
+        {
+            int numField;
+            IntPtr cPtr;
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldSqrtBendingEnergies(Model, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldSqrtBendingEnergies(Model, out cPtr, out numField);
+
+            double[] outField = new double[numField];
+            Marshal.Copy(cPtr, outField, 0, numField);
+            Marshal.FreeCoTaskMem(cPtr);
+            return outField;
+        }
+
+        public double[] GetScalarFieldMaxBendingStresses()
+        {
+            int numField;
+            IntPtr cPtr;
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldMaxBendingStresses(Model, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldMaxBendingStresses(Model, out cPtr, out numField);
+
+            double[] outField = new double[numField];
+            Marshal.Copy(cPtr, outField, 0, numField);
+            Marshal.FreeCoTaskMem(cPtr);
+            return outField;
+        }
+
+        #region Stresses
+        public double[] GetScalarFieldMinBendingStresses()
+        {
+            int numField;
+            IntPtr cPtr;
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldMinBendingStresses(Model, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldMinBendingStresses(Model, out cPtr, out numField);
+
+            double[] outField = new double[numField];
+            Marshal.Copy(cPtr, outField, 0, numField);
+            Marshal.FreeCoTaskMem(cPtr);
+            return outField;
+        }
+
+        public double[] GetScalarFieldTwistingStresses()
+        {
+            int numField;
+            IntPtr cPtr;
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldTwistingStresses(Model, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldTwistingStresses(Model, out cPtr, out numField);
+
+            double[] outField = new double[numField];
+            Marshal.Copy(cPtr, outField, 0, numField);
+            Marshal.FreeCoTaskMem(cPtr);
+            return outField;
+        }
+
+        public double[] GetScalarFieldStretchingStresses()
+        {
+            int numField;
+            IntPtr cPtr;
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldStretchingStresses(Model, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldStretchingStresses(Model, out cPtr, out numField);
+
+            double[] outField = new double[numField];
+            Marshal.Copy(cPtr, outField, 0, numField);
+            Marshal.FreeCoTaskMem(cPtr);
+            return outField;
+        }
+
+        public double[] GetScalarFieldVonMisesStresses()
+        {
+            int numField;
+            IntPtr cPtr;
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldVonMisesStresses(Model, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldVonMisesStresses(Model, out cPtr, out numField);
+
+            double[] outField = new double[numField];
+            Marshal.Copy(cPtr, outField, 0, numField);
+            Marshal.FreeCoTaskMem(cPtr);
+            return outField;
+        }
+        #endregion
     }
 }

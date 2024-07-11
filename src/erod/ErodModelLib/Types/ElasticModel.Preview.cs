@@ -36,16 +36,15 @@ namespace ErodModelLib.Types
         public void DrawViewportMeshes(GH_PreviewMeshArgs args)
         {
             args.Pipeline.DrawMeshShaded(MeshVis, args.Material);
-            args.Pipeline.DrawPoints(Supports.GetFixSupportsAsPoint3dArray(), Rhino.Display.PointStyle.RoundControlPoint, (float)7, System.Drawing.Color.Blue);
-            if(Supports.ShowTemporarySupports) args.Pipeline.DrawPoints(Supports.GetTemporarySupportsAsPoint3dArray(), Rhino.Display.PointStyle.Simple, (float)4, System.Drawing.Color.GreenYellow);
+            args.Pipeline.DrawPoints(_modelIO.Supports.GetFixSupportsAsPoint3dArray(), Rhino.Display.PointStyle.RoundControlPoint, (float)7, System.Drawing.Color.Blue);
+            if (_modelIO.Supports.ShowTemporarySupports) args.Pipeline.DrawPoints(_modelIO.Supports.GetTemporarySupportsAsPoint3dArray(), Rhino.Display.PointStyle.Simple, (float)4, System.Drawing.Color.GreenYellow);
         }
 
         public void DrawViewportWires(GH_PreviewWireArgs args)
         {
             args.Pipeline.DrawMeshWires(MeshVis, args.Color);
-            args.Pipeline.DrawPoints(Supports.GetFixSupportsAsPoint3dArray(), Rhino.Display.PointStyle.RoundControlPoint, (float)7, System.Drawing.Color.Blue);
-            args.Pipeline.DrawPoints(Supports.GetFixSupportsAsPoint3dArray(), Rhino.Display.PointStyle.RoundControlPoint, (float)7, System.Drawing.Color.Blue);
-            if (Supports.ShowTemporarySupports) args.Pipeline.DrawPoints(Supports.GetTemporarySupportsAsPoint3dArray(), Rhino.Display.PointStyle.Simple, (float)4, System.Drawing.Color.GreenYellow);
+            args.Pipeline.DrawPoints(_modelIO.Supports.GetFixSupportsAsPoint3dArray(), Rhino.Display.PointStyle.RoundControlPoint, (float)7, System.Drawing.Color.Blue);
+            if (_modelIO.Supports.ShowTemporarySupports) args.Pipeline.DrawPoints(_modelIO.Supports.GetTemporarySupportsAsPoint3dArray(), Rhino.Display.PointStyle.Simple, (float)4, System.Drawing.Color.GreenYellow);
         }
     }
 }

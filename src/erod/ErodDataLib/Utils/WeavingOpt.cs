@@ -45,7 +45,7 @@ namespace ErodDataLib.Utils
         private string INPUT_FOLDER = "Weaving/weaving/grasshopper/inputs/";
         private string OUTPUT_FOLDER = "Weaving/weaving/grasshopper/outputs/";
         private string PICKLE_FOLDER = "Weaving/weaving/optimization_diagram_results/";
-        public RodLinkageData Data { get; set; }
+        public LinkageIO Data { get; set; }
 
         public WeavingOpt()
         {

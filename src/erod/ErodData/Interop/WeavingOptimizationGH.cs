@@ -76,15 +76,13 @@ namespace ErodData.Interop
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            RodLinkageData data = null;
+            LinkageIO data = null;
             OptimizationOptions opt = new OptimizationOptions(false, 1.0, 1.0, OptimizationStages.OneStep);
             DA.GetData(0, ref name);
             DA.GetData(1, ref data);
             DA.GetData(2, ref run);
             DA.GetData(3, ref deleteCache);
             DA.GetData(4, ref opt);
-
-            data.OptimizationSettings = opt;
 
             weavingOptimizer.Data = data;
 

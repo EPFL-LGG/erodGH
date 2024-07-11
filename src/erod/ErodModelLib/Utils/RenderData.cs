@@ -15,24 +15,24 @@ namespace ErodModelLib.Utils
 
         public RenderData(RodLinkage model)
         {
-            if (!model.Layout.ContainsLayoutData()) throw new Exception("RodLinkage model doesn't contain layout.");
+            if (!model.ModelIO.Layout.ContainsLayoutData()) throw new Exception("RodLinkage model doesn't contain layout.");
 
             CrossSection = new CrossSectionRenderingData(model);
 
             // Linkages
             RodsA = new List<RodSegmentRenderingData>();
-            foreach (int key in model.Layout.SplineBeamsA.Keys)
+            foreach (int key in model.ModelIO.Layout.RibbonsFamilyA.Keys)
             {
-                foreach (int idx in model.Layout.SplineBeamsA[key])
+                foreach (int idx in model.ModelIO.Layout.RibbonsFamilyA[key])
                 {
                     RodsA.Add(new RodSegmentRenderingData(model.Segments[idx]));
                 }
             }
 
             RodsB = new List<RodSegmentRenderingData>();
-            foreach (int key in model.Layout.SplineBeamsB.Keys)
+            foreach (int key in model.ModelIO.Layout.RibbonsFamilyB.Keys)
             {
-                foreach (int idx in model.Layout.SplineBeamsB[key])
+                foreach (int idx in model.ModelIO.Layout.RibbonsFamilyB[key])
                 {
                     RodsB.Add(new RodSegmentRenderingData(model.Segments[idx]));
                 }
@@ -59,10 +59,11 @@ namespace ErodModelLib.Utils
 
         public CrossSectionRenderingData(RodLinkage model)
         {
-            MatParameters = model.HomogenousMaterial.Parameters;
-            E = model.HomogenousMaterial.E;
-            PoisonsRatio = model.HomogenousMaterial.PoisonsRatio;
-            ProfileType = model.HomogenousMaterial.ToString();
+            var mat = model.ModelIO.Materials[0];
+            MatParameters = mat.Parameters;
+            E = mat.E;
+            PoisonsRatio = mat.PoisonsRatio;
+            ProfileType = mat.ToString();
         }
     }
 

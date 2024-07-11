@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<resheader name="resmimetype">
+		<value>text/microsoft-resx</value>
+	</resheader>
+	<resheader name="version">
+		<value>2.0</value>
+	</resheader>
+	<resheader name="reader">
+		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<resheader name="writer">
+		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+<!--	<data name="cs_rectangle" xml:space="preserve">
+		<value />
+	</data>-->
+	<data name="cs_rectangle1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\cs_rectangular.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+<!--	<data name="cs_ellipse" xml:space="preserve">
+		<value />
+	</data>-->
+	<data name="cs_ellipse1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\cs_ellipse.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+<!--	<data name="cs_I" xml:space="preserve">
+		<value />
+	</data>-->
+	<data name="cs_I1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\cs_I.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+<!--	<data name="cs_L" xml:space="preserve">
+		<value />
+	</data>-->
+	<data name="cs_L1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\cs_L.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+<!--	<data name="cs_custom" xml:space="preserve">
+		<value />
+	</data>-->
+	<data name="cs_custom1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\cs_custom.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+<!--	<data name="cs_X" xml:space="preserve">
+		<value />
+	</data>-->
+	<data name="cs_X1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\cs_X.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="ribbon_io" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\ribbon_io.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="edge_io" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\edge_io.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="normal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\normal.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="forces" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\add_force.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="rl" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\rl.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="linkage_io" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\linkage_io.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="edge_io_deconstruct" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\edge_io_deconstruct.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="joint_data_deconstruct" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\joint_data_deconstruct.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="topology_data_deconstruct" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\topology_data_deconstruct.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="split_curves" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\split_curves.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="support" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\support.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="rolling_support" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\rolling_support.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="rod_io" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\rod_io.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="cable_io" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\cable_io.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="target_io" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\target_io.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="topology" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\topology.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="save" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\save.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="load" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\load.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+</root>
+

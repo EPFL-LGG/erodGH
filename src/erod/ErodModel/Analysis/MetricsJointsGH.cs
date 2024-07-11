@@ -8,7 +8,7 @@ using ErodModel.Model;
 using GH_IO.Serialization;
 using ErodModelLib.Metrics;
 using static ErodModelLib.Metrics.JointMetrics;
-using static ErodModelLib.Metrics.RodLinkageMetrics;
+using static ErodModelLib.Metrics.LinkageStressesMetrics;
 using static ErodModelLib.Utils.ColorMaps;
 
 namespace ErodModel.Analysis
@@ -83,7 +83,7 @@ namespace ErodModel.Analysis
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Linkage", "Linkage", "Linkage model to analyse.", GH_ParamAccess.item);
             pManager.AddNumberParameter("Size", "Size", "Size of the joints.", GH_ParamAccess.item, 1);
             pManager.AddBooleanParameter("UniformSize", "UniformSize", "Set uniform size.", GH_ParamAccess.item, true);
             pManager.AddNumberParameter("LowerBound", "LowerBound", "Lower bound of the data set. If no value is explicitly provided, the minimum value of the data set is assumed.", GH_ParamAccess.item);
@@ -171,7 +171,7 @@ namespace ErodModel.Analysis
 
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.tertiary; }
+            get { return GH_Exposure.secondary; }
         }
 
         /// <summary>
@@ -182,9 +182,7 @@ namespace ErodModel.Analysis
         {
             get
             {
-                // You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
-                return null;
+                return Properties.Resources.Resources.metrics_joints;
             }
         }
 

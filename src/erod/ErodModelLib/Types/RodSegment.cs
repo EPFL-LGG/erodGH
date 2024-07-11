@@ -178,6 +178,11 @@ namespace ErodModelLib.Types
             return Kernel.RodSegment.ErodRodSegmentGetEnergyTwist(_ptr);
         }
 
+        public double GetMaxStrain()
+        {
+            return Kernel.RodSegment.ErodRodSegmentGetMaxStrain(_ptr);
+        }
+
         public void GetMeshData(out double[] outCoords, out int[] outQuads)
         {
             int numCoords, numQuads;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using GH_IO.Serialization;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
@@ -11,7 +12,14 @@ namespace ErodDataLib.Types
         public int[][] Trias { get; private set; }
         public double TargetJointWeight { get; set; }
 
-        public TargetSurfaceData(Mesh mesh, double weight= 0.0001)
+        public TargetSurfaceData()
+        {
+            Vertices = new double[0][];
+            Trias = new int[0][];
+            TargetJointWeight = 1e-4;
+        }
+
+        public TargetSurfaceData(Mesh mesh, double weight= 1e-4)
 		{
             if(!mesh.IsManifold()) throw new Exception("Non-manifold mesh.");
             if (mesh.Faces.QuadCount > 0) throw new Exception("Mesh contains quad faces.");
@@ -31,6 +39,18 @@ namespace ErodDataLib.Types
 
             TargetJointWeight = weight;
 		}
+
+        public TargetSurfaceData(TargetSurfaceData data)
+        {
+            Vertices = data.Vertices.ToArray();
+            Trias = data.Trias.ToArray();
+            TargetJointWeight = data.TargetJointWeight;
+        }
+
+        public object Clone()
+        {
+            return new TargetSurfaceData(this);
+        }
 
         public override string ToString()
         {

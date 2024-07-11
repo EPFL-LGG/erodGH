@@ -10,18 +10,21 @@ using Rhino.Geometry;
 
 namespace ErodModelLib.Types
 {
-    public enum ModelTypes { Undefined=0, ElasticRod = 1, PeriodicRod = 2, RodLinkage = 3, AttractedSurfaceRodLinkage = 4 };
-
     public abstract partial class ElasticModel : IGH_Goo, ICloneable
     {
-        protected double oldEnergy = 0;
         public Mesh MeshVis { get; protected set; }
-
         public IntPtr Error;
         public IntPtr Model { get;  protected set; }
-        public ModelTypes ModelType { get; protected set; }
-        public SupportCollection Supports { get; set; }
-        public ForceCollection Forces { get; set; }
+        public ModelIO _modelIO { get; set; }
+
+        public ElasticModelType ModelType => _modelIO.ModelType;
+
+        public ElasticModel(ModelIO modelIO) { _modelIO = modelIO; }
+
+        public override string ToString()
+        {
+            return _modelIO.ModelType.ToString();
+        }
 
         protected abstract void Init();
 
@@ -31,23 +34,27 @@ namespace ErodModelLib.Types
 
         protected abstract void GetMeshData(out double[] outCoords, out int[] outQuads);
 
-        public abstract void UpdateMesh();
+        public abstract void Update();
 
         public abstract int GetDoFCount();
-
-        public abstract void AddSupports(SupportData anchor);
-
-        public abstract void AddForces(CableForceData force);
-
-        public abstract void AddForces(UnaryForceData force);
 
         public abstract object Clone();
 
         public abstract double GetEnergy();
 
-        public abstract int[] GetCentralSupportVars();
+        public abstract double GetBendingEnergy();
 
-        public abstract double[] ComputeForceVars();
+        public abstract double GetStretchingEnergy();
+
+        public abstract double GetTwistingEnergy();
+
+        public abstract double GetMaxStrain();
+
+        public abstract double[] GetForceVars(bool includeExternalForces = true, bool includeCables=false);
+
+        public abstract int[] GetFixedVars(bool includeTemporarySupports, double step = 1.0);
+
+        public abstract Line[] GetCablesAsLines();
 
         #region GH_Methods
         public bool IsValid
@@ -63,7 +70,7 @@ namespace ErodModelLib.Types
 
         public string TypeName => ToString();
 
-        public string TypeDescription => ModelType.ToString();
+        public string TypeDescription => _modelIO.ModelType.ToString();
 
         public IGH_Goo Duplicate()
         {

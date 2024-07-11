@@ -88,10 +88,8 @@
     <Compile Include="Creators\Kernel.RodSegment.cs" />
     <Compile Include="Creators\Kernel.LinkageJoint.cs" />
     <Compile Include="Creators\Kernel.Solvers.cs" />
-    <Compile Include="Types\RodLinkage.Initializer.cs" />
     <Compile Include="Creators\Kernel.ElasticRod.cs" />
     <Compile Include="Types\ElasticRod.cs" />
-    <Compile Include="Types\ElasticRodModelFactory.cs" />
     <Compile Include="Types\ElasticModel.cs" />
     <Compile Include="Creators\Kernel.PeriodicRod.cs" />
     <Compile Include="Types\ElasticModel.Preview.cs" />
@@ -107,14 +105,13 @@
     <Compile Include="Utils\ColorMaps.cs" />
     <Compile Include="Metrics\JointMetrics.cs" />
     <Compile Include="Metrics\QuadMetrics.cs" />
-    <Compile Include="Metrics\SegmentMetrics.cs" />
-    <Compile Include="Metrics\RodLinkageMetrics.cs" />
-    <Compile Include="Types\Support.cs" />
-    <Compile Include="Types\SupportCollection.cs" />
-    <Compile Include="Types\CableForce.cs" />
-    <Compile Include="Types\Force.cs" />
-    <Compile Include="Types\ForceCollection.cs" />
-    <Compile Include="Types\UnaryForce.cs" />
+    <Compile Include="Metrics\LinkageSegmentMetrics.cs" />
+    <Compile Include="Metrics\LinkageStressesMetrics.cs" />
+    <Compile Include="Types\JointCollection.cs" />
+    <Compile Include="Types\RodSegmentCollection.cs" />
+    <Compile Include="Types\ElasticRod.Analysis.cs" />
+    <Compile Include="Metrics\RodMetrics.cs" />
+    <Compile Include="Metrics\RodStressesMetrics.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Creators\" />

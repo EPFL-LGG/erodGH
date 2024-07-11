@@ -25,7 +25,7 @@ namespace ErodModelLib.Types
             return Kernel.RodLinkage.ErodXShellGetDoFCount(Model);
         }
 
-        public double GetMaxStrain()
+        public override double GetMaxStrain()
         {
             return Kernel.Analysis.ErodXShellGetMaxStrain(Model);
         }
@@ -40,17 +40,17 @@ namespace ErodModelLib.Types
             return Kernel.Analysis.ErodXShellGetEnergy(Model);
         }
 
-        public double GetBendingEnergy()
+        public override double GetBendingEnergy()
         {
             return Kernel.Analysis.ErodXShellGetEnergyBend(Model);
         }
 
-        public double GetStretchingEnergy()
+        public override double GetStretchingEnergy()
         {
             return Kernel.Analysis.ErodXShellGetEnergyStretch(Model);
         }
 
-        public double GetTwistingEnergy()
+        public override double GetTwistingEnergy()
         {
             return Kernel.Analysis.ErodXShellGetEnergyTwist(Model);
         }

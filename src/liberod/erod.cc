@@ -254,7 +254,7 @@ namespace ElasticRodsGH
                                                       double *inEdgesA, double *inEdgesB,
                                                       int *inSegmentsA, int *inSegmentsB,
                                                       int *inIsStartA, int *inIsStartB,
-                                                      int *inJointForVertex, int *inEdges, int inFirstJointVtx,
+                                                      int *inJointForVertex, int *inEdges, int *isCurvedEdge, int inFirstJointVtx,
                                                       int interleavingType, int checkConsistentNormals, int initConsistentAngle, const char **errorMessage)
     {
         try
@@ -316,8 +316,7 @@ namespace ElasticRodsGH
                 }
 
                 jointForVertex[i] = RodLinkage::NONE;
-                if (inJointForVertex[i] != -1)
-                    jointForVertex[i] = (size_t)inJointForVertex[i];
+                if (inJointForVertex[i] != -1) jointForVertex[i] = (size_t)inJointForVertex[i];
             }
 
             // Edges
@@ -343,6 +342,10 @@ namespace ElasticRodsGH
                     pts.emplace_back(inInteriorCoords[startOff + 3 * j], inInteriorCoords[startOff + 3 * j + 1], inInteriorCoords[startOff + 3 * j + 2]);
                 }
                 ElasticRod rod(pts);
+                if(isCurvedEdge[i]==0) {
+                    std::vector<Real> kappas(rod.numRestKappaVars(), 0.0);
+                    rod.setRestKappaVars(kappas);
+                }
                 startOff = endOff;
 
                 // Rod segments
@@ -686,6 +689,7 @@ namespace ElasticRodsGH
     }
 
     EROD_API double erodXShellGetMaxStrain(RodLinkage *linkage)
+
     {
         return linkage->maxStrain();
     }
@@ -813,9 +817,23 @@ namespace ElasticRodsGH
         std::memcpy(*outDoFs, data.data(), sizeData);
     }
 
+    EROD_API void erodXShellGetPerSegmentRestLengths(RodLinkage *linkage, double **outLengths, size_t *numLengths){
+        const auto data = linkage->getPerSegmentRestLength();
+        
+        *numLengths = data.size();
+        auto sizeData = (*numLengths) * sizeof(double);
+        *outLengths = static_cast<double *>(malloc(sizeData));
+        std::memcpy(*outLengths, data.data(), sizeData);
+    }
+
     EROD_API void erodXShellSetRestLengthsSolveDoFs(RodLinkage *linkage, double *inDoFs, size_t numDoFs){
         Eigen::VectorXd dofs = Eigen::Map<Eigen::VectorXd>(inDoFs, numDoFs, 1);
         linkage->setRestlenSolveDoF(dofs);
+    }
+
+    EROD_API void erodXShellSetPerSegmentRestLengths(RodLinkage *linkage, double *inLengths, size_t numLengths){
+        Eigen::VectorXd lengths = Eigen::Map<Eigen::VectorXd>(inLengths, numLengths, 1);
+        linkage->setPerSegmentRestLength(lengths);
     }
 
     EROD_API void erodXShellSetDoFs(RodLinkage *linkage, double *inDoFs, size_t numDoFs){
@@ -956,16 +974,6 @@ namespace ElasticRodsGH
         return linkage->initialMinRestLength();
     }
 
-    EROD_API void erodXShellGetPerSegmentRestLength(RodLinkage *linkage, double **outRestLengths, size_t *numRestLengths)
-    {
-        const auto rl = linkage->getPerSegmentRestLength();
-
-        *numRestLengths = rl.size();
-        auto sizeRL = (*numRestLengths) * sizeof(double);
-        *outRestLengths = static_cast<double *>(malloc(sizeRL));
-        std::memcpy(*outRestLengths, rl.data(), sizeRL);
-    }
-
     EROD_API int erodXShellGetSegmentRestLenToEdgeRestLenMapTranspose(RodLinkage *linkage, double **outAx, long **outAi, long **outAp, long *outM, long *outN, long *outNZ, const char **errorMessage)
     {
         try
@@ -1020,7 +1028,7 @@ namespace ElasticRodsGH
         *use_restKappa = dpc.restKappa;
     }
 
-    EROD_API void erodXSHellGetJointAngles(RodLinkage *linkage, double **outAngles, size_t *numAngles)
+    EROD_API void erodXShellGetJointAngles(RodLinkage *linkage, double **outAngles, size_t *numAngles)
     {
         const auto joints = linkage->joints();
         std::vector<double> angles; 
@@ -1705,7 +1713,7 @@ namespace ElasticRodsGH
     }
 
     // Segments
-    EROD_API void erodRodSegmentMaterialFrame(RodLinkage::RodSegment *segment, size_t *outCoordsCount, double **outCoordsD1, double **outCoordsD2)
+    EROD_API void erodRodSegmentGetMaterialFrame(RodLinkage::RodSegment *segment, size_t *outCoordsCount, double **outCoordsD1, double **outCoordsD2)
     {
         const auto rod = segment->rod;
 
@@ -1964,7 +1972,7 @@ namespace ElasticRodsGH
         auto sizeData = (data.size()) * sizeof(double);
         *outData = static_cast<double *>(malloc(sizeData));
         std::memcpy(*outData, data.data(), sizeData);
-    }
+    }    
 
     EROD_API void erodRodSegmentGetRestPoints(RodLinkage::RodSegment *segment, double **outData, size_t *numData)
     {
@@ -2221,7 +2229,7 @@ namespace ElasticRodsGH
         *outSrcTwist = static_cast<double *>(malloc(sizeSrcTwist));
         std::memcpy(*outSrcTwist, srcTwist.data(), sizeSrcTwist);
     }
-
+    
     EROD_API void erodRodSegmentGetVonMisesStresses(RodLinkage::RodSegment *segment, double **outData, size_t *numData){
         auto stresses = segment->rod.maxStresses(CrossSectionStressAnalysis::StressType::VonMises);
         // Stress Data
@@ -2229,6 +2237,26 @@ namespace ElasticRodsGH
         auto sizeData = (*numData) * sizeof(double);
         *outData = static_cast<double *>(malloc(sizeData));
         std::memcpy(*outData, stresses.data(), sizeData);
+    }
+
+    EROD_API double erodRodSegmentGetMaxStrain(RodLinkage::RodSegment *segment)
+    {
+        auto max_mag = 0, max_val = 0;
+        const auto &r = segment->rod;
+        const size_t ne = r.numEdges();
+        const auto &dc = r.deformedConfiguration();
+        const auto &len = dc.len;
+        const auto &restLen = r.restLengths();
+
+        for (size_t j = 0; j < ne; ++j) {
+            auto val = len[j] / restLen[j] - 1.0;
+            if (std::abs(stripAutoDiff(val)) > max_mag) {
+                max_mag = std::abs(stripAutoDiff(val));
+                max_val = val;
+            }
+        }
+
+        return max_val;
     }
 
     // ElasticRod
@@ -2381,11 +2409,6 @@ namespace ElasticRodsGH
         return rod->numDoF();
     }
 
-    EROD_API double erodElasticRodGetEnergy(ElasticRod *rod)
-    {
-        return rod->energy();
-    }
-
     EROD_API size_t erodElasticRodGetEdgesCount(ElasticRod *rod)
     {
         return rod->numEdges();
@@ -2460,6 +2483,222 @@ namespace ElasticRodsGH
             stresses[i] = s(i);
         }
     }
+
+    EROD_API double erodElasticRodGetEnergy(ElasticRod *rod)
+    {
+        return rod->energy();
+    }
+
+    EROD_API double erodElasticRodGetEnergyBend(ElasticRod *rod)
+    {
+        return rod->energyBend();
+    }
+
+    EROD_API double erodElasticRodGetEnergyStretch(ElasticRod *rod)
+    {
+        return rod->energyStretch();
+    }
+
+    EROD_API double erodElasticRodGetEnergyTwist(ElasticRod *rod)
+    {
+        return rod->energyTwist();
+    }
+
+    EROD_API void erodElasticRodGetDoFs(ElasticRod *rod, double **outDoFs, size_t *numDoFs){
+        auto dofs = rod->getDoFs();
+        *numDoFs = dofs.size();
+        auto sizeDoFs = (*numDoFs) * sizeof(double);
+        *outDoFs = static_cast<double *>(malloc(sizeDoFs));
+        std::memcpy(*outDoFs, dofs.data(), sizeDoFs);
+    }
+
+    EROD_API void erodElasticRodSetDoFs(ElasticRod *rod, double *inDoFs, size_t numDoFs){
+        Eigen::VectorXd dofs = Eigen::Map<Eigen::VectorXd>(inDoFs, numDoFs, 1);
+        rod->setDoFs(dofs);
+    }
+
+    EROD_API void erodElasticRodGetMaterialFrame(ElasticRod *rod, size_t *outCoordsCount, double **outCoordsD1, double **outCoordsD2)
+    {
+        const auto numEdges = rod->numEdges();
+        std::vector<double> coordsD1, coordsD2;
+        coordsD1.reserve(numEdges * 3);
+        coordsD2.reserve(numEdges* 3);
+        for (size_t i = 0; i < numEdges; i++)
+        {
+            const auto d1 = rod->deformedMaterialFrameD1(i);
+            coordsD1.push_back(d1.x());
+            coordsD1.push_back(d1.y());
+            coordsD1.push_back(d1.z());
+
+            const auto d2 = rod->deformedMaterialFrameD2(i);
+            coordsD2.push_back(d2.x());
+            coordsD2.push_back(d2.y());
+            coordsD2.push_back(d2.z());
+        }
+
+        *outCoordsCount = coordsD1.size();
+        auto sizeCoords = (*outCoordsCount) * sizeof(double);
+        *outCoordsD1 = static_cast<double *>(malloc(sizeCoords));
+        *outCoordsD2 = static_cast<double *>(malloc(sizeCoords));
+        std::memcpy(*outCoordsD1, coordsD1.data(), sizeCoords);
+        std::memcpy(*outCoordsD2, coordsD2.data(), sizeCoords);
+    }
+
+    EROD_API double erodElasticRodGetMaxStrain(ElasticRod *rod)
+    {
+        auto max_mag = 0, max_val = 0;
+        const size_t ne = rod->numEdges();
+        const auto &dc = rod->deformedConfiguration();
+        const auto &len = dc.len;
+        const auto &restLen = rod->restLengths();
+
+        for (size_t j = 0; j < ne; ++j) {
+            auto val = len[j] / restLen[j] - 1.0;
+            if (std::abs(stripAutoDiff(val)) > max_mag) {
+                max_mag = std::abs(stripAutoDiff(val));
+                max_val = val;
+            }
+        }
+
+        return max_val;
+    }
+    
+    EROD_API void erodElasticRodGetBendingStiffness(ElasticRod *rod, double **lambda1, double **lambda2, size_t *numLambda1, size_t *numLambda2)
+    {
+        const auto s = rod->bendingStiffnesses();
+        size_t count = s.size();
+
+        std::vector<double> lA, lB;
+        for (size_t i = 0; i < count; i++)
+        {
+            lA.push_back(s[i].lambda_1);
+            lB.push_back(s[i].lambda_2);
+        }
+
+        *numLambda1 = lA.size();
+        auto sizeL1 = (lA.size()) * sizeof(double);
+        *lambda1 = static_cast<double *>(malloc(sizeL1));
+        std::memcpy(*lambda1, lA.data(), sizeL1);
+
+        *numLambda2 = lB.size();
+        auto sizeL2 = (lB.size()) * sizeof(double);
+        *lambda2 = static_cast<double *>(malloc(sizeL2));
+        std::memcpy(*lambda2, lB.data(), sizeL2);
+    }
+
+    EROD_API void erodElasticRodGetTwistingStiffness(ElasticRod *rod, double **outData, size_t *numData)
+    {
+        const auto data = rod->twistingStiffnesses();
+        *numData = data.size();
+        auto sizeData = (data.size()) * sizeof(double);
+        *outData = static_cast<double *>(malloc(sizeData));
+        std::memcpy(*outData, data.data(), sizeData);
+    }
+
+    EROD_API void erodElasticRodGetStretchingStiffness(ElasticRod *rod, double **outData, size_t *numData)
+    {
+        const auto data = rod->stretchingStiffnesses();
+        *numData = data.size();
+        auto sizeData = (data.size()) * sizeof(double);
+        *outData = static_cast<double *>(malloc(sizeData));
+        std::memcpy(*outData, data.data(), sizeData);
+    }  
+    
+    EROD_API void erodElasticRodGetVonMisesStresses(ElasticRod *rod, double **outData, size_t *numData){
+        auto stresses = rod->maxStresses(CrossSectionStressAnalysis::StressType::VonMises);
+        // Stress Data
+        *numData = stresses.size();
+        auto sizeData = (*numData) * sizeof(double);
+        *outData = static_cast<double *>(malloc(sizeData));
+        std::memcpy(*outData, stresses.data(), sizeData);
+    }
+
+    EROD_API double erodElasticRodGetInitialMinRestLength(ElasticRod *rod)
+    {
+        return rod->initialMinRestLength();
+    }
+
+    EROD_API void erodElasticRodGetRestKappas(ElasticRod *rod, double **outData, size_t *numData)
+    {
+        const auto kappas = rod->restKappas();
+        size_t count = kappas.size();
+
+        std::vector<double> data;
+        data.reserve(count * 2);
+
+        for (size_t i = 0; i < count; i++)
+        {
+            const auto p = kappas[i];
+            data.push_back(p(0, 0));
+            data.push_back(p(1, 0));
+        }
+
+        *numData = data.size();
+        auto sizeData = (data.size()) * sizeof(double);
+        *outData = static_cast<double *>(malloc(sizeData));
+        std::memcpy(*outData, data.data(), sizeData);
+    }
+
+    EROD_API void erodElasticRodGetScalarFieldSqrtBendingEnergies(ElasticRod *rod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(rod->visualizationField(rod->sqrtBendingEnergies()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API void erodElasticRodGetScalarFieldMaxBendingStresses(ElasticRod *rod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(rod->visualizationField(rod->maxBendingStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API void erodElasticRodGetScalarFieldVonMisesStresses(ElasticRod *rod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(rod->visualizationField(rod->maxVonMisesStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API void erodElasticRodGetScalarFieldMinBendingStresses(ElasticRod *rod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(rod->visualizationField(rod->minBendingStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API void erodElasticRodGetScalarFieldTwistingStresses(ElasticRod *rod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(rod->visualizationField(rod->twistingStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API void erodElasticRodGetScalarFieldStretchingStresses(ElasticRod *rod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(rod->visualizationField(rod->stretchingStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
 
     // Periodic ElasticRod
     EROD_API PeriodicRod *erodPeriodicElasticRodBuild(int numPoints, double *inCoords, int removeCurvature, const char **errorMessage)
@@ -2602,11 +2841,6 @@ namespace ElasticRodsGH
         return pRod->numDoF();
     }
 
-    EROD_API double erodPeriodicElasticRodGetEnergy(PeriodicRod *pRod)
-    {
-        return pRod->energy();
-    }
-
     EROD_API size_t erodPeriodicElasticRodGetEdgesCount(PeriodicRod *pRod)
     {
         return pRod->rod.numEdges();
@@ -2680,5 +2914,221 @@ namespace ElasticRodsGH
         {
             stresses[i] = s(i);
         }
+    }
+
+    EROD_API void erodPeriodicElasticRodGetDoFs(PeriodicRod *pRod, double **outDoFs, size_t *numDoFs){
+        auto dofs = pRod->getDoFs();
+        *numDoFs = dofs.size();
+        auto sizeDoFs = (*numDoFs) * sizeof(double);
+        *outDoFs = static_cast<double *>(malloc(sizeDoFs));
+        std::memcpy(*outDoFs, dofs.data(), sizeDoFs);
+    }
+
+    EROD_API void erodPeriodicElasticRodSetDoFs(PeriodicRod *pRod, double *inDoFs, size_t numDoFs){
+        Eigen::VectorXd dofs = Eigen::Map<Eigen::VectorXd>(inDoFs, numDoFs, 1);
+        pRod->setDoFs(dofs);
+    }
+
+    EROD_API void erodPeriodicElasticRodGetMaterialFrame(PeriodicRod *pRod, size_t *outCoordsCount, double **outCoordsD1, double **outCoordsD2)
+    {
+        const auto numEdges = pRod->rod.numEdges();
+        std::vector<double> coordsD1, coordsD2;
+        coordsD1.reserve(numEdges * 3);
+        coordsD2.reserve(numEdges * 3);
+        for (size_t i = 0; i < numEdges; i++)
+        {
+            const auto d1 =pRod->rod.deformedMaterialFrameD1(i);
+            coordsD1.push_back(d1.x());
+            coordsD1.push_back(d1.y());
+            coordsD1.push_back(d1.z());
+
+            const auto d2 = pRod->rod.deformedMaterialFrameD2(i);
+            coordsD2.push_back(d2.x());
+            coordsD2.push_back(d2.y());
+            coordsD2.push_back(d2.z());
+        }
+
+        *outCoordsCount = coordsD1.size();
+        auto sizeCoords = (*outCoordsCount) * sizeof(double);
+        *outCoordsD1 = static_cast<double *>(malloc(sizeCoords));
+        *outCoordsD2 = static_cast<double *>(malloc(sizeCoords));
+        std::memcpy(*outCoordsD1, coordsD1.data(), sizeCoords);
+        std::memcpy(*outCoordsD2, coordsD2.data(), sizeCoords);
+    }
+
+    EROD_API double erodPeriodicElasticRodGetEnergy(PeriodicRod *pRod)
+    {
+        return pRod->rod.energy();
+    }
+
+    EROD_API double erodPeriodicElasticRodGetEnergyBend(PeriodicRod *pRod)
+    {
+        return pRod->rod.energyBend();
+    }
+
+    EROD_API double erodPeriodicElasticRodGetEnergyStretch(PeriodicRod *pRod)
+    {
+        return pRod->rod.energyStretch();
+    }
+
+    EROD_API double erodPeriodicElasticRodGetEnergyTwist(PeriodicRod *pRod)
+    {
+        return pRod->rod.energyTwist();
+    }
+
+    EROD_API double erodPeriodicElasticRodGetMaxStrain(PeriodicRod *pRod)
+    {
+        auto max_mag = 0, max_val = 0;
+        const auto &r = pRod->rod;
+        const size_t ne = r.numEdges();
+        const auto &dc = r.deformedConfiguration();
+        const auto &len = dc.len;
+        const auto &restLen = r.restLengths();
+
+        for (size_t j = 0; j < ne; ++j) {
+            auto val = len[j] / restLen[j] - 1.0;
+            if (std::abs(stripAutoDiff(val)) > max_mag) {
+                max_mag = std::abs(stripAutoDiff(val));
+                max_val = val;
+            }
+        }
+
+        return max_val;
+    }
+
+    EROD_API void erodPeriodicElasticRodGetBendingStiffness(PeriodicRod *pRod, double **lambda1, double **lambda2, size_t *numLambda1, size_t *numLambda2)
+    {
+        const auto s = pRod->rod.bendingStiffnesses();
+        size_t count = s.size();
+
+        std::vector<double> lA, lB;
+        for (size_t i = 0; i < count; i++)
+        {
+            lA.push_back(s[i].lambda_1);
+            lB.push_back(s[i].lambda_2);
+        }
+
+        *numLambda1 = lA.size();
+        auto sizeL1 = (lA.size()) * sizeof(double);
+        *lambda1 = static_cast<double *>(malloc(sizeL1));
+        std::memcpy(*lambda1, lA.data(), sizeL1);
+
+        *numLambda2 = lB.size();
+        auto sizeL2 = (lB.size()) * sizeof(double);
+        *lambda2 = static_cast<double *>(malloc(sizeL2));
+        std::memcpy(*lambda2, lB.data(), sizeL2);
+    }
+
+    EROD_API void erodPeriodicElasticRodGetTwistingStiffness(PeriodicRod *pRod, double **outData, size_t *numData)
+    {
+        const auto data = pRod->rod.twistingStiffnesses();
+        *numData = data.size();
+        auto sizeData = (data.size()) * sizeof(double);
+        *outData = static_cast<double *>(malloc(sizeData));
+        std::memcpy(*outData, data.data(), sizeData);
+    }
+
+    EROD_API void erodPeriodicElasticRodGetStretchingStiffness(PeriodicRod *pRod, double **outData, size_t *numData)
+    {
+        const auto data = pRod->rod.stretchingStiffnesses();
+        *numData = data.size();
+        auto sizeData = (data.size()) * sizeof(double);
+        *outData = static_cast<double *>(malloc(sizeData));
+        std::memcpy(*outData, data.data(), sizeData);
+    }  
+
+    EROD_API void erodPeriodicElasticRodGetVonMisesStresses(PeriodicRod *pRod, double **outData, size_t *numData){
+        auto stresses = pRod->rod.maxStresses(CrossSectionStressAnalysis::StressType::VonMises);
+        // Stress Data
+        *numData = stresses.size();
+        auto sizeData = (*numData) * sizeof(double);
+        *outData = static_cast<double *>(malloc(sizeData));
+        std::memcpy(*outData, stresses.data(), sizeData);
+    }
+
+    EROD_API double erodPeriodicElasticRodGetInitialMinRestLength(PeriodicRod *pRod)
+    {
+        return pRod->rod.initialMinRestLength();
+    }
+
+    EROD_API void erodPeriodicElasticRodGetRestKappas(PeriodicRod *pRod, double **outData, size_t *numData)
+    {
+        const auto kappas = pRod->rod.restKappas();
+        size_t count = kappas.size();
+
+        std::vector<double> data;
+        data.reserve(count * 2);
+
+        for (size_t i = 0; i < count; i++)
+        {
+            const auto p = kappas[i];
+            data.push_back(p(0, 0));
+            data.push_back(p(1, 0));
+        }
+
+        *numData = data.size();
+        auto sizeData = (data.size()) * sizeof(double);
+        *outData = static_cast<double *>(malloc(sizeData));
+        std::memcpy(*outData, data.data(), sizeData);
+    }
+
+    EROD_API void erodPeriodicElasticRodGetScalarFieldSqrtBendingEnergies(PeriodicRod *pRod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(pRod->rod.visualizationField(pRod->rod.sqrtBendingEnergies()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API void erodPeriodicElasticRodGetScalarFieldMaxBendingStresses(PeriodicRod *pRod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(pRod->rod.visualizationField(pRod->rod.maxBendingStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API void erodPeriodicElasticRodGetScalarFieldVonMisesStresses(PeriodicRod *pRod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(pRod->rod.visualizationField(pRod->rod.maxVonMisesStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API void erodPeriodicElasticRodGetScalarFieldMinBendingStresses(PeriodicRod *pRod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(pRod->rod.visualizationField(pRod->rod.minBendingStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API void erodPeriodicElasticRodGetScalarFieldTwistingStresses(PeriodicRod *pRod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(pRod->rod.visualizationField(pRod->rod.twistingStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API void erodPeriodicElasticRodGetScalarFieldStretchingStresses(PeriodicRod *pRod, double **outField, size_t *numField)
+    {
+        ScalarField<Real> field(pRod->rod.visualizationField(pRod->rod.stretchingStresses()));
+
+        *numField = field.size();
+        auto sizeField = (*numField) * sizeof(double);
+        *outField = static_cast<double *>(malloc(sizeField));
+        std::memcpy(*outField, field.data(), sizeField);
     }
 }

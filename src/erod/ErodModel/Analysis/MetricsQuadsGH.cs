@@ -75,7 +75,7 @@ namespace ErodModel.Analysis
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Model", "Model", "RodLinkage Model.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Linkage", "Linkage", "Linkage model to analyse.", GH_ParamAccess.item);
             pManager.AddNumberParameter("Alpha", "Alpha", "Set the alpha value (from 0.0 to 1.0) to control the transparency of the visualization", GH_ParamAccess.item, 0.3);
             pManager.AddBooleanParameter("ShowPlots", "ShowPlots", "Generate graph plots", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
@@ -134,7 +134,7 @@ namespace ErodModel.Analysis
 
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.tertiary; }
+            get { return GH_Exposure.secondary; }
         }
 
         /// <summary>
@@ -145,9 +145,7 @@ namespace ErodModel.Analysis
         {
             get
             {
-                // You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
-                return null;
+                return Properties.Resources.Resources.metrics_quads;
             }
         }
 

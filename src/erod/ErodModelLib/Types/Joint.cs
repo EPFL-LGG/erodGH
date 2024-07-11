@@ -10,14 +10,22 @@ namespace ErodModelLib.Types
     public class Joint : IGH_Goo
     {
         private IntPtr _ptr;
+
         public double RestAlpha { get; private set; }
-        public int Index { get; private set;     }
+        public int Index { get; private set; }
+        public Point3d Position { get; private set; }
 
         public Joint(IntPtr linkage, int index)
         {
             _ptr = Kernel.LinkageJoint.ErodJointBuild(linkage, index);
             Index = index;
             RestAlpha = GetAlpha();
+            Position = GetPositionAsPoint3d();
+        }
+
+        public void UpdatePosition()
+        {
+            Position = GetPositionAsPoint3d();
         }
 
         public Point3d GetPositionAsPoint3d()

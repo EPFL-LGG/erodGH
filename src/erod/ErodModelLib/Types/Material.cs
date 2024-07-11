@@ -22,7 +22,7 @@ namespace ErodModelLib.Types
         public (double Lambda1, double Lambda2) MomentOfInertia { get; set; }
         public IntPtr Model { get; private set; }
 
-        public Material(MaterialData matData)
+        public Material(MaterialIO matData)
         {
             if (matData.HasCustomProfile()) Model = Kernel.Material.ErodMaterialCustomBuild(matData.E, matData.PoisonsRatio, matData.ContourProfile, matData.ContourProfile.Length / 3, new double[0], 0, matData.Orientation);
             else Model = Kernel.Material.ErodMaterialBuild(matData.CrossSectionType, matData.E, matData.PoisonsRatio, matData.Parameters, matData.Parameters.Length, matData.Orientation);

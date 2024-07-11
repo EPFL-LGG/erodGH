@@ -5,129 +5,395 @@ using ErodDataLib.Utils;
 using ErodDataLib.Types;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace ErodModelLib.Types
 {
     public partial class RodLinkage : ElasticModel
     {
-        protected PointCloud _jointsCloud, _nodesCloud;
+        public LinkageIO ModelIO => (LinkageIO)_modelIO;
+        public RodSegmentCollection Segments { get; private set; }
+        public JointCollection Joints { get; private set; }
 
-        public RodSegment[] Segments { get; private set; }
-        public Joint[] Joints { get; private set; }
-        public double TargetAngle { get; set; }
-        public RodLinkageLayout Layout { get; private set; }
-        public MaterialData HomogenousMaterial { get; private set; }
-        public Material[] RodMaterials { get; private set; }
-
-        private void AddMaterialData(RodLinkageData data)
+        public RodLinkage(RodLinkage model) : base((LinkageIO) model.ModelIO.Clone())
         {
-            int numMaterials = data.MaterialData.Count;
-            int numJoints = data.Joints.Count;
-            MaterialData mat = data.MaterialData[0];
-            HomogenousMaterial = mat;
-            RodMaterials = new Material[numMaterials];
+            if (model.ModelIO.ModelType == ElasticModelType.AttractedSurfaceRodLinkage) Model = Kernel.RodLinkage.ErodXShellAttractedSurfaceCopy(model.Model, out Error);
+            else Model = Kernel.RodLinkage.ErodXShellCopy(model.Model, out Error);
+
+            if (Model != IntPtr.Zero) Init();
+            else throw new Exception(Marshal.PtrToStringAnsi(Error));
+        }
+
+        public override object Clone()
+        {
+            return new RodLinkage(this);
+        }
+
+        public RodLinkage(LinkageIO modelIO, bool checkConsistentNormals, bool initConsistentAngle, bool edgeDataInitialization = false) : base(modelIO)
+        {
+            ///////////////////////////////////////////////////
+            ///////////////////////////////////////////////////
+            // Parse joint data
+            //////////////////////////////////////////////////
+            //////////////////////////////////////////////////
+
+            #region Joints
+            int numJoints = modelIO.Joints.Count;
+            int[] jointForVertex = modelIO.NodeToJointMaps;
+            int numVertices = modelIO.NodeToJointMaps.Length;
+            int[] segmentsA = new int[numJoints * 2];
+            int[] segmentsB = new int[numJoints * 2];
+            int[] isStartA = new int[numJoints * 2];
+            int[] isStartB = new int[numJoints * 2];
+            double[] coords = new double[numJoints * 3];
+            double[] normals = new double[numJoints * 3];
+            double[] edgesA = new double[numJoints * 3];
+            double[] edgesB = new double[numJoints * 3];
+
+
+            for (int i = 0; i < numJoints; i++)
+            {
+                JointIO joint = modelIO.Joints[i];
+
+                coords[i * 3] = joint.Position.X;
+                coords[i * 3 + 1] = joint.Position.Y;
+                coords[i * 3 + 2] = joint.Position.Z;
+
+                normals[i * 3] = joint.Normal.X;
+                normals[i * 3 + 1] = joint.Normal.Y;
+                normals[i * 3 + 2] = joint.Normal.Z;
+
+                edgesA[i * 3] = joint.EdgeA.X;
+                edgesA[i * 3 + 1] = joint.EdgeA.Y;
+                edgesA[i * 3 + 2] = joint.EdgeA.Z;
+                edgesB[i * 3] = joint.EdgeB.X;
+                edgesB[i * 3 + 1] = joint.EdgeB.Y;
+                edgesB[i * 3 + 2] = joint.EdgeB.Z;
+
+                segmentsA[i * 2] = joint.SegmentsA[0];
+                segmentsA[i * 2 + 1] = joint.SegmentsA[1];
+                segmentsB[i * 2] = joint.SegmentsB[0];
+                segmentsB[i * 2 + 1] = joint.SegmentsB[1];
+
+                isStartA[i * 2] = Convert.ToInt32(joint.IsStartA[0]);
+                isStartA[i * 2 + 1] = Convert.ToInt32(joint.IsStartA[1]);
+                isStartB[i * 2] = Convert.ToInt32(joint.IsStartB[0]);
+                isStartB[i * 2 + 1] = Convert.ToInt32(joint.IsStartB[1]);
+            }
+            #endregion
+
+            ///////////////////////////////////////////////////
+            ///////////////////////////////////////////////////
+            // Parse edge data
+            //////////////////////////////////////////////////
+            //////////////////////////////////////////////////
+            #region Edges
+            int numEdges = modelIO.Segments.Count;
+            List<double> curvePoints = new List<double>();
+            int[] offsetCurvePoints = new int[numEdges];
+            int[] startJoints = new int[numEdges];
+            int[] endJoints = new int[numEdges];
+            int[] subdivisions = new int[numEdges];
+            int[] edges = new int[numEdges * 2];
+            int[] isCurvedEdge = new int[numEdges];
+            double[] restLengths = new double[numEdges];
+            int offset = 0;
+
+            for (int i = 0; i < numEdges; i++)
+            {
+                SegmentIO edge = modelIO.Segments[i];
+
+                isCurvedEdge[i] = edge.IsCurvedEdge ? 1: 0;
+
+                // Rest lengths
+                restLengths[i] = edge.RestLength;
+
+                // Subdivisions
+                subdivisions[i] = edge.Subdivision;
+
+                // Curve points
+                for (int j = 0; j < edge.CurvePoints.Length; j++)
+                {
+                    Point3d p = edge.CurvePoints[j];
+                    curvePoints.AddRange(new double[] { p.X, p.Y, p.Z });
+                    offset += 3;
+                }
+                offsetCurvePoints[i] = offset;
+                startJoints[i] = edge.StartJoint;
+                endJoints[i] = edge.EndJoint;
+
+                // Edges
+                edges[i * 2] = edge.Indices[0];
+                edges[i * 2 + 1] = edge.Indices[1];
+            }
+            #endregion
+
+            ///////////////////////////////////////////////////
+            ///////////////////////////////////////////////////
+            // Build RodLinkage
+            //////////////////////////////////////////////////
+            //////////////////////////////////////////////////
+
+            #region Linkage
+            if (coords.Length == 0 || coords == null || edgesA.Length == 0 || edgesA == null
+                || edgesB.Length == 0 || edgesB == null)
+            {
+                throw new MissingFieldException("Missing joint vertex data.");
+            }
+            else if (curvePoints.Count == 0 || curvePoints == null)
+            {
+                throw new MissingFieldException("Missing edge data.");
+            }
+            else
+            {
+                if (!edgeDataInitialization)
+                {
+                    Model = Kernel.RodLinkage.ErodXShellBuildFromJointData(numVertices, numJoints, numEdges,
+                                                                            restLengths, offsetCurvePoints, curvePoints.ToArray(),
+                                                                            startJoints, endJoints,
+                                                                            coords, normals,
+                                                                            edgesA, edgesB,
+                                                                            segmentsA, segmentsB,
+                                                                            isStartA, isStartB,
+                                                                            jointForVertex, edges, isCurvedEdge, modelIO.FirstJointNodeMap,
+                                                                            modelIO.Interleaving, Convert.ToInt32(checkConsistentNormals), Convert.ToInt32(initConsistentAngle), out Error);
+                }
+                else
+                {
+                    numVertices = modelIO.Graph.NumNodes;
+                    numEdges = modelIO.Graph.NumEdges;
+                    modelIO.Graph.GetFlattenGraphData(out coords, out normals, out edges);
+                    // For this constructor all rod segments needs to be subdivided equally
+                    int subd = subdivisions.Sum() / subdivisions.Length;
+                    Model = Kernel.RodLinkage.ErodXShellBuildFromEdgeData(numVertices, numEdges, coords, edges, normals, subd, modelIO.Interleaving, Convert.ToInt32(initConsistentAngle), out Error);
+                }
+
+                if (ModelIO.ContainsTargetSurface()) AddTargetSurface(ModelIO.TargetSurface);
+
+                if (Model != IntPtr.Zero) Init();
+                else throw new Exception(Marshal.PtrToStringAuto(Error));
+            }
+            #endregion
+        }
+
+        public void AddTargetSurface(TargetSurfaceData data)
+        {
+            if (data == null || data == default) return;
+            double[] inCoords = Helpers.FlattenDoubleArray(data.Vertices);
+            int[] inTrias = Helpers.FlattenIntArray(data.Trias);
+            Model = Kernel.RodLinkage.ErodXShellAttractedSurfaceBuild(data.Vertices.Length, data.Trias.Length, inCoords, inTrias, Model, data.TargetJointWeight, out Error);
+            if (Model == IntPtr.Zero) throw new Exception(Marshal.PtrToStringAnsi(Error));
+        }
+
+        private void InitMaterials()
+        {
+            int numMaterials = ModelIO.Materials.Count;
+            int numJoints = Joints.Count;
+            Material[] _materials = new Material[numMaterials];
 
             if (numMaterials == 0) throw new Exception("No material has been assigned to the linkage.");
 
-            if (numMaterials == 1) RodMaterials[0] = new Material(mat);
+            if (numMaterials == 1) _materials[0] = new Material(ModelIO.Materials[0]);
             else
             {
-                RodMaterials = new Material[numJoints];
+                _materials = new Material[numJoints];
 
                 // First: Assign the first material to all the joints
-                for (int i = 0; i < numJoints; i++) RodMaterials[i] = new Material(mat);
+                for (int i = 0; i < numJoints; i++) _materials[i] = new Material(ModelIO.Materials[0]);
 
                 // Second: Re-assign materials to specific joints
                 for (int i = 0; i < numMaterials; i++)
                 {
-                    mat = data.MaterialData[i];
+                    var mat = ModelIO.Materials[i];
+                    int idx = Joints.ClosestJoint(mat.ReferencePosition);
+                    _materials[idx] = new Material(mat);
+                }
+            }
+            Kernel.Material.ErodMaterialSetToLinkage(_materials.Select(m => m.Model).ToArray(), _materials.Length, Model);
+        }
 
-                    if (mat.Indexes.Length == 1)
+        public void InitSupports()
+        {
+            var supports = ModelIO.Supports;
+            foreach (SupportIO sp in supports)
+            {
+                if (sp.IndexMap == -1)
+                {
+                    Point3d p = sp.ReferencePosition;
+
+                    int[] dof = new int[] { 0, 1, 2, 3, 4, 5 };
+                    int[] indicesDoFs = new int[dof.Length];
+
+                    int idxJ = Joints.ClosestJoint(p);
+                    int idxN = Segments.ClosestNode(p);
+
+                    if (p.DistanceTo(Joints[idxJ].Position) < p.DistanceTo(Segments.GetNode(idxN)))
                     {
-                        int idx = mat.Indexes[0];
-                        if (idx == -1) new IndexOutOfRangeException("Material Data without joint reference.");
+                        Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Model, idxJ, dof, dof.Length, indicesDoFs);
+                        sp.IndexMap = idxJ;
+                        sp.IsJointSupport = true;
+                    }
+                    else
+                    {
+                        Kernel.RodLinkage.ErodXShellGetDofOffsetForCenterLinePos(Model, idxN, dof, dof.Length, indicesDoFs);
+                        sp.IndexMap = idxN;
+                        sp.IsJointSupport = false;
+                    }
 
-                        RodMaterials[idx] = new Material(mat);
+                    sp.SetIndicesDoFs(indicesDoFs);
+                }
+                sp.ReferencePosition = sp.IsJointSupport ? Joints[sp.IndexMap].Position : Segments.GetNode(sp.IndexMap);
+            }
+        }
+
+        public void InitForces()
+        {
+            var allForces = ModelIO.Forces;
+
+            // Check for forces with unset reference positions. These will be global forces that are applied to all joints 
+            var tempForces = allForces.Where(f => f.Positions[0] == Point3d.Unset);
+            List<ForceIO> forces = new List<ForceIO>();
+            if (tempForces.Count() != 0) {
+                foreach (var f in tempForces)
+                {
+                    if (f is ForceExternalIO)
+                    {
+                        ForceExternalIO extForce = (ForceExternalIO)f;
+
+                        for (int i = 0; i < Joints.Count; i++)
+                        {
+                            var jt = Joints[i];
+                            ForceExternalIO newForce = new ForceExternalIO(jt.Position, extForce.Force);
+
+                            int[] dof = new int[] { 0, 1, 2 };
+                            int[] indicesDoFs = new int[dof.Length];
+                            Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Model, i, dof, dof.Length, indicesDoFs);
+                            newForce.SetIndexMap(0, i, true, indicesDoFs);
+                            forces.Add(newForce);
+                        }
                     }
                 }
             }
-            Kernel.Material.ErodMaterialSetToLinkage(RodMaterials.Select(m => m.Model).ToArray(), RodMaterials.Length, Model);
-        }
 
-        private void AddSupportData(RodLinkageData data)
-        {
-            if (data.Supports.Count > 0) foreach (SupportData anchor in data.Supports) AddSupports(anchor);
-            else AddCentralSupport();
-        }
-
-
-        private void AddForceData(RodLinkageData data)
-        {
-            if (data.Forces.Count > 0)
+            // Check forces with reference positions
+            tempForces = allForces.Where(f => f.Positions[0] != Point3d.Unset);
+            foreach (var f in tempForces)
             {
-                foreach (UnaryForceData force in data.Forces)
+                for (int i = 0; i < f.Positions.Length; i++)
                 {
-                    AddForces(force);
+                    Point3d p = f.Positions[i];
+
+                    int[] dof = new int[] { 0, 1, 2 };
+                    int[] indicesDoFs = new int[dof.Length];
+
+                    int idxJ = Joints.ClosestJoint(p);
+                    int idxN = Segments.ClosestNode(p);
+
+                    if (p.DistanceTo(Joints[idxJ].Position) < p.DistanceTo(Segments.GetNode(idxN)))
+                    {
+                        Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Model, idxJ, dof, dof.Length, indicesDoFs);
+                        f.SetIndexMap(i, idxJ, true, indicesDoFs);
+                    }
+                    else
+                    {
+                        Kernel.RodLinkage.ErodXShellGetDofOffsetForCenterLinePos(Model, idxN, dof, dof.Length, indicesDoFs);
+                        f.SetIndexMap(i, idxN, false, indicesDoFs);
+                    }
                 }
+                forces.Add((ForceIO)f.Clone());
             }
 
-            if (data.Cables.Count > 0)
-            {
-                foreach (CableForceData force in data.Cables)
-                {
-                    AddForces(force);
-                }
-            }
+            ModelIO.SetForces(forces);
+        }
+
+        protected override void Init()
+        {
+            InitJoints();
+            InitSegments();
+            InitMaterials();
+            InitSupports();
+            InitForces();
+            InitMesh();
         }
 
         protected void InitSegments()
         {
             int count = Kernel.RodLinkage.ErodXShellRodGetSegmentsCount(Model);
-            Segments = new RodSegment[count];
-
-            for (int i = 0; i < count; i++)
-            {
-                Segments[i] = new RodSegment(Model, i);
-            }
+            Segments = new RodSegmentCollection(Model);
+            for (int i = 0; i < count; i++) Segments.Add(new RodSegment(Model, i));
+            Segments.UpdateNodePositions();
         }
 
         protected void InitJoints()
         {
             int count = Kernel.RodLinkage.ErodXShellGetJointsCount(Model);
-            Joints = new Joint[count];
-            _jointsCloud = new PointCloud();
-
-            double[] pos;
-            for (int i = 0; i < count; i++)
-            {
-                Joints[i] = new Joint(Model, i);
-                pos = Joints[i].GetPosition();
-                _jointsCloud.Add(new Point3d(pos[0], pos[1], pos[2]));
-            }
-
-        }
-
-        protected void InitNodes()
-        {
-            // Centerline positions
-            _nodesCloud = new PointCloud();
-
-            double[] pos = GetCenterLinePositions();
-            for (int i = 0; i < pos.Length / 3; i++)
-            {
-                _nodesCloud.Add(new Point3d(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]));
-            }
+            Joints = new JointCollection();
+            for (int i = 0; i < count; i++) Joints.Add(new Joint(Model, i));
         }
 
         public override void InitMesh()
         {
-            // Build visualization mesh
             double[] outCoords;
             int[] outQuads;
             GetMeshData(out outCoords, out outQuads);
 
             MeshVis = Helpers.GetQuadMesh(outCoords, outQuads);
-            //if (!MeshVis.IsValid) throw new Exception("Errors during the construction of the xshell. There might be some incompatibilities with the joint normals.");
+        }
+
+        public override void Update()
+        {
+            Joints.UpdateJointPositions();
+            Segments.UpdateNodePositions();
+            UpdateMesh();
+        }
+
+        public override string ToString()
+        {
+            return ModelIO.ModelType.ToString();
+        }
+
+        public void WriteJsonFile(string path, string filename)
+        {
+            // Serialize JSON directly to a file
+            using (StreamWriter file = File.CreateText(@path + filename + ".json"))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Serialize(file, this);
+            }
+        }
+
+        public override int[] GetFixedVars(bool includeTemporarySupports, double step=1.0)
+        {
+            if (step < 0) step = 0;
+            if (step > 1) step = 1;
+
+            double[] dofs = GetDoFs();
+            // Update positions of supports
+            foreach (SupportIO sp in ModelIO.Supports)
+            {
+                if (!sp.ContainsTarget) continue;
+
+                // Compute linear interpolation between initial position and target position
+                Line ln = new Line(sp.ReferencePosition, sp.TargetPosition);
+                sp.ReferencePosition = ln.PointAt(step);
+                // Only update dofs linked with the position
+                int[] indicesDoFs = sp.IndicesDoFs;
+                for (int j = 0; j < indicesDoFs.Length; j++) dofs[indicesDoFs[j]] = sp.ReferencePosition[j];
+            }
+            SetDoFs(dofs);
+
+            return ModelIO.Supports.GetSupportsDoFsIndices(includeTemporarySupports);
+        }
+
+        public override Line[] GetCablesAsLines()
+        {
+            {
+                if (_modelIO.Forces.Count == 0) return new Line[0];
+
+                return _modelIO.Forces.Where(f => f.ForceType == ForceIOType.Cable).Select(f => new Line(f.IsJoint[0] ? Joints[f.Indices[0]].Position : Segments.GetNode(f.Indices[0]), f.IsJoint[1] ? Joints[f.Indices[1]].Position : Segments.GetNode(f.Indices[1]))).ToArray();
+            }
         }
     }
 }

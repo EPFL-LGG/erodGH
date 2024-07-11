@@ -98,7 +98,7 @@ namespace ErodModelLib.Creators
             internal static extern double ErodRodSegmentGetEnergyTwist(IntPtr segment);
 
             [SuppressUnmanagedCodeSecurity]
-            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodRodSegmentMaterialFrame")]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodRodSegmentGetMaterialFrame")]
             internal static extern void ErodRodSegmentGetMaterialFrame(IntPtr segment, out int outCoordsCount, out IntPtr outCoordsD1, out IntPtr outCoordsD2);
 
             [SuppressUnmanagedCodeSecurity]
@@ -142,6 +142,10 @@ namespace ErodModelLib.Creators
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodRodSegmentGetVonMisesStresses")]
             internal static extern void ErodRodSegmentGetVonMisesStresses(IntPtr segment, out IntPtr outData, out int numData);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodRodSegmentGetMaxStrain")]
+            internal static extern double ErodRodSegmentGetMaxStrain(IntPtr rod);
         }
     }
 }

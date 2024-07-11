@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<resheader name="resmimetype">
+		<value>text/microsoft-resx</value>
+	</resheader>
+	<resheader name="version">
+		<value>2.0</value>
+	</resheader>
+	<resheader name="reader">
+		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<resheader name="writer">
+		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<data name="solver_equilibrium" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\solver_equilibrium.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="torque_actuation" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\torque_actuation.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="support_actuation" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\support_actuation.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="cable_actuation" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\cable_actuation.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="solver_options" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\solver_options.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="solver_options_extended" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\solver_options_extended.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="torque_actuation_step" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\torque_actuation_step.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="solver_equilibrium_mult" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\solver_equilibrium_mult.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="torque_actuation_multi" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\torque_actuation_multi.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="slider_actuation" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\slider_actuation.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="rod" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\rod.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="linkage" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\linkage.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="deconstruct_linkage" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\deconstruct_linkage.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="deconstruct_rodSegment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\deconstruct_rodSegment.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="deconstruct_joint" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\deconstruct_joint.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="cs_analyze" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\cs_analyze.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="linkage_layout" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\linkage_layout.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="infer_surface" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\infer_surface.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="stiffen_area" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\stiffen_area.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="energies" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\energies.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="stiffnesses" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\stiffnesses.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="stresses" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\stresses.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="angles" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\angles.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="rest_lengths" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\rest_lengths.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="metrics_quads" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\metrics_quads.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="metrics_joints" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\metrics_joints.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="metrics_rods" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\metrics_rods.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="metrics_linkage" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\metrics_linkage.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="save_render" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\save_render.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="edit_linkage" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\edit_linkage.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="edit_rod" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\edit_rod.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+</root>
+

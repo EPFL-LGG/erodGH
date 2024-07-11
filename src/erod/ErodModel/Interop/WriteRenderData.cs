@@ -18,8 +18,8 @@ namespace ErodModel.Interop
         /// new tabs/panels will automatically be created.
         /// </summary>
         public WriteRenderData()
-          : base("WriteRenderData", "WriteRender",
-            "Write redering data.",
+          : base("SaveRender", "SaverRender",
+            "Write a JSON file with data for rendering.",
             "Erod", "Interop")
         {
         }
@@ -29,8 +29,8 @@ namespace ErodModel.Interop
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Flat", "Flat", "RodLinkage model.", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Deploy", "Deploy", "RodLinkage model.", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Flat", "Flat", "Undeployed linkage model.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Deploy", "Deploy", "Deployed linkage model.", GH_ParamAccess.list);
             pManager.AddTextParameter("Path", "Path", "Directory path.", GH_ParamAccess.item);
             pManager.AddTextParameter("Filename", "Filename", "Name of the file.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Write", "Write", "Write file.", GH_ParamAccess.item);
@@ -81,11 +81,6 @@ namespace ErodModel.Interop
             DA.SetData(0, log);
         }
 
-        public override GH_Exposure Exposure
-        {
-            get { return GH_Exposure.tertiary; }
-        }
-
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
@@ -94,9 +89,7 @@ namespace ErodModel.Interop
         {
             get
             {
-                // You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
-                return null;
+                return Properties.Resources.Resources.save_render;
             }
         }
 
