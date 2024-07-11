@@ -244,7 +244,7 @@ namespace ErodModelLib.Types
 
                     sp.SetIndicesDoFs(indicesDoFs);
                 }
-                sp.ReferencePosition = sp.IsJointSupport ? Joints[sp.IndexMap].Position : Segments.GetNode(sp.IndexMap);
+                sp.UpdateReferencePosition(sp.IsJointSupport ? Joints[sp.IndexMap].Position : Segments.GetNode(sp.IndexMap));
             }
         }
 
@@ -366,8 +366,8 @@ namespace ErodModelLib.Types
 
         public override int[] GetFixedVars(bool includeTemporarySupports, double step=1.0)
         {
-            if (step < 0) step = 0;
-            if (step > 1) step = 1;
+            if (step < 0) step = 0.0;
+            if (step > 1) step = 1.0;
 
             double[] dofs = GetDoFs();
             // Update positions of supports
@@ -377,10 +377,12 @@ namespace ErodModelLib.Types
 
                 // Compute linear interpolation between initial position and target position
                 Line ln = new Line(sp.ReferencePosition, sp.TargetPosition);
-                sp.ReferencePosition = ln.PointAt(step);
+                var pos = ln.PointAt(step);
+                sp.VisualizationPosition = pos;
+
                 // Only update dofs linked with the position
                 int[] indicesDoFs = sp.IndicesDoFs;
-                for (int j = 0; j < indicesDoFs.Length; j++) dofs[indicesDoFs[j]] = sp.ReferencePosition[j];
+                for (int i = 0; i < 3; i++) dofs[indicesDoFs[i]] = pos[i];
             }
             SetDoFs(dofs);
 

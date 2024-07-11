@@ -91,12 +91,12 @@ namespace ErodDataLib.Types
 
         public Point3d[] GetTemporarySupportsAsPoint3dArray()
         {
-            return GetTemporarySupports().Select( sp =>sp.ReferencePosition).ToArray();
+            return GetTemporarySupports().Select( sp => sp.VisualizationPosition).ToArray();
         }
 
         public Point3d[] GetFixSupportsAsPoint3dArray()
         {
-            return GetFixSupports().Select(sp => sp.ReferencePosition).ToArray();
+            return GetFixSupports().Select(sp => sp.VisualizationPosition).ToArray();
         }
 
         public int[] GetSupportsDoFsIndices(bool includeTemporarySupport=true)

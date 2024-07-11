@@ -12,7 +12,6 @@ namespace ErodModel.Model
     public class SupportActuationGH : GH_Component
     {
         private bool run, equilibrium = false;
-        private int steps = 1;//, openingSteps = 0;
         private double refParam = 0.0;
         private ElasticModel copy;
         private NewtonSolverOpts opts;
@@ -66,7 +65,7 @@ namespace ErodModel.Model
                 }
             }
             else if (equilibrium) this.Message = "Equilibrium";
-            else this.Message = "Stop at step " + steps;
+            else this.Message = "Stop";
         }
 
         private void ScheduleCallback(GH_Document doc)
@@ -111,7 +110,7 @@ namespace ErodModel.Model
                     double[] forces = copy.GetForceVars(opts.IncludeForces);
                     int[] supports = copy.GetFixedVars(false, refParam);
 
-                    bool flag = NewtonSolver.Optimize(copy, supports, forces, opts, out report, true, 0, steps == opts.DeploymentSteps);
+                    bool flag = NewtonSolver.Optimize(copy, supports, forces, opts, out report, true, 0);
 
                     if (refParam > 1.0)
                     {

@@ -163,7 +163,7 @@ namespace ErodModelLib.Types
                     sp.IndexMap = _nodes.ClosestPoint(sp.ReferencePosition);
                     for (int i = 0; i < 3; i++) sp.SetIndexDoF(i, sp.IndexMap * 3 + i);
                 }
-                sp.ReferencePosition = _nodes[sp.IndexMap].Location;
+                sp.UpdateReferencePosition(_nodes[sp.IndexMap].Location);
             }
         }
 
@@ -364,11 +364,12 @@ namespace ErodModelLib.Types
             // Update positions of supports
             foreach (SupportIO sp in ModelIO.Supports)
             {
-                if (sp.ReferencePosition.DistanceTo(sp.TargetPosition) < 1e-3) continue;
+                if (!sp.ContainsTarget) continue;
 
                 // Compute linear interpolation between initial position and target position
                 Line ln = new Line(sp.ReferencePosition, sp.TargetPosition);
                 var pos = ln.PointAt(step);
+                sp.VisualizationPosition = pos;
 
                 // Only update dofs linked with the position
                 int[] indicesDoFs = sp.IndicesDoFs;

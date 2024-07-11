@@ -7,7 +7,8 @@ namespace ErodDataLib.Types
 {
     public class SupportIO
     {
-        public Point3d ReferencePosition { get; set; }
+        public Point3d VisualizationPosition { get; set; }
+        public Point3d ReferencePosition { get; private set; }
         public Point3d TargetPosition { get; private set; }
         public int IndexMap { get; set; }
         public int[] IndicesDoFs { get; private set; }
@@ -21,6 +22,7 @@ namespace ErodDataLib.Types
             // Reference position
             var token = data["ReferencePosition"];
             ReferencePosition = new Point3d( (double)token[0], (double)token[1], (double)token[2] );
+            VisualizationPosition = new Point3d((double)token[0], (double)token[1], (double)token[2]);
 
             // Indexes
             IndexMap = (int) data["IndexMap"];
@@ -65,6 +67,13 @@ namespace ErodDataLib.Types
             TargetPosition = target == default ? Point3d.Unset : target;
             ContainsTarget = TargetPosition == Point3d.Unset ? false : true;
             IsJointSupport = false;
+            VisualizationPosition = p;
+        }
+
+        public void UpdateReferencePosition(Point3d pos)
+        {
+            ReferencePosition = pos;
+            VisualizationPosition = pos;
         }
 
         public void SetIndicesDoFs(int[] indices)
