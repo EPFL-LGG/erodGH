@@ -11,9 +11,10 @@ namespace ErodModel.Model
 {
     public class SupportActuationGH : GH_Component
     {
-        private bool run, includeTemporarySupports;
+        private bool run, equilibrium = false;
         private int steps = 1;//, openingSteps = 0;
-        private RodLinkage copy;
+        private double refParam = 0.0;
+        private ElasticModel copy;
         private NewtonSolverOpts opts;
         private ConvergenceReport report;
 
@@ -37,10 +38,11 @@ namespace ErodModel.Model
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("ElasticModel", "EModel", "Elastic model to actuate. Either a rod or a linkage", GH_ParamAccess.item);
+            pManager.AddNumberParameter("StepSize", "StepSize", "Step size to move the support.", GH_ParamAccess.item, 0.01);
             pManager.AddGenericParameter("Opts", "Opts", "Newton solver options.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Compute equilibrium.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Reset", "Reset", "Restart computation.", GH_ParamAccess.item);
-            pManager[1].Optional = true;
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -54,7 +56,7 @@ namespace ErodModel.Model
 
         protected override void AfterSolveInstance()
         {
-            if (run && (steps <= opts.DeploymentSteps))
+            if (run && !equilibrium)
             {
                 GH_Document document = base.OnPingDocument();
                 if (document != null)
@@ -63,7 +65,7 @@ namespace ErodModel.Model
                     document.ScheduleSolution(1, callback);
                 }
             }
-            else if (steps > opts.DeploymentSteps) this.Message = "Linkage Opened";
+            else if (equilibrium) this.Message = "Equilibrium";
             else this.Message = "Stop at step " + steps;
         }
 
@@ -79,53 +81,44 @@ namespace ErodModel.Model
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            RodLinkage model = null;
+            ElasticModel model = null;
             bool reset = false;
             run = false;
+            double stepSize = 0.01;
             DA.GetData(0, ref model);
-            if (!DA.GetData(1, ref opts)) opts = new NewtonSolverOpts(20, 20);
-            DA.GetData(2, ref run);
-            DA.GetData(3, ref reset);
+            DA.GetData(1, ref stepSize);
+            if (!DA.GetData(2, ref opts)) opts = new NewtonSolverOpts(20, 20);
+            DA.GetData(3, ref run);
+            DA.GetData(4, ref reset);
 
-            if (model.ModelType != ElasticModelType.RodLinkage)
+            if (reset || copy == null)
             {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The input model should be a RodLinkage. The current model is a " + model.ModelType.ToString());
+                this.Message = "Reset";
+                copy = (ElasticModel) model.Clone();
+
+                report = new ConvergenceReport();
+
+                equilibrium = false;
+                refParam = 0;
             }
-            else
+
+            if (run)
             {
-                if (reset || copy == null)
+                if (!equilibrium)
                 {
-                    this.Message = "Reset";
-                    copy = (RodLinkage)model.Clone();
-                    report = new ConvergenceReport();
-                    includeTemporarySupports = true;
-
-                    steps = 1;
-                }
-
-                if (run)
-                {
-                    if (steps > opts.ReleaseStep) includeTemporarySupports = false;
+                    this.Message = "Computing";
 
                     double[] forces = copy.GetForceVars(opts.IncludeForces);
-                    int[] supports = copy.GetFixedVars(includeTemporarySupports, steps / opts.DeploymentSteps);
+                    int[] supports = copy.GetFixedVars(false, refParam);
 
-                    if (steps < opts.DeploymentSteps)
+                    bool flag = NewtonSolver.Optimize(copy, supports, forces, opts, out report, true, 0, steps == opts.DeploymentSteps);
+
+                    if (refParam > 1.0)
                     {
-                        this.Message = "Opening Step " + steps;
-                        NewtonSolver.Optimize(copy, supports, forces, opts, out report, true, 0, false);
+                        refParam = 1.0;
+                        if (flag) equilibrium = true;
                     }
-
-                    report.OpeningStep = steps;
-                    steps++;
-                    if (steps == opts.DeploymentSteps) this.Message = "Final Step";
-
-                    else if (steps == opts.DeploymentSteps)
-                    {
-                        NewtonSolver.Optimize(copy, supports, forces, opts, out report, true, 0, true);
-                        report.OpeningStep = steps;
-                        steps++;
-                    }
+                    else refParam += Math.Abs(stepSize);
                 }
             }
 

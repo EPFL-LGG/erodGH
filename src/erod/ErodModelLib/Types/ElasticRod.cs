@@ -369,9 +369,10 @@ namespace ErodModelLib.Types
                 // Compute linear interpolation between initial position and target position
                 Line ln = new Line(sp.ReferencePosition, sp.TargetPosition);
                 var pos = ln.PointAt(step);
+
                 // Only update dofs linked with the position
                 int[] indicesDoFs = sp.IndicesDoFs;
-                for (int j = 0; j < indicesDoFs.Length; j++) dofs[indicesDoFs[j]] = pos[j];
+                for (int i = 0; i < 3; i++) dofs[indicesDoFs[i]] = pos[i];
             }
             SetDoFs(dofs);
 
