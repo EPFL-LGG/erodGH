@@ -23,7 +23,7 @@ namespace ErodData.IO
         /// new tabs/panels will automatically be created.
         /// </summary>
         public RibbonsGH()
-          : base("Ribbons", "Ribbons",
+          : base("Ribbon", "Ribbon",
               "Build a ribbon from a curve with parameters to define the joints.",
               "Erod", "IO")
         {

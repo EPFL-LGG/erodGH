@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.IO;
 using Rhino.Geometry;
 
 namespace ErodDataLib.Utils
@@ -95,6 +97,16 @@ namespace ErodDataLib.Utils
                 outTrias[i * 3] = f.A;
                 outTrias[i * 3 + 1] = f.B;
                 outTrias[i * 3 + 2] = f.C;
+            }
+        }
+
+        public static void WriteJsonFile(string path, string filename, object data)
+        {
+            // Serialize JSON directly to a file
+            using (StreamWriter file = File.CreateText(@path + filename + ".json"))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Serialize(file, data);
             }
         }
     }

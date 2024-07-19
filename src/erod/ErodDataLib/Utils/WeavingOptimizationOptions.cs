@@ -5,9 +5,9 @@ using GH_IO.Serialization;
 using Grasshopper.Kernel.Types;
 using Newtonsoft.Json.Linq;
 
-namespace ErodDataLib.Types
+namespace ErodDataLib.Utils
 {
-	public struct OptimizationOptions : IGH_Goo
+	public struct WeavingOptimizationOptions : IGH_Goo
     {
 		public enum OptimizationStages { OneStep = 1, TwoSteps = 2, ThreeSteps = 3 }
 
@@ -16,7 +16,7 @@ namespace ErodDataLib.Types
 		public double MinWidthScalingFactor { get; set; }
         public double MaxWidthScalingFactor { get; set; }
 
-        public OptimizationOptions(bool autoVariedCS, double minFactor, double maxFactor, OptimizationStages stages)
+        public WeavingOptimizationOptions(bool autoVariedCS, double minFactor, double maxFactor, OptimizationStages stages)
         {
             AutomaticVariedCrossSection = autoVariedCS;
             NumOptimizationStages = (int) stages;
@@ -24,7 +24,7 @@ namespace ErodDataLib.Types
             MaxWidthScalingFactor = maxFactor;
         }
 
-        public OptimizationOptions(JToken data)
+        public WeavingOptimizationOptions(JToken data)
         {
             // Joints
             AutomaticVariedCrossSection = (bool)data["AutomaticVariedCrossSection"];

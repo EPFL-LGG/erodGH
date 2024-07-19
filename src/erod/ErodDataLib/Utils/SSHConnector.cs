@@ -155,9 +155,27 @@ namespace ErodDataLib.Utils
             // Transfer the temporary file to the server
             using (var scp = new ScpClient(connectionInfo))
             {
-                scp.Connect();
-                scp.Upload(new FileInfo(tempFileName), fileName);
-                scp.Disconnect();
+                try
+                {
+                    scp.Connect();
+                    scp.Upload(new FileInfo(tempFileName), fileName);
+                    scp.Disconnect();
+                }
+                catch (Renci.SshNet.Common.SshOperationTimeoutException ex)
+                {
+                    Console.WriteLine("SSH operation timed out: " + ex.Message);
+                    return;
+                }
+                catch (Renci.SshNet.Common.SshAuthenticationException ex)
+                {
+                    Console.WriteLine("SSH authentication exception: " + ex.Message);
+                    return;
+                }
+                catch(Renci.SshNet.Common.SshException ex)
+                {
+                    Console.WriteLine("SSH exception: " + ex.Message);
+                    return;
+                }
             }
 
             // Delete the temporary file

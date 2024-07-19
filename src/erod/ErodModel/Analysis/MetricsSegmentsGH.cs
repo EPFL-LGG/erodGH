@@ -35,7 +35,7 @@ namespace ErodModel.Analysis
         /// </summary>
         public MetricsRodsGH()
           : base("MetricsSegments", "MeSegments",
-            "Metrics of a rod segment from a linkage or an elastic rod.",
+            "Calculates and visualizes the segment metrics of a linkage using their rest quantities.",
                     "Erod", "Analysis")
         {
         }

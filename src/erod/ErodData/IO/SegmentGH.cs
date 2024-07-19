@@ -14,7 +14,7 @@ namespace ErodData.IO
         /// </summary>
         public SegmentGH()
           : base("Segment", "Segment",
-              "Build a ribbon segment from a curve.",
+              "Build a segment of a ribbon from a curve.",
               "Erod", "IO")
         {
         }

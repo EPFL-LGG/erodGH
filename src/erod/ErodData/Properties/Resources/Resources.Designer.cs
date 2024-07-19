@@ -250,6 +250,16 @@ namespace ErodData.Properties.Resources {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap server {
+            get {
+                object obj = ResourceManager.GetObject("server", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap split_curves {
             get {
                 object obj = ResourceManager.GetObject("split_curves", resourceCulture);
@@ -293,6 +303,26 @@ namespace ErodData.Properties.Resources {
         internal static System.Drawing.Bitmap topology_data_deconstruct {
             get {
                 object obj = ResourceManager.GetObject("topology_data_deconstruct", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap weaving_optimization {
+            get {
+                object obj = ResourceManager.GetObject("weaving_optimization", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap weaving_settings {
+            get {
+                object obj = ResourceManager.GetObject("weaving_settings", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

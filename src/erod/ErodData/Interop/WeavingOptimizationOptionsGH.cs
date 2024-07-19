@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using ErodData.Data;
 using ErodData.IO;
 using ErodDataLib.Types;
+using ErodDataLib.Utils;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using static ErodDataLib.Types.OptimizationOptions;
+using static ErodDataLib.Utils.WeavingOptimizationOptions;
 
 namespace ErodData.Interop
 {
@@ -121,7 +122,7 @@ namespace ErodData.Interop
                     break;
             }
 
-            OptimizationOptions opt = new OptimizationOptions(autoWidth, minWidthFactor, maxWidthFactor, oType);
+            WeavingOptimizationOptions opt = new WeavingOptimizationOptions(autoWidth, minWidthFactor, maxWidthFactor, oType);
 
             DA.SetData(0, opt);
         }
@@ -139,9 +140,7 @@ namespace ErodData.Interop
         {
             get
             {
-                // You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
-                return null;
+                return Properties.Resources.Resources.weaving_settings;
             }
         }
 

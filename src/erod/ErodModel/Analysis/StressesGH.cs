@@ -21,7 +21,7 @@ namespace ErodModel.Analysis
         /// </summary>
         public StressesGH()
           : base("Stresses ", "Stresses ",
-            "Computes the stresses of an elastic rod or linkage",
+            "Computes the stresses of an elastic rod or linkage.",
             "Erod", "Analysis")
         {
         }

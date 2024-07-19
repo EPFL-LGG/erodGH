@@ -102,10 +102,9 @@
     <Compile Include="Utils\Helpers.cs" />
     <Compile Include="Utils\PyCallback.cs" />
     <Compile Include="Utils\SparseMatrixData.cs" />
-    <Compile Include="Types\TargetSurfaceData.cs" />
+    <Compile Include="Types\TargetSurfaceIO.cs" />
     <Compile Include="Utils\SSHConnector.cs" />
-    <Compile Include="Utils\WeavingOpt.cs" />
-    <Compile Include="Types\OptimizationOptions.cs" />
+    <Compile Include="Utils\SSHWeavingOptimization.cs" />
     <Compile Include="Types\ForceCableIO.cs" />
     <Compile Include="Types\ModelIO.cs" />
     <Compile Include="Types\MaterialIOCollection.cs" />
@@ -116,6 +115,9 @@
     <Compile Include="Types\ForceIO.cs" />
     <Compile Include="Types\ForceIOCollection.cs" />
     <Compile Include="Types\ForceExternalIO.cs" />
+    <Compile Include="Utils\SSHServerID.cs" />
+    <Compile Include="Utils\JsonWeaving.cs" />
+    <Compile Include="Utils\WeavingOptimizationOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Types\" />

@@ -7,14 +7,14 @@ using Rhino.Geometry;
 
 namespace ErodData.IO
 {
-  public class TargetSurfaceDataGH : GH_Component
+  public class TargetSurfaceGH : GH_Component
   {
         /// <summary>
         /// Initializes a new instance of the Edge class.
         /// </summary>
-        public TargetSurfaceDataGH()
+        public TargetSurfaceGH()
           : base("TargetSurface", "TargetSrf",
-              "Target surface-mesh to pull the linkage.",
+              "Set a target surface from a mesh to attract the linkage.",
               "Erod", "IO")
         {
         }
@@ -25,7 +25,7 @@ namespace ErodData.IO
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "Mesh", "Mesh approximating the target surface.", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Weight", "Weight", "Target joint weight", GH_ParamAccess.item, 0.0001);
+            pManager.AddNumberParameter("Weight", "Weight", "Weight of the attraction term.", GH_ParamAccess.item, 0.0001);
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace ErodData.IO
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("TargetSurface", "T", "TargetSurface data.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("TargetSurfaceIO", "TargetSrfIO", "Targetn surface data.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace ErodData.IO
             DA.GetData(0, ref mesh);
             DA.GetData(1, ref weight);
 
-            TargetSurfaceData data = new TargetSurfaceData(mesh, weight);
+            TargetSurfaceIO data = new TargetSurfaceIO(mesh, weight);
 
             DA.SetData(0, data);
         }

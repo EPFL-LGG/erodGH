@@ -25,7 +25,7 @@ namespace ErodData.Materials
         /// </summary>
         public ETypeCSGH()
           : base("Ellipse-Shape", "E-Shape",
-              "Build an elliptical cross-Section.",
+              "Build a circular cross-Section.",
               "Erod", "Materials")
         {
         }

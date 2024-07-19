@@ -28,7 +28,7 @@ namespace ErodModel.Model
         /// </summary>
         public TorqueActuationStepsGH()
           : base("TorqueStepActuation", "TorqueStepActuation",
-            "inkage deployment via torque actuation at joints. This solver generates a copy of the linkage at each deployment step.",
+            "Linkage deployment via torque actuation at joints. This solver generates a copy of the linkage at each deployment step.",
             "Erod", "Solvers")
         {
             copies = new List<RodLinkage>();

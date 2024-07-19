@@ -1,7 +1,8 @@
 ﻿using System;
 using Grasshopper.Kernel;
 using ErodDataLib.Types;
-using static ErodDataLib.Types.OptimizationOptions;
+using ErodDataLib.Utils;
+using static ErodDataLib.Utils.WeavingOptimizationOptions;
 
 namespace ErodData.Interop
 {

@@ -35,7 +35,7 @@ namespace ErodModel.Analysis
         /// </summary>
         public MetricsQuadsGH()
           : base("MetricsQuads", "MeQuads",
-                "Quad metrics of a linkage.",
+                "Calculates and visualizes the quad metrics of a linkage using their areas.",
                 "Erod", "Analysis")
         {
         }

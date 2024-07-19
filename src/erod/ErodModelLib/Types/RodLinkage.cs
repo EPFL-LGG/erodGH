@@ -178,7 +178,7 @@ namespace ErodModelLib.Types
             #endregion
         }
 
-        public void AddTargetSurface(TargetSurfaceData data)
+        public void AddTargetSurface(TargetSurfaceIO data)
         {
             if (data == null || data == default) return;
             double[] inCoords = Helpers.FlattenDoubleArray(data.Vertices);

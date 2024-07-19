@@ -24,7 +24,7 @@ namespace ErodDataLib.Types
         public bool CheckTriangles { get; private set; }
         public int FirstJointNodeMap { get; private set; }
         public int[] NodeToJointMaps { get; private set; }
-        public TargetSurfaceData TargetSurface { get; private set; }
+        public TargetSurfaceIO TargetSurface { get; private set; }
 
         // TODO
         public LinkageIO(string fileName) : base(ElasticModelType.RodLinkage)
@@ -65,7 +65,7 @@ namespace ErodDataLib.Types
             CheckTriangles = modelIO.CheckTriangles;
             FirstJointNodeMap = modelIO.FirstJointNodeMap;
             NodeToJointMaps = modelIO.NodeToJointMaps.ToArray();
-            TargetSurface = modelIO.TargetSurface==null ? null : (TargetSurfaceData)modelIO.TargetSurface.Clone();
+            TargetSurface = modelIO.TargetSurface==null ? null : (TargetSurfaceIO)modelIO.TargetSurface.Clone();
         }
 
         public override object Clone()

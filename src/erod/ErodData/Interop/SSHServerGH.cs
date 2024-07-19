@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using ErodDataLib.Types;
-using ErodModelLib.Types;
+using ErodDataLib.Utils;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace ErodModel.Materials
+namespace ErodData.Interop
 {
-    public class eMaterialGH : GH_Component
+    public class SSHServerGH : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -17,10 +16,10 @@ namespace ErodModel.Materials
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public eMaterialGH()
-          : base("eMaterial", "eMaterial",
-            "Analyze a cross-section.",
-            "Erod", "Materials")
+        public SSHServerGH()
+          : base("RemoteServer", "RemoteServer",
+            "Set the credentials for connecting to a remote server for running optimization tasks.\nEnsure that the server has an instance of the optimization code already deployed.",
+            "Erod", "Interop")
         {
         }
 
@@ -29,7 +28,12 @@ namespace ErodModel.Materials
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Material", "Material", "Material to analyze.", GH_ParamAccess.item);
+            pManager.AddTextParameter("Host", "Host", "The address of the remote server.", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Port","Port", "The port number to connect to on the remote server.", GH_ParamAccess.item);
+            pManager.AddTextParameter("Username","Username", "The username required for authentication.", GH_ParamAccess.item);
+            pManager.AddTextParameter("Password", "Password", "The password required for authentication.", GH_ParamAccess.item);
+            pManager.AddTextParameter("RunFolder", "RunFolder", "The folder on the server where the python script for running optimization is located.", GH_ParamAccess.item);
+            pManager.AddTextParameter("CondaEnv", "CondaEnv", "Name of the conda environment to use for running optimization.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -37,13 +41,7 @@ namespace ErodModel.Materials
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Area", "Area", "Cross-section area", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Ix", "Ix", "Moment of inertia (lambda1)", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Iy", "Iy", "Moment of inertia (lambda2)", GH_ParamAccess.item);
-            pManager.AddNumberParameter("BendingStiffness", "BendingStiffness", "Bending stiffness", GH_ParamAccess.list);
-            pManager.AddNumberParameter("StretchingStiffness", "StretchingStiffness", "Stretching stiffness", GH_ParamAccess.item);
-            pManager.AddNumberParameter("TwistingStiffness", "TwistingStiffness", "Stretching stiffness", GH_ParamAccess.item);
-            pManager.AddNumberParameter("G", "G", "Shear modulus", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Server", "Server", "Remote server.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -53,18 +51,18 @@ namespace ErodModel.Materials
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            MaterialIO matIO = null;
-            DA.GetData(0, ref matIO);
+            string host = "", username = "", password = "", runFolder = "", condaEnv = "";
+            int port = 22;
+            DA.GetData(0, ref host);
+            DA.GetData(1, ref port);
+            DA.GetData(2, ref username);
+            DA.GetData(3, ref password);
+            DA.GetData(4, ref runFolder);
+            DA.GetData(5, ref condaEnv);
 
-            Material mat = new Material(matIO);
+            SSHServerID server = new SSHServerID(host, port, username, password, runFolder, condaEnv);
 
-            DA.SetData(0, mat.Area);
-            DA.SetData(1, mat.MomentOfInertia.Lambda1);
-            DA.SetData(2, mat.MomentOfInertia.Lambda1);
-            DA.SetDataList(3, new double[]{mat.BendingStiffness.Lambda1, mat.BendingStiffness.Lambda2});
-            DA.SetData(4, mat.StretchingStiffness);
-            DA.SetData(5, mat.TwistingStiffness);
-            DA.SetData(6, mat.G);
+            DA.SetData(0, server);
         }
 
         public override GH_Exposure Exposure
@@ -80,7 +78,7 @@ namespace ErodModel.Materials
         {
             get
             {
-                return Properties.Resources.Resources.cs_analyze;
+                return Properties.Resources.Resources.server;
             }
         }
 
@@ -91,7 +89,7 @@ namespace ErodModel.Materials
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("63a98923-0ed8-4c03-a22e-7afab6846afe"); }
+            get { return new Guid("d4f2c496-3aae-46f8-98cd-cbf21b6da6c6"); }
         }
     }
 }

@@ -21,7 +21,7 @@ namespace ErodModel.Analysis
         /// </summary>
         public StiffnessesGH()
           : base("Stiffnesses", "Stiffnesses",
-            "Computes the stiffness of an elastic rod or linkage",
+            "Computes the stiffness of an elastic rod or linkage.",
             "Erod", "Analysis")
         {
         }

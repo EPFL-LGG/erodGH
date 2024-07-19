@@ -12,7 +12,7 @@ namespace ErodData.Data
         /// </summary>
         public ExternalForceGH()
           : base("Force", "Force",
-              "Set an external vector force to act on the model.",
+              "Set a vector to act as an external force on the model.",
               "Erod", "IO")
         {
         }

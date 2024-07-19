@@ -6,20 +6,20 @@ using Rhino.Geometry;
 
 namespace ErodDataLib.Types
 {
-	public class TargetSurfaceData : IGH_Goo
+	public class TargetSurfaceIO : IGH_Goo
     {
         public double[][] Vertices { get; private set; }
         public int[][] Trias { get; private set; }
         public double TargetJointWeight { get; set; }
 
-        public TargetSurfaceData()
+        public TargetSurfaceIO()
         {
             Vertices = new double[0][];
             Trias = new int[0][];
             TargetJointWeight = 1e-4;
         }
 
-        public TargetSurfaceData(Mesh mesh, double weight= 1e-4)
+        public TargetSurfaceIO(Mesh mesh, double weight= 1e-4)
 		{
             if(!mesh.IsManifold()) throw new Exception("Non-manifold mesh.");
             if (mesh.Faces.QuadCount > 0) throw new Exception("Mesh contains quad faces.");
@@ -40,7 +40,7 @@ namespace ErodDataLib.Types
             TargetJointWeight = weight;
 		}
 
-        public TargetSurfaceData(TargetSurfaceData data)
+        public TargetSurfaceIO(TargetSurfaceIO data)
         {
             Vertices = data.Vertices.ToArray();
             Trias = data.Trias.ToArray();
@@ -49,7 +49,7 @@ namespace ErodDataLib.Types
 
         public object Clone()
         {
-            return new TargetSurfaceData(this);
+            return new TargetSurfaceIO(this);
         }
 
         public override string ToString()

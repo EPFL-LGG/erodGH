@@ -59,7 +59,7 @@ namespace ErodData.IO
             DA.GetData(6, ref flags[5]);
             DA.GetData(7, ref isTemp);
 
-            SupportIO support = new SupportIO(pos, isTemp);
+            SupportIO support = new SupportIO(pos, isTemp); 
             support.FixTranslationAndRotation(flags);
 
             DA.SetData(0, support);

@@ -35,7 +35,7 @@ namespace ErodModel.Analysis
         /// </summary>
         public MetricsJointsGH()
           : base("MetricsJoints", "MeJoints",
-                "Joint metrics of a linkage.",
+                "Calculates and visualizes the joint metrics of a linkage using their angles.",
                 "Erod", "Analysis")
         {
         }

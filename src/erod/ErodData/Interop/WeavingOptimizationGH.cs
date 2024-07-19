@@ -13,13 +13,13 @@ using ErodDataLib.Types;
 using ErodDataLib.Utils;
 using Grasshopper;
 using Grasshopper.Kernel;
-using static ErodDataLib.Types.OptimizationOptions;
+using static ErodDataLib.Utils.WeavingOptimizationOptions;
 
 namespace ErodData.Interop
 {
     public class WeavingOptimizationGH : GH_Component
     {
-        public WeavingOpt weavingOptimizer = null;
+        public SSHWeavingOptimization weavingOptimizer = null;
 
         public bool run;
         string name;
@@ -34,10 +34,10 @@ namespace ErodData.Interop
         /// </summary>
         public WeavingOptimizationGH()
           : base("WeavingOptimizer", "WeavingOptimizer",
-            "Weaving optimization [WIP].",
+            "Weaving optimizer running on a remote server.",
             "Erod", "Interop")
         {
-            weavingOptimizer = new WeavingOpt();
+            weavingOptimizer = new SSHWeavingOptimization();
         }
 
         /// <summary>
@@ -45,13 +45,15 @@ namespace ErodData.Interop
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddGenericParameter("Server", "Server", "Remote server for running weaving optimization.", GH_ParamAccess.item);
             pManager.AddTextParameter("Name", "Name", "Name of the model.", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Data", "Data", "RodLinkage data.", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Optimize", "Optimize", "run optimization", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("DeleteCache", "DeleteCache", "Keep pickles.", GH_ParamAccess.item, false);
+            pManager.AddGenericParameter("LinkageIO", "LinkageIO", "Elastic linkage initialization data.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("TargetSurfaceIO", "TargetSrfIO", "Target surface to attract the linkage.", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Optimize", "Optimize", "Start optimization on the remote server.", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("DeleteCache", "DeleteCache", "Delete pickle files from the server. Pre-computed models will be deleted.", GH_ParamAccess.item, false);
             pManager.AddGenericParameter("Settings", "Settings", "Optimization settings", GH_ParamAccess.item);
-            pManager[3].Optional = true;
-            pManager[4].Optional = true;
+            pManager[5].Optional = true;
+            pManager[6].Optional = true;
         }
 
         /// <summary>
@@ -59,14 +61,14 @@ namespace ErodData.Interop
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("Log", "Log", "Log", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("JointsIdx", "JointsIdx", "Joint indexes", GH_ParamAccess.tree);
-            pManager.AddCurveParameter("Ribbons2D", "Ribbons2D", "Flat ribbons", GH_ParamAccess.list);
-            pManager.AddPointParameter("Joints2D", "Joints2D", "Flat joint positions", GH_ParamAccess.tree);
-            pManager.AddCurveParameter("CenterLine2D", "CenterLine2D", "Flat center lines", GH_ParamAccess.list);
-            pManager.AddPointParameter("CenterLinePositions2D", "CenterLinePositions2D", "Flat center-line positions", GH_ParamAccess.tree);
-            pManager.AddMeshParameter("Ribbons3D", "Ribbons3D", "Deformed ribbons", GH_ParamAccess.list);
-            pManager.AddPointParameter("Joints3D", "Joints3D", "Deformed joint positions", GH_ParamAccess.tree);
+            pManager.AddTextParameter("Log", "Log", "The log of the optimization process.", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Contours", "Contours", "Returns a list of polyline curves representing the contours of ribbons for fabrication.", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Indices", "Indices", "Returns the indices of the joints, structured as a tree structure. Each branch represents a ribbon.", GH_ParamAccess.tree);
+            pManager.AddPointParameter("2dJoints", "2dJoints", "Returns the 2d position of the joints, structured as a tree structure. Each branch represents a flat ribbon.", GH_ParamAccess.tree);
+            pManager.AddPointParameter("3dJoints", "3dJoints", "Returns the 3d position of the joints, structured as a tree structure. Each branch represents a deformed ribbon.", GH_ParamAccess.tree);
+            pManager.AddCurveParameter("2dCenterlines", "2dCenterlines", "Returns the centerlines of flat ribbons.", GH_ParamAccess.list);
+            pManager.AddCurveParameter("3dCenterlines", "3dCenterlines", "Returns the centerlines of deformed ribbons.", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Ribbons", "Ribbons", "Returns a list of meshes representing the deformed ribbons.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -77,31 +79,36 @@ namespace ErodData.Interop
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             LinkageIO data = null;
-            OptimizationOptions opt = new OptimizationOptions(false, 1.0, 1.0, OptimizationStages.OneStep);
-            DA.GetData(0, ref name);
-            DA.GetData(1, ref data);
-            DA.GetData(2, ref run);
-            DA.GetData(3, ref deleteCache);
-            DA.GetData(4, ref opt);
+            TargetSurfaceIO target = null;
+            SSHServerID server = new SSHServerID();
+            WeavingOptimizationOptions opt = new WeavingOptimizationOptions(false, 1.0, 1.0, OptimizationStages.OneStep);
 
-            weavingOptimizer.Data = data;
+            DA.GetData(0, ref server);
+            DA.GetData(1, ref name);
+            DA.GetData(2, ref data);
+            DA.GetData(3, ref target);
+            DA.GetData(4, ref run);
+            DA.GetData(5, ref deleteCache);
+            DA.GetData(6, ref opt);
 
             if (run)
             {
+                weavingOptimizer.DataIO = new JsonWeaving(data, target, opt);
                 Message = "Computing...";
                 var result = MessageBox.Show("Do you want to start optimizing this model?\n", "Weaving optimization", MessageBoxButtons.OKCancel);
-                if (result == DialogResult.OK) weavingOptimizer.RunAsyncOptimization(this, name, deleteCache);
+                if (result == DialogResult.OK) weavingOptimizer.RunAsyncOptimization(this, server, name, deleteCache);
                 else Message = "Done!";
             }
 
+
             DA.SetData(0, weavingOptimizer.Log);
-            DA.SetDataTree(1, weavingOptimizer.flat_joint_indexes);
-            DA.SetDataList(2, weavingOptimizer.flat_ribbons);
-            DA.SetDataTree(3, weavingOptimizer.flat_joint_positions);
-            DA.SetDataList(4, weavingOptimizer.flat_center_line);
-            DA.SetDataTree(5, weavingOptimizer.flat_center_line_positions);
-            DA.SetDataList(6, weavingOptimizer.deformed_mesh_ribbons);
-            DA.SetDataTree(7, weavingOptimizer.deformed_joints_per_ribbon);
+            DA.SetDataList(1, weavingOptimizer.RibbonContours);
+            DA.SetDataTree(2, weavingOptimizer.JointIndices);
+            DA.SetDataTree(3, weavingOptimizer.Joints2D);
+            DA.SetDataTree(4, weavingOptimizer.Joints3D);
+            DA.SetDataList(5, weavingOptimizer.flat_center_line);
+            DA.SetDataList(6, weavingOptimizer.DeformedCenterlines);
+            DA.SetDataList(7, weavingOptimizer.Ribbons);
         }
 
         public override GH_Exposure Exposure
@@ -117,9 +124,7 @@ namespace ErodData.Interop
         {
             get
             {
-                // You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
-                return null;
+                return Properties.Resources.Resources.weaving_optimization;
             }
         }
 

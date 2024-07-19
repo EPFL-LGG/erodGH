@@ -12,7 +12,7 @@ using ErodModelLib.Utils;
 
 namespace ErodModel.Analysis
 {
-    public class MetricsStressesGH : GH_Component
+    public class MetricsModelsGH : GH_Component
     {
         int metricIdx, cmapIdx;
         List<List<string>> menuAttributes;
@@ -32,9 +32,9 @@ namespace ErodModel.Analysis
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public MetricsStressesGH()
-          : base("MetricsStresses", "MeStresses",
-            "Visualization of stresses.",
+        public MetricsModelsGH()
+          : base("MetricsModels", "MeModels",
+            "Calculates and visualizes the metrics of an elastic model using their stresses.",
             "Erod", "Analysis")
         {
         }
