@@ -31,6 +31,7 @@ namespace ErodData.IO
             pManager.AddBooleanParameter("YY", "YY", "Fix rotation along the YY-axis.", GH_ParamAccess.item, true);
             pManager.AddBooleanParameter("ZZ", "ZZ", "Fix rotation along the ZZ-axis.", GH_ParamAccess.item, true);
             pManager.AddBooleanParameter("IsTemporary", "IsTemporary", "Set a temporary support.", GH_ParamAccess.item, false);
+            pManager.AddNumberParameter("ReleaseCoefficient", "ReleaseCoef", "The release coefficient is a numerical factor that determines how supports are released throughout the deployment process. It multiplies the number of deployment steps to determine the specific step at which a support is released. The coefficient value should be between 0 and 1, where 0 means a support is released at the very beginning of the deployment, and 1 means a support is released at the final step.", GH_ParamAccess.item, 0.5);
         }
 
         /// <summary>
@@ -50,6 +51,7 @@ namespace ErodData.IO
             Point3d pos = new Point3d();
             bool[] flags = new bool[6];
             bool isTemp = false;
+            double rCoef = 0.5;
             DA.GetData(0, ref pos);
             DA.GetData(1, ref flags[0]);
             DA.GetData(2, ref flags[1]);
@@ -58,8 +60,10 @@ namespace ErodData.IO
             DA.GetData(5, ref flags[4]);
             DA.GetData(6, ref flags[5]);
             DA.GetData(7, ref isTemp);
+            DA.GetData(8, ref rCoef);
 
-            SupportIO support = new SupportIO(pos, isTemp); 
+            SupportIO support = new SupportIO(pos);
+            if(isTemp) support.SetTemporarySupport(rCoef);
             support.FixTranslationAndRotation(flags);
 
             DA.SetData(0, support);

@@ -90,6 +90,10 @@ namespace ErodModel.Solver
             DA.GetData(2, ref run);
             DA.GetData(3, ref reset);
 
+            if (model.ContainsTemporarySupports() && !model.ContainsRollingSupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Temporary supports detected. This solver only operates with permanent supports. Temporary supports will be disabled.");
+            if (model.ContainsRollingSupports() && !model.ContainsTemporarySupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Rolling supports detected. This solver only operates with fixed supports. Rolling supports will be fixed.");
+            if (model.ContainsTemporarySupports() && model.ContainsRollingSupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Rolling and temporary supports detected. This solver only operates with fixed and permanent supports. Rolling supports will be fixed and temporary supports will be disabled.");
+
             if (reset || copy == null)
             {
                 this.Message = "Reset";

@@ -3,11 +3,20 @@ using Grasshopper.Kernel;
 using ErodDataLib.Types;
 using ErodDataLib.Utils;
 using static ErodDataLib.Utils.WeavingOptimizationOptions;
+using System.Collections.Generic;
+using ErodData.IO;
+using GH_IO.Serialization;
+using Rhino.Geometry;
 
 namespace ErodData.Interop
 {
     public class SaveGH : GH_Component
     {
+        int saveFormat;
+        List<List<string>> formatAttributes;
+        List<string> selections;
+        bool buildAttributes = true;
+
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
         /// constructor without any arguments.
@@ -22,16 +31,59 @@ namespace ErodData.Interop
         {
         }
 
+        public override void CreateAttributes()
+        {
+            if (buildAttributes)
+            {
+                FunctionToSetSelectedContent(0, 0);
+                buildAttributes = false;
+            }
+            m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, formatAttributes, selections, spacerDescriptionText);
+        }
+
+        public void FunctionToSetSelectedContent(int dropdownListId, int selectedItemId)
+        {
+            if (formatAttributes == null)
+            {
+                formatAttributes = new List<List<string>>();
+                selections = new List<string>();
+                formatAttributes.Add(fileFormat);
+                selections.Add(fileFormat[saveFormat]);
+            }
+
+            if (dropdownListId == 0)
+            {
+                saveFormat = selectedItemId;
+                selections[0] = formatAttributes[0][selectedItemId];
+            }
+
+            Params.OnParametersChanged();
+            ExpireSolution(true);
+        }
+
+        #region dropdownmenu content
+        readonly List<string> spacerDescriptionText = new List<string>(new string[] { "Format" });
+
+        readonly List<string> fileFormat = new List<string>(new string[]
+        {
+            "Default",
+            "CShellOptim"
+        });
+        #endregion
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Data", "Data", "Data to write.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Angle", "Angle", "Target average joint angle for deployment in degrees.", GH_ParamAccess.item);
+            pManager.AddMeshParameter("TargetSurface", "TargetSrf", "Target surface to attract the linkage.", GH_ParamAccess.item);
             pManager.AddTextParameter("Path", "Path", "Directory path.", GH_ParamAccess.item);
             pManager.AddTextParameter("Filename", "Filename", "Name of the file.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Write", "Write", "Write file.", GH_ParamAccess.item);
             pManager[1].Optional = true;
+            pManager[2].Optional = true;
         }
 
         /// <summary>
@@ -53,16 +105,52 @@ namespace ErodData.Interop
             string filename = "";
             bool write = false;
             LinkageIO data = null;
+            double ang = 0;
+            Mesh srf = null;
+
             DA.GetData(0, ref data);
-            DA.GetData(1, ref path);
-            DA.GetData(2, ref filename);
-            DA.GetData(3, ref write);
+            DA.GetData(1, ref ang);
+            DA.GetData(2, ref srf);
+            DA.GetData(3, ref path);
+            DA.GetData(4, ref filename);
+            DA.GetData(5, ref write);
 
-            if (write) data.WriteJsonFile(path, filename);
+            double angRad = ang * Math.PI / 180;
+            if (write)
+            {
+                switch (saveFormat)
+                {
+                    case 0:
+                        data.WriteJsonFile(path, filename);
+                        break;
+                    case 1:
+                        BaseCurveNetwork cn = new BaseCurveNetwork(data, angRad, srf);
+                        cn.WriteJsonFile(path, filename);
+                        break;
+                    default:
+                        data.WriteJsonFile(path, filename);
+                        break;
+                }
+                
+            }
 
-            path += filename;
+            DA.SetData(0, path+filename);
+        }
 
-            DA.SetData(0, path);
+        public override bool Write(GH_IWriter writer)
+        {
+            writer.SetInt32("saveFormat", saveFormat);
+            return base.Write(writer);
+        }
+
+        public override bool Read(GH_IReader reader)
+        {
+            if (reader.TryGetInt32("saveFormat", ref saveFormat))
+            {
+                FunctionToSetSelectedContent(0, saveFormat);
+                m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, formatAttributes, selections, spacerDescriptionText);
+            }
+            return base.Read(reader);
         }
 
         /// <summary>

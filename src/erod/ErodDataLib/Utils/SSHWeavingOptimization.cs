@@ -136,7 +136,18 @@ namespace ErodDataLib.Utils
 
                         ///////////////////////////////////////////////////////////////
                         ///////////////////////////////////////////////////////////////
-                        SshCommand command = sshclient.CreateCommand(activateEnvironment + runPython);
+                        SshCommand command; 
+                        try
+                        {
+                            command = sshclient.CreateCommand(activateEnvironment + runPython);
+                        }
+                        catch(Renci.SshNet.Common.SshException e)
+                        {
+                            component.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, e.ToString());
+                            form.Invoke(new Action(() => form.Close()));
+                            error = 1;
+                            return;
+                        }
 
                         //The CommandTimeout property sets a timeout for the execution of the SSH command, after which the command will be aborted and an exception will be thrown.
                         command.CommandTimeout = TimeSpan.FromMinutes(10);

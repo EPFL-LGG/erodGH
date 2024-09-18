@@ -15,11 +15,23 @@ namespace ErodModelLib.Types
         public Mesh MeshVis { get; protected set; }
         public IntPtr Error;
         public IntPtr Model { get;  protected set; }
-        public ModelIO _modelIO { get; set; }
+        protected ModelIO _modelIO { get; set; }
 
         public ElasticModelType ModelType => _modelIO.ModelType;
 
         public ElasticModel(ModelIO modelIO) { _modelIO = modelIO; }
+
+        public bool ContainsTemporarySupports()
+        {
+            if (_modelIO.Supports.GetNumberTemporarySupport() > 0) return true;
+            else return false;
+        }
+
+        public bool ContainsRollingSupports()
+        {
+            if (_modelIO.Supports.GetNumberRollingSupport() > 0) return true;
+            else return false;
+        }
 
         public override string ToString()
         {
@@ -51,6 +63,8 @@ namespace ErodModelLib.Types
         public abstract double GetMaxStrain();
 
         public abstract double[] GetForceVars(bool includeExternalForces = true, bool includeCables=false);
+
+        public abstract int[] GetFixedVars(int numDeploymentSteps, int deploymentStep, double step = 1.0);
 
         public abstract int[] GetFixedVars(bool includeTemporarySupports, double step = 1.0);
 

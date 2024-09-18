@@ -54,7 +54,8 @@ namespace ErodModel.Model
             DA.GetData(1, ref checkConsistentNormals);
             DA.GetData(2, ref initConsistentAngle);
             DA.GetData(3, ref initEdgeData);
-                
+
+            if (data.Supports.GetNumberFixSupport() == 0) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, "Only temporary supports have been found. The first temporary support is converted to a permanent support.");
             RodLinkage model = new RodLinkage(data, checkConsistentNormals, initConsistentAngle, initEdgeData);
 
             DA.SetData(0, model);

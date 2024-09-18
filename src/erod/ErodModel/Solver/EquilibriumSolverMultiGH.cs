@@ -92,6 +92,13 @@ namespace ErodModel.Model
             DA.GetData(2, ref run);
             DA.GetData(3, ref reset);
 
+            foreach (var model in models)
+            {
+                if (model.ContainsTemporarySupports() && !model.ContainsRollingSupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Temporary supports detected. This solver only operates with permanent supports. Temporary supports will be disabled.");
+                if (model.ContainsRollingSupports() && !model.ContainsTemporarySupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Rolling supports detected. This solver only operates with fixed supports. Rolling supports will be fixed.");
+                if (model.ContainsTemporarySupports() && model.ContainsRollingSupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Rolling and temporary supports detected. This solver only operates with fixed and permanent supports. Rolling supports will be fixed and temporary supports will be disabled.");
+            }
+
             if (reset || copies.Count==0)
             {
                 copies = new List<ElasticModel>();
@@ -127,7 +134,7 @@ namespace ErodModel.Model
 
                             var cc = copies[i];
                             double[] forces = cc.GetForceVars(options.IncludeForces);
-                            int[] supports = cc.GetFixedVars(true, 0.0);
+                            int[] supports = cc.GetFixedVars(false, 0.0);
 
                             modelEquilibrium = NewtonSolver.Optimize(copies[i], supports, forces, options, out r);
                             reports[i] = r;

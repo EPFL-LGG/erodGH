@@ -11,7 +11,7 @@ namespace ErodModel.Model
 {
     public class TorqueActuationMultiGH : GH_Component
     {
-        private bool run, includeTemporarySupports;
+        private bool run;
         private int steps = 1;//, openingSteps = 0;
         private NewtonSolverOpts opts;
         private List<RodLinkage> copies;
@@ -20,6 +20,7 @@ namespace ErodModel.Model
         private int numModels;
         private List<double> closedAngle;
         private List<double> refAngle;
+        private List<double> refStep;
         private List<double> deployedAngle;
 
         /// <summary>
@@ -38,6 +39,7 @@ namespace ErodModel.Model
             reports = new List<ConvergenceReport>();
             modelsInEquilibrium = new List<int>();
             refAngle = new List<double>();
+            refStep = new List<double>();
             closedAngle = new List<double>();
             deployedAngle = new List<double>();
         }
@@ -66,7 +68,7 @@ namespace ErodModel.Model
 
         protected override void AfterSolveInstance()
         {
-            if (run && (steps <= opts.DeploymentSteps))
+            if (run && (steps <= opts.NumDeploymentSteps))
             {
                 GH_Document document = base.OnPingDocument();
                 if (document != null)
@@ -75,7 +77,7 @@ namespace ErodModel.Model
                     document.ScheduleSolution(1, callback);
                 }
             }
-            else if (steps > opts.DeploymentSteps) this.Message = numModels + " Deployed Linkages";
+            else if (steps > opts.NumDeploymentSteps) this.Message = numModels + " Deployed Linkages";
             else this.Message = "Stop at step " + steps;
         }
 
@@ -101,13 +103,15 @@ namespace ErodModel.Model
             DA.GetData(3, ref run);
             DA.GetData(4, ref reset);
 
-            double suppIndicator = opts.DeploymentSteps * opts.ReleaseStep;
             if (reset || copies.Count == 0)
             {
                 copies = new List<RodLinkage>();
                 reports = new List<ConvergenceReport>();
                 modelsInEquilibrium = new List<int>();
-                includeTemporarySupports = true;
+                refAngle = new List<double>();
+                refStep = new List<double>();
+                closedAngle = new List<double>();
+                deployedAngle = new List<double>();
 
                 this.Message = "Reset";
                 for (int i = 0; i < models.Count; i++)
@@ -122,23 +126,23 @@ namespace ErodModel.Model
 
                         double averAng = c.GetAverageJointAngle();
                         double tgtAng = angleDegrees.Count == models.Count ? angleDegrees[i] * Math.PI / 180 : angleDegrees[0] * Math.PI / 180;
-                        double stepAng = (tgtAng - averAng) / opts.DeploymentSteps;
+                        double stepAng = (tgtAng - averAng) / (opts.NumDeploymentSteps-1);
+                        double stepRef = 1.0 / (opts.NumDeploymentSteps - 1);
 
                         closedAngle.Add(averAng);
                         deployedAngle.Add(tgtAng);
                         refAngle.Add(stepAng);
+                        refStep.Add(stepRef);
                     }
                 }
 
                 numModels = copies.Count;
-                steps = 1;
+                steps = 0;
             }
 
             if (run)
             {
-                if (steps >= suppIndicator) includeTemporarySupports = false;
-
-                if (steps < opts.DeploymentSteps)
+                if (steps < opts.NumDeploymentSteps)
                 {
                     this.Message = "Opening Step " + steps;
 
@@ -148,7 +152,7 @@ namespace ErodModel.Model
                         double angle = closedAngle[i] + refAngle[i] * steps;
 
                         double[] forces = c.GetForceVars(opts.IncludeForces);
-                        int[] supports = c.GetFixedVars(includeTemporarySupports, steps / opts.DeploymentSteps);
+                        int[] supports = c.GetFixedVars(opts.NumDeploymentSteps, steps, steps * refStep[i]);
 
                         ConvergenceReport r;
                         NewtonSolver.Optimize(c, supports, forces, opts, out r, true, angle, false);
@@ -156,9 +160,9 @@ namespace ErodModel.Model
                         reports[i] = r;
                     }
                     steps++;
-                    if (steps == opts.DeploymentSteps) this.Message = "Final Step";
+                    if (steps == opts.NumDeploymentSteps) this.Message = "Final Step";
                 }
-                else if (steps == opts.DeploymentSteps)
+                else if (steps == opts.NumDeploymentSteps)
                 {
                     for (int i = 0; i < numModels; i++)
                     {
@@ -166,7 +170,7 @@ namespace ErodModel.Model
                         ConvergenceReport r;
 
                         double[] forces = c.GetForceVars(opts.IncludeForces);
-                        int[] supports = c.GetFixedVars(includeTemporarySupports, steps / opts.DeploymentSteps);
+                        int[] supports = c.GetFixedVars(opts.NumDeploymentSteps, steps, 1.0);
 
                         NewtonSolver.Optimize(c, supports, forces, opts, out r, true, deployedAngle[i], true);
                         r.OpeningStep = steps;

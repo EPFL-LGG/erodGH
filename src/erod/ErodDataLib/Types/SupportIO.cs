@@ -5,7 +5,7 @@ using Rhino.Geometry;
 
 namespace ErodDataLib.Types
 {
-    public class SupportIO
+    public struct SupportIO
     {
         public Point3d VisualizationPosition { get; set; }
         public Point3d ReferencePosition { get; private set; }
@@ -13,9 +13,10 @@ namespace ErodDataLib.Types
         public int IndexMap { get; set; }
         public int[] IndicesDoFs { get; private set; }
         public bool[] LockedDoFs { get; private set; }
-        public bool IsTemporary { get; private set; }
+        public bool IsTemporary { get; set; }
         public bool IsJointSupport { get; set; }
         public bool ContainsTarget { get; private set; }
+        public double ReleaseCoefficient { get; private set; }
 
     public SupportIO(JToken data)
         {
@@ -55,19 +56,31 @@ namespace ErodDataLib.Types
                 TargetPosition = new Point3d((double)token[0], (double)token[1], (double)token[2]);
             }
             else TargetPosition = Point3d.Unset;
+
+            // Release coefficient 
+            ReleaseCoefficient = (double)data["ReleaseCoefficient"];
         }
 
-        public SupportIO(Point3d p, bool temporarySupport = false, Point3d target=default)
+        public SupportIO(Point3d p, Point3d target=default)
         {
             ReferencePosition = p;
             IndexMap = -1;
             IndicesDoFs = new int[] { -1, -1, -1, -1, -1, -1 };
             LockedDoFs = new bool[] { true, true, true, true, true, true };
-            IsTemporary = temporarySupport;
+            IsTemporary = false;
             TargetPosition = target == default ? Point3d.Unset : target;
             ContainsTarget = TargetPosition == Point3d.Unset ? false : true;
             IsJointSupport = false;
             VisualizationPosition = p;
+            ReleaseCoefficient = 0.0;
+        }
+
+        public void SetTemporarySupport(double releaseCoefficient)
+        {
+            IsTemporary = true;
+            if (releaseCoefficient < 0) ReleaseCoefficient = 0;
+            else if (releaseCoefficient > 1) ReleaseCoefficient = 1.0; 
+            else ReleaseCoefficient = releaseCoefficient;
         }
 
         public void UpdateReferencePosition(Point3d pos)
@@ -115,7 +128,7 @@ namespace ErodDataLib.Types
 
         public override string ToString()
         {
-            return "SupportData";
+            return IsTemporary ? "TemporarySupport" : "Support";
         }
     }
 }

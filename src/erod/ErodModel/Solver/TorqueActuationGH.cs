@@ -12,13 +12,13 @@ namespace ErodModel.Model
 {
     public class TorqueActuationGH : GH_Component
     {
-        private bool run, includeTemporarySupports;
-        private int steps = 1;//, openingSteps = 0;
+        private bool run;
+        private int steps = 0;//, openingSteps = 0;
         private RodLinkage copy;
         private NewtonSolverOpts opts;
         private ConvergenceReport report;
 
-        double closedAngle = 0, refAngle = 0;
+        double closedAngle = 0, refAngle = 0, refStep = 0;
 
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -58,7 +58,7 @@ namespace ErodModel.Model
 
         protected override void AfterSolveInstance()
         {
-            if (run && (steps <= opts.DeploymentSteps))
+            if (run && (steps <= opts.NumDeploymentSteps))
             {
                 GH_Document document = base.OnPingDocument();
                 if (document != null)
@@ -67,7 +67,7 @@ namespace ErodModel.Model
                     document.ScheduleSolution(1, callback);
                 }
             }
-            else if (steps > opts.DeploymentSteps) this.Message = "Linkage Opened";
+            else if (steps > opts.NumDeploymentSteps) this.Message = "Linkage Opened";
             else this.Message = "Stop at step " + steps;
         }
 
@@ -108,20 +108,18 @@ namespace ErodModel.Model
                     copy = (RodLinkage)model.Clone();
                     report = new ConvergenceReport();
 
-                    includeTemporarySupports = true;
                     closedAngle = copy.GetAverageJointAngle();
-                    refAngle = (deployedAngle - closedAngle) / opts.DeploymentSteps;
-                    steps = 1;
+                    refAngle = (deployedAngle - closedAngle) / (opts.NumDeploymentSteps-1);
+                    refStep = 1.0 / (opts.NumDeploymentSteps - 1);
+                    steps = 0;
                 }
 
                 if (run)
                 {
-                    if (steps > opts.ReleaseStep) includeTemporarySupports=false;
-
                     double[] forces = copy.GetForceVars(opts.IncludeForces);
-                    int[] supports = copy.GetFixedVars(includeTemporarySupports, steps/opts.DeploymentSteps);
+                    int[] supports = copy.GetFixedVars(opts.NumDeploymentSteps, steps, steps * refStep);
 
-                    if (steps < opts.DeploymentSteps)
+                    if (steps < opts.NumDeploymentSteps)
                     {
                         this.Message = "Opening Step " + steps;
                         double angle = closedAngle + refAngle * steps;
@@ -130,9 +128,9 @@ namespace ErodModel.Model
 
                         report.OpeningStep = steps;
                         steps++;
-                        if (steps == opts.DeploymentSteps) this.Message = "Final Step";
+                        if (steps == opts.NumDeploymentSteps) this.Message = "Final Step";
                     }
-                    else if (steps == opts.DeploymentSteps)
+                    else if (steps == opts.NumDeploymentSteps)
                     {
                         NewtonSolver.Optimize(copy, supports, forces, opts, out report, true, deployedAngle, true);
                         

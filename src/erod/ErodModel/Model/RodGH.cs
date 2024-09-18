@@ -51,6 +51,7 @@ namespace ErodModel.Model
 
             if(!DA.GetData(0, ref data)) return;
 
+            if (data.Supports.GetNumberFixSupport() == 0) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, "Only temporary supports have been found. The first temporary support is converted to a permanent support.");
             ElasticRod model = new ElasticRod(data);
 
             DA.SetData(0, model);

@@ -21,6 +21,7 @@ namespace ErodDataLib.Types
         public SupportIOCollection(SupportIOCollection supports)
         {
             _supports = new List<SupportIO>(supports._supports);
+            ShowTemporarySupports = true;
         }
 
         public SupportIO this[int index] { get => _supports[index]; set => _supports[index] = value; }
@@ -89,6 +90,21 @@ namespace ErodDataLib.Types
             return _supports.Where(sp => !sp.IsTemporary).ToArray();
         }
 
+        public int GetNumberFixSupport()
+        {
+            return _supports.Where(sp => !sp.IsTemporary).Count();
+        }
+
+        public int GetNumberTemporarySupport()
+        {
+            return _supports.Where(sp => sp.IsTemporary).Count();
+        }
+
+        public int GetNumberRollingSupport()
+        {
+            return _supports.Where(sp => sp.ContainsTarget).Count();
+        }
+
         public Point3d[] GetTemporarySupportsAsPoint3dArray()
         {
             return GetTemporarySupports().Select( sp => sp.VisualizationPosition).ToArray();
@@ -103,6 +119,21 @@ namespace ErodDataLib.Types
         {
             if (includeTemporarySupport) return _supports.Select(sp => sp.IndicesDoFs).SelectMany(dof => dof).Where(idx => idx > -1).ToHashSet().ToArray();
             else return GetFixSupports().Select(sp => sp.IndicesDoFs).SelectMany(dof => dof).Where(idx => idx > -1).ToHashSet().ToArray();
+        }
+
+        public int[] GetSupportsDoFsIndices(int numDeploymentSteps, int deploymentStep)
+        {
+            List<int> indices = new List<int>();
+            foreach(var sp in _supports)
+            {
+                if(!sp.IsTemporary) indices.AddRange(sp.IndicesDoFs.Where(idx => idx > -1).ToHashSet());
+                else
+                {
+                    int releaseStep = (int) Math.Floor(sp.ReleaseCoefficient * (numDeploymentSteps-1));
+                    if(deploymentStep<releaseStep) indices.AddRange(sp.IndicesDoFs.Where(idx => idx > -1).ToHashSet());
+                }
+            }
+            return indices.ToArray();
         }
 
         public object Clone()

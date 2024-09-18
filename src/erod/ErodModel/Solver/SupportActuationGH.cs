@@ -108,7 +108,7 @@ namespace ErodModel.Model
                     this.Message = "Computing";
 
                     double[] forces = copy.GetForceVars(opts.IncludeForces);
-                    int[] supports = copy.GetFixedVars(false, refParam);
+                    int[] supports = copy.GetFixedVars(100, (int) (100*refParam), refParam);
 
                     bool flag = NewtonSolver.Optimize(copy, supports, forces, opts, out report, true, 0);
 

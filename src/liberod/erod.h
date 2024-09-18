@@ -226,7 +226,7 @@ namespace ElasticRodsGH
     EROD_API int erodJointGetType(RodLinkage::Joint *joint);
 
     // Segments
-    EROD_API void erodRodGetSegmentMaterialFrame(RodLinkage::RodSegment *segment, size_t *outCoordsCount, double **outCoordsD1, double **outCoordsD2);
+    EROD_API void erodRodSegmentGetMaterialFrame(RodLinkage::RodSegment *segment, size_t *outCoordsCount, double **outCoordsD1, double **outCoordsD2);
 
     EROD_API const RodLinkage::RodSegment *erodRodSegmentBuild(RodLinkage *linkage, size_t index);
 
@@ -295,13 +295,7 @@ namespace ElasticRodsGH
     
     EROD_API void erodRodSegmentGetVonMisesStresses(RodLinkage::RodSegment *segment, double **outData, size_t *numData);
 
-    EROD_API double erodRodSegmentGetMaxStrain(ElasticRod *rod);
-    
-    EROD_API void erodElasticRodGetBendingStiffness(ElasticRod *rod, double **lambda1, double **lambda2, size_t *numLambda1, size_t *numLambda2);
-
-    EROD_API void erodElasticRodGetTwistingStiffness(ElasticRod *rod, double **outData, size_t *numData);
-
-    EROD_API void erodElasticRodGetStretchingStiffness(ElasticRod *rod, double **outData, size_t *numData);
+    EROD_API double erodRodSegmentGetMaxStrain(RodLinkage::RodSegment *segment);
 
     // ElasticRod
     EROD_API ElasticRod *erodElasticRodBuild(int numPoints, double *inCoords, const char **errorMessage);

@@ -136,6 +136,7 @@ namespace ErodData.IO
                     break;
             }
 
+            if (supports.Count > 0 && supports.Where(sp => !sp.IsTemporary).Count() == 0) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Only temporary supports have been found. The first temporary support is converted to a permanent support.");
             LinkageIO data = new LinkageIO(edges, normals, materials, supports,iType, byPassTrias);
             if(forces.Count!=0) data.AddForces(forces);
 

@@ -73,7 +73,7 @@ namespace ErodModel.Model
 
             if (cleanSp) copy.ModelIO.CleanSupports();
             copy.ModelIO.AddSupports(supports);
-            if (copy.ModelIO.Supports.Count == 0) copy.ModelIO.AddCentralSupport();
+            if (copy.ModelIO.Supports.GetNumberFixSupport() == 0) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, "Only temporary supports have been found. The first temporary support is converted to a permanent support.");
             copy.InitSupports();
 
             // Forces

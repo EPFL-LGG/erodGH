@@ -118,10 +118,13 @@
     <Compile Include="Utils\SSHServerID.cs" />
     <Compile Include="Utils\JsonWeaving.cs" />
     <Compile Include="Utils\WeavingOptimizationOptions.cs" />
+    <Compile Include="Interop\BaseCurveNetwork.cs" />
+    <Compile Include="Interop\BaseTargetSurface.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Types\" />
     <Folder Include="Utils\" />
+    <Folder Include="Interop\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

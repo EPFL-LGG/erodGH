@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ErodDataLib.Types;
 using GH_IO.Serialization;
 using Grasshopper;
@@ -67,6 +68,8 @@ namespace ErodData.IO
             Polyline poly;
             if (crv.TryGetPolyline(out poly))
             {
+                if (supports.Count > 0 && supports.Where(sp => !sp.IsTemporary).Count() == 0) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Only temporary supports have been found. The first temporary support is converted to a permanent support.");
+
                 RodIO data = new RodIO(poly, removeCurvatures);
                 data.AddSupports(supports);
                 data.AddMaterials(materials);

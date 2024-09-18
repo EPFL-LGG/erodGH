@@ -154,16 +154,26 @@ namespace ErodModelLib.Types
 
         public void InitSupports()
         {
+            // Check that at least one fix support exists
             if (ModelIO.Supports.Count == 0) ModelIO.AddCentralSupport();
-
-            foreach (SupportIO sp in ModelIO.Supports)
+            if (ModelIO.Supports.GetNumberFixSupport() == 0)
             {
+                var sp = ModelIO.Supports[0];
+                sp.IsTemporary = false;
+                ModelIO.Supports[0] = sp;
+            }
+
+
+            for(int i= 0; i< ModelIO.Supports.Count; i++)
+            {
+                var sp = ModelIO.Supports[i];
                 if (sp.IndexMap == -1)
                 {
                     sp.IndexMap = _nodes.ClosestPoint(sp.ReferencePosition);
-                    for (int i = 0; i < 3; i++) sp.SetIndexDoF(i, sp.IndexMap * 3 + i);
+                    for (int j = 0; j < 3; j++) sp.SetIndexDoF(j, sp.IndexMap * 3 + j);
                 }
                 sp.UpdateReferencePosition(_nodes[sp.IndexMap].Location);
+                ModelIO.Supports[i] = sp;
             }
         }
 
@@ -362,8 +372,9 @@ namespace ErodModelLib.Types
 
             double[] dofs = GetDoFs();
             // Update positions of supports
-            foreach (SupportIO sp in ModelIO.Supports)
+            for(int i=0; i<ModelIO.Supports.Count; i++)
             {
+                var sp = ModelIO.Supports[i];
                 if (!sp.ContainsTarget) continue;
 
                 // Compute linear interpolation between initial position and target position
@@ -373,11 +384,41 @@ namespace ErodModelLib.Types
 
                 // Only update dofs linked with the position
                 int[] indicesDoFs = sp.IndicesDoFs;
-                for (int i = 0; i < 3; i++) dofs[indicesDoFs[i]] = pos[i];
+                for (int j = 0; j < 3; j++) dofs[indicesDoFs[j]] = pos[j];
+                ModelIO.Supports[i] = sp;
             }
             SetDoFs(dofs);
 
             return ModelIO.Supports.GetSupportsDoFsIndices(includeTemporarySupports);
+        }
+
+        public override int[] GetFixedVars(int numDeploymentSteps, int deploymentStep, double step = 1.0)
+        {
+            if (step < 0) step = 0.0;
+            if (step > 1) step = 1.0;
+
+            double[] dofs = GetDoFs();
+            // Update positions of supports
+            for(int i = 0; i < ModelIO.Supports.Count; i++)
+            {
+                var sp = ModelIO.Supports[i];
+
+                if (!sp.ContainsTarget) continue;
+                if (sp.IsTemporary && deploymentStep >= (int)Math.Floor(sp.ReleaseCoefficient * (numDeploymentSteps - 1))) continue;
+
+                // Compute linear interpolation between initial position and target position
+                Line ln = new Line(sp.ReferencePosition, sp.TargetPosition);
+                var pos = ln.PointAt(step);
+                sp.VisualizationPosition = pos;
+
+                // Only update dofs linked with the position
+                int[] indicesDoFs = sp.IndicesDoFs;
+                for (int j = 0; j < 3; j++) dofs[indicesDoFs[j]] = pos[j];
+                ModelIO.Supports[i] = sp;
+            }
+            SetDoFs(dofs);
+
+            return ModelIO.Supports.GetSupportsDoFsIndices(numDeploymentSteps, deploymentStep);
         }
 
         public Mesh GetMesh()

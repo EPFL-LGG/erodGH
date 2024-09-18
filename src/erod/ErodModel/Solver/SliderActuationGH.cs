@@ -104,8 +104,10 @@ namespace ErodModel.Model
             DA.GetDataList(5, isFamiliesAs);
             DA.GetDataList(6, slidingStep);
 
-            if(!model.ModelIO.Layout.ContainsLayoutData()) AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The linkage should contain a ribbon layout to identify families.");
-
+            if (model.ContainsTemporarySupports() && !model.ContainsRollingSupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Temporary supports detected. This solver only operates with permanent supports. Temporary supports will be disabled.");
+            if (model.ContainsRollingSupports() && !model.ContainsTemporarySupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Rolling supports detected. This solver only operates with fixed supports. Rolling supports will be fixed.");
+            if (model.ContainsTemporarySupports() && model.ContainsRollingSupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Rolling and temporary supports detected. This solver only operates with fixed and permanent supports. Rolling supports will be fixed and temporary supports will be disabled.");
+            if (!model.ModelIO.Layout.ContainsLayoutData()) AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "The linkage should contain a ribbon layout to identify families.");
 
             if (reset || copy == null ||
                 refJointIndices==null || !refJointIndices.SequenceEqual(jointIndices) ||
@@ -208,7 +210,7 @@ namespace ErodModel.Model
                 copy.SetRestLenghtsSolveDoFs(dofs);
 
                 double[] forces = copy.GetForceVars(options.IncludeForces);
-                int[] supports = copy.GetFixedVars(true, 0.0);
+                int[] supports = copy.GetFixedVars(false, 0.0);
 
                 NewtonSolver.Optimize(copy, supports, forces, options, out report);
             }
