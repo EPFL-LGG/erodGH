@@ -1,0 +1,4 @@
+[submodule "3rdparty/elastic_rods"]
+	path = 3rdparty/elastic_rods
+	url = git@github.com:EPFL-LGG/elastic_rods.git
+	branch = grasshopper
