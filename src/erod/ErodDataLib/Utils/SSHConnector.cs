@@ -3,6 +3,7 @@ using Renci.SshNet;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace ErodDataLib.Utils
 {
@@ -140,7 +141,7 @@ namespace ErodDataLib.Utils
             }
         }
 
-        public static void SendJsonObjectToClient(ConnectionInfo connectionInfo, object data, string fileName)
+        public static bool SendJsonObjectToClient(ConnectionInfo connectionInfo, object data, string fileName, ref StringBuilder log)
         {
             // Create a temporary file on the server
             var tempFileName = Path.GetTempFileName();
@@ -160,26 +161,28 @@ namespace ErodDataLib.Utils
                     scp.Connect();
                     scp.Upload(new FileInfo(tempFileName), fileName);
                     scp.Disconnect();
+                    File.Delete(tempFileName);
+                    return true;
                 }
                 catch (Renci.SshNet.Common.SshOperationTimeoutException ex)
                 {
-                    Console.WriteLine("SSH operation timed out: " + ex.Message);
-                    return;
+                    log.Append("SSH operation timed out: " + ex.Message + "\n");
+                    File.Delete(tempFileName);
+                    return false;
                 }
                 catch (Renci.SshNet.Common.SshAuthenticationException ex)
                 {
-                    Console.WriteLine("SSH authentication exception: " + ex.Message);
-                    return;
+                    log.Append("SSH authentication exception: " + ex.Message + "\n");
+                    File.Delete(tempFileName);
+                    return false;
                 }
                 catch(Renci.SshNet.Common.SshException ex)
                 {
-                    Console.WriteLine("SSH exception: " + ex.Message);
-                    return;
+                    log.Append("SSH exception: " + ex.Message + "\n");
+                    File.Delete(tempFileName);
+                    return false;
                 }
             }
-
-            // Delete the temporary file
-            File.Delete(tempFileName);
         }
     }
 }

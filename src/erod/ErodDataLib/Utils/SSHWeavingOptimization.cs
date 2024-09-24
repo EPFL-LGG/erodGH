@@ -55,6 +55,7 @@ namespace ErodDataLib.Utils
             {
                 _server = server;
                 string cleanFilename = filename.Replace(" ", "");
+                Log = "";
 
                 // This information should be consistent with the information in the Python script running on the server. 
                 string inputFolder = _server.RunFolder + "grasshopper/inputs/";
@@ -102,9 +103,14 @@ namespace ErodDataLib.Utils
                         var tempFileName = Path.GetTempFileName();
                         tempFileName = tempFileName.Split(new char[] { '.' })[0] + ".json";
 
+                        ///////////////////////////////////////////////////////////////
+                        /// Establishing server connection
+                        ///////////////////////////////////////////////////////////////
                         try
                         {
                             sshclient.Connect();
+                            outputBuilder.Append("Server connection established!\n");
+                            outputBuilder.Append("Sending weaving data...\n");
                         }
                         catch (Renci.SshNet.Common.SshOperationTimeoutException e)
                         {
@@ -123,29 +129,51 @@ namespace ErodDataLib.Utils
 
                         // Generate input file
                         string inputFile = inputFolder + cleanFilename + ".json";
-                        SSHConnector.SendJsonObjectToClient(connectionInfo, DataIO, inputFile);
+                        if (!SSHConnector.SendJsonObjectToClient(connectionInfo, DataIO, inputFile, ref outputBuilder))
+                        {
+                            Log = outputBuilder.ToString();
 
-                        // Run optimization
+                            sshclient.Disconnect();
+
+                            component.Message = "Done with errors!";
+                            component.ExpireSolution(true);
+                            error = 1;
+
+                            component.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Error sending information.");
+                            return;
+                        }
+
+                        // Optional: Deleting cache
                         if (deleteCache)
                         {
                             string removeFolder = "rm -rf " + pickleFolder + cleanFilename;
                             sshclient.RunCommand(removeFolder);
+                            outputBuilder.Append("Cache deleted.\n");
                         }
-                        string activateEnvironment = "source miniconda3/bin/activate && conda activate " + _server.CondaEnvironment + " && ";
-                        string runPython = "cd " + _server.RunFolder + " && python gh_optimizer.py " + cleanFilename;
 
                         ///////////////////////////////////////////////////////////////
+                        /// Calling optimization
                         ///////////////////////////////////////////////////////////////
                         SshCommand command; 
                         try
                         {
+                            string activateEnvironment = "source miniconda3/bin/activate && conda activate " + _server.CondaEnvironment + " && ";
+                            string runPython = "cd " + _server.RunFolder + " && python gh_optimizer.py " + cleanFilename;
+
                             command = sshclient.CreateCommand(activateEnvironment + runPython);
+                            outputBuilder.Append("Starting optimization: Initializing weaving model.\n");
                         }
                         catch(Renci.SshNet.Common.SshException e)
                         {
-                            component.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, e.ToString());
-                            form.Invoke(new Action(() => form.Close()));
+                            Log = outputBuilder.ToString();
+
+                            sshclient.Disconnect();
+
+                            component.Message = "Done with errors!";
+                            component.ExpireSolution(true);
                             error = 1;
+
+                            component.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, e.ToString());
                             return;
                         }
 

@@ -80,6 +80,8 @@ namespace ErodData.Interop
             pManager.AddBooleanParameter("AutoWidth", "AutoWidth", "Automatic scaling of the width based on scaling factors.", GH_ParamAccess.item);
             pManager.AddNumberParameter("MinWidthFactor", "MinWidthFactor", "Minimum width scaling factor", GH_ParamAccess.item, 1);
             pManager.AddNumberParameter("MaxWidthFactor", "MaxWidthFactor", "Maximun width scaling factor", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("UpdateAttractionWeight", "UpdateAttractionWeight", "Update attraction weight", GH_ParamAccess.item, -5);
+            pManager.AddIntegerParameter("NumberOfUpdates", "NumberOfUpdates", "Number of updates for the second stage optimization.", GH_ParamAccess.item, 3);
         }
 
         /// <summary>
@@ -100,9 +102,13 @@ namespace ErodData.Interop
             bool autoWidth = true;
             double minWidthFactor = 1;
             double maxWidthFactor = 1;
+            int numUpdates = 3;
+            double attWeight = -5;
             DA.GetData(0, ref autoWidth);
             DA.GetData(1, ref minWidthFactor);
             DA.GetData(2, ref maxWidthFactor);
+            DA.GetData(3, ref attWeight);
+            DA.GetData(4, ref numUpdates);
 
             // Interleaving type
             OptimizationStages oType;
@@ -123,6 +129,8 @@ namespace ErodData.Interop
             }
 
             WeavingOptimizationOptions opt = new WeavingOptimizationOptions(autoWidth, minWidthFactor, maxWidthFactor, oType);
+            opt.NumberOfUpdates = numUpdates;
+            opt.UpdateAttractionWeight = attWeight;
 
             DA.SetData(0, opt);
         }

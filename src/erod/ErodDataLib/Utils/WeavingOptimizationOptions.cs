@@ -13,8 +13,10 @@ namespace ErodDataLib.Utils
 
 		public bool AutomaticVariedCrossSection { get; set; }
 		public int NumOptimizationStages { get; private set;}
-		public double MinWidthScalingFactor { get; set; }
+        public int NumberOfUpdates { get; set; }
+        public double MinWidthScalingFactor { get; set; }
         public double MaxWidthScalingFactor { get; set; }
+        public double UpdateAttractionWeight { get; set; }
 
         public WeavingOptimizationOptions(bool autoVariedCS, double minFactor, double maxFactor, OptimizationStages stages)
         {
@@ -22,6 +24,8 @@ namespace ErodDataLib.Utils
             NumOptimizationStages = (int) stages;
             MinWidthScalingFactor = minFactor;
             MaxWidthScalingFactor = maxFactor;
+            NumberOfUpdates = 3;
+            UpdateAttractionWeight = -5;
         }
 
         public WeavingOptimizationOptions(JToken data)
@@ -45,8 +49,10 @@ namespace ErodDataLib.Utils
                     break;
 
             }
-            MinWidthScalingFactor = (double)data["MinWidthScalingFactor "];
-            MaxWidthScalingFactor = (double)data["MaxWidthScalingFactor "];
+            MinWidthScalingFactor = (double)data["MinWidthScalingFactor"];
+            MaxWidthScalingFactor = (double)data["MaxWidthScalingFactor"];
+            NumberOfUpdates = (int)data["NumberOfUpdates"];
+            UpdateAttractionWeight = (double)data["UpdateAttractionWeight"];
         }
 
         public void SetNumOptimizationStages(OptimizationStages stages)
