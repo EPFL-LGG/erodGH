@@ -34,21 +34,15 @@ namespace ElasticRodsGH
     EROD_API int erodXShellInferTargetSurface(RodLinkage *linkage, size_t nsubdiv, size_t numExtensionLayers, double **outCoords, int **outTrias, size_t *numCoords, size_t *numTrias, const char **errorMessage);
 
     // Linkage
+    EROD_API RodLinkage *erodXShellBuild(int numVertices, int numEdges, double *inCoords, int *inEdges, double *inNormals,
+                                                      double *inRestLengths, int *inOffsetInteriorCoords, double *inInteriorCoords,
+                                                      int interleavingType, int initConsistentAngle, int initConsistentNormals, const char **errorMessage);
+
+    EROD_API RodLinkage *erodXShellBuildFromGraph(int numVertices, int numEdges, double *inCoords, int *inEdges, double *inNormals, int subdivision, int interleavingType, int initConsistentAngle, const char **errorMessage);
+
     EROD_API RodLinkage *erodXShellCopy(RodLinkage *linkage, const char **errorMessage);
 
     EROD_API RodLinkage::RodSegment *erodXShellBuildRodSegment(int numVertices, double *inCoords);
-
-    EROD_API RodLinkage *erodXShellBuildFromEdgeData(int numVertices, int numEdges, double *inCoords, int *inEdges, double *inNormals, int subdivision, int interleavingType, int initConsistentAngle, const char **errorMessage);
-
-    EROD_API RodLinkage *erodXShellBuildFromJointData(int numVertices, int numJoints, int numEdges,
-                                                      double *inRestLengths, int *inOffsetInteriorCoords, double *inInteriorCoords,
-                                                      int *inStartJoints, int *inEndJoints,
-                                                      double *inCoords, double *inNormals,
-                                                      double *inEdgesA, double *inEdgesB,
-                                                      int *inSegmentsA, int *inSegmentsB,
-                                                      int *inIsStartA, int *inIsStartB,
-                                                      int *inJointForVertex, int *inEdges, int *isCurvedEdge, int inFirstJointVtx,
-                                                      int interleavingType, int checkConsistentNormals, int initConsistentAngle, const char **errorMessage);
 
     EROD_API void erodXShellSetMaterial(RodLinkage *linkage, int sectionType, double E, double nu, double *sectionParams, int numParams, int axisType);
 

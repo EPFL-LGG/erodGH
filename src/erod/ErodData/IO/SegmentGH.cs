@@ -27,8 +27,10 @@ namespace ErodData.IO
             pManager.AddCurveParameter("Curve", "Crv", "Curve or line defining the segment.", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Subdivision", "Subdivision", "Number of edges per segment. The minimum number is 5.", GH_ParamAccess.item,10);
             pManager.AddNumberParameter("Tolerance", "Tolerance", "Tolerance to use for checking linearity.", GH_ParamAccess.item, 0.01);
+            pManager.AddBooleanParameter("RemoveCurvature", "RemoveCurvature", "Remove rest curvature from the segment. The rest state will be a straight beam.", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
             pManager[2].Optional = true;
+            pManager[3].Optional = true;
         }
 
         /// <summary>
@@ -53,12 +55,14 @@ namespace ErodData.IO
             Curve crv = null;
             double tol = 0.01;
             int subd = 10;
+            bool removeKapas = false;
             DA.GetData(0, ref crv);
             DA.GetData(1, ref subd);
             DA.GetData(2, ref tol);
-            if (subd < 5) subd = 5;
+            DA.GetData(3, ref removeKapas);
+            if (subd < 5) throw new Exception("Rods must have at least 5 edges (to prevent conflicting start/end joint constraints and fully separate joint influences in Hessian)");
 
-            SegmentIO edge = new SegmentIO(crv, subd, tol);
+            SegmentIO edge = new SegmentIO(crv, subd, tol, removeKapas);
 
             DA.SetData(0, edge);
         }

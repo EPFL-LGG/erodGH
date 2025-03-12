@@ -76,7 +76,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return nullptr;
         }
     }
@@ -99,7 +99,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return nullptr;
         }
     }
@@ -154,13 +154,13 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return 1;
         }
     }
 
     // Linkage
-    EROD_API RodLinkage *erodXShellBuildFromEdgeData(int numVertices, int numEdges, double *inCoords, int *inEdges, double *inNormals, int subdivision, int interleavingType, int initConsistentAngle, const char **errorMessage)
+    EROD_API RodLinkage *erodXShellBuildFromGraph(int numVertices, int numEdges, double *inCoords, int *inEdges, double *inNormals, int subdivision, int interleavingType, int initConsistentAngle, const char **errorMessage)
     {
         try
         {
@@ -181,6 +181,7 @@ namespace ElasticRodsGH
             }
 
             InterleavingType rod_interleaving_type;
+            bool consistentAngle = initConsistentAngle == 1;
             switch (interleavingType)
             {
             case 0:
@@ -188,12 +189,14 @@ namespace ElasticRodsGH
                 break;
             case 1:
                 rod_interleaving_type = InterleavingType::weaving;
+                consistentAngle = false;
                 break;
             case 2:
                 rod_interleaving_type = InterleavingType::noOffset;
                 break;
             case 3:
                 rod_interleaving_type = InterleavingType::triaxialWeave;
+                consistentAngle = false;
                 break;
             default:
                 rod_interleaving_type = InterleavingType::noOffset;
@@ -204,7 +207,7 @@ namespace ElasticRodsGH
             // Edge callbacks
             std::vector<std::function<RodLinkage::Pt3(Real, bool)>> edge_callbacks = {};
 
-            return new RodLinkage(vertices, edges, subdivision, initConsistentAngle, rod_interleaving_type, edge_callbacks, normals);
+            return new RodLinkage(vertices, edges, subdivision, consistentAngle, rod_interleaving_type, edge_callbacks, normals);
         }
         catch (const std::runtime_error &error)
         {
@@ -218,7 +221,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return nullptr;
         }
     }
@@ -242,150 +245,71 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return nullptr;
         }
     }
 
-    EROD_API RodLinkage *erodXShellBuildFromJointData(int numVertices, int numJoints, int numEdges,
+    EROD_API RodLinkage *erodXShellBuild(int numVertices, int numEdges, double *inCoords, int *inEdges, double *inNormals,
                                                       double *inRestLengths, int *inOffsetInteriorCoords, double *inInteriorCoords,
-                                                      int *inStartJoints, int *inEndJoints,
-                                                      double *inCoords, double *inNormals,
-                                                      double *inEdgesA, double *inEdgesB,
-                                                      int *inSegmentsA, int *inSegmentsB,
-                                                      int *inIsStartA, int *inIsStartB,
-                                                      int *inJointForVertex, int *inEdges, int *isCurvedEdge, int inFirstJointVtx,
-                                                      int interleavingType, int checkConsistentNormals, int initConsistentAngle, const char **errorMessage)
+                                                      int interleavingType, int initConsistentAngle, int initConsistentNormals, const char **errorMessage)
     {
         try
-        {
-            // Initialize Joints
-            std::vector<RodLinkage::Pt3> jointPositions;
-            jointPositions.reserve(numJoints);
-
-            std::vector<std::array<size_t, 2>> segmentsA, segmentsB;
-            std::vector<std::array<bool, 2>> isStartA, isStartB;
-            std::vector<size_t> jointForVertex(numVertices);
-
-            std::vector<std::array<RodLinkage::Vec3, 3>> edgeVecs;
-
-            for (int i = 0; i < numVertices; i++)
+        {    
+            // Vertices
+            std::vector<MeshIO::IOVertex> vertices;
+            std::vector<RodLinkage::Vec3> normals;
+            for (int i = 0; i < numVertices; ++i)
             {
-                if (i < numJoints)
-                {
-                    jointPositions.emplace_back(inCoords[3 * i], inCoords[3 * i + 1], inCoords[3 * i + 2]);
+                vertices.emplace_back(inCoords[3 * i], inCoords[3 * i + 1], inCoords[3 * i + 2]);
+                normals.emplace_back(inNormals[3 * i], inNormals[3 * i + 1], inNormals[3 * i + 2]);
+            }
 
-                    // SegmentsA
-                    std::array<size_t, 2> sA{{RodLinkage::NONE, RodLinkage::NONE}};
-                    if (inSegmentsA[2 * i] != -1)
-                        sA[0] = (size_t)inSegmentsA[2 * i];
-                    if (inSegmentsA[2 * i + 1] != -1)
-                        sA[1] = (size_t)inSegmentsA[2 * i + 1];
-                    segmentsA.push_back(sA);
-
-                    // Segments B
-                    std::array<size_t, 2> sB{{RodLinkage::NONE, RodLinkage::NONE}};
-                    if (inSegmentsB[2 * i] != -1)
-                        sB[0] = (size_t)inSegmentsB[2 * i];
-                    if (inSegmentsB[2 * i + 1] != -1)
-                        sB[1] = (size_t)inSegmentsB[2 * i + 1];
-                    segmentsB.push_back(sB);
-
-                    // IsStartA
-                    std::array<bool, 2> isSA{{false, false}};
-                    if (inIsStartA[2 * i] == 1)
-                        isSA[0] = true;
-                    if (inIsStartA[2 * i + 1] == 1)
-                        isSA[1] = true;
-                    isStartA.push_back(isSA);
-
-                    // IsStartB
-                    std::array<bool, 2> isSB{{false, false}};
-                    if (inIsStartB[2 * i] == 1)
-                        isSB[0] = true;
-                    if (inIsStartB[2 * i + 1] == 1)
-                        isSB[1] = true;
-                    isStartB.push_back(isSB);
-
-                    // EdgeA, EdgeB, Normal
-                    std::array<RodLinkage::Vec3, 3> eVecs;
-                    eVecs[0] = RodLinkage::Vec3(inEdgesA[3 * i], inEdgesA[3 * i + 1], inEdgesA[3 * i + 2]);
-                    eVecs[1] = RodLinkage::Vec3(inEdgesB[3 * i], inEdgesB[3 * i + 1], inEdgesB[3 * i + 2]);
-                    eVecs[2] = RodLinkage::Vec3(inNormals[3 * i], inNormals[3 * i + 1], inNormals[3 * i + 2]);
-                    edgeVecs.push_back(eVecs);
-                }
-
-                jointForVertex[i] = RodLinkage::NONE;
-                if (inJointForVertex[i] != -1) jointForVertex[i] = (size_t)inJointForVertex[i];
+            InterleavingType rod_interleaving_type;
+            bool consistentAngle = initConsistentAngle == 1;
+            switch (interleavingType)
+            {
+            case 0:
+                rod_interleaving_type = InterleavingType::xshell;
+                break;
+            case 1:
+                rod_interleaving_type = InterleavingType::weaving;
+                consistentAngle = false;
+                break;
+            case 2:
+                rod_interleaving_type = InterleavingType::noOffset;
+                break;
+            case 3:
+                rod_interleaving_type = InterleavingType::triaxialWeave;
+                consistentAngle = false;
+                break;
+            default:
+                rod_interleaving_type = InterleavingType::noOffset;
             }
 
             // Edges
             RodLinkage::VecX restLengths(numEdges);
-            int startOff = 0;
-            std::vector<RodLinkage::RodSegment> rodSegments;
-            rodSegments.reserve(numEdges);
             std::vector<MeshIO::IOElement> edges;
-            edges.reserve(numEdges);
-            std::vector<std::array<size_t, 4>> incidentEdges(numVertices);
-            std::vector<size_t> valence(numVertices);
+            std::vector<std::vector<RodLinkage::Pt3>> rodPoints(numEdges);
+            int startOff = 0;
 
             for (int i = 0; i < numEdges; i++)
             {
                 restLengths[i] = inRestLengths[i];
+                edges.emplace_back(inEdges[2 * i], inEdges[2 * i + 1]);
 
                 std::vector<RodLinkage::Pt3> pts;
                 int endOff = inOffsetInteriorCoords[i];
                 int numInteriorPoints = (endOff - startOff) / 3;
 
-                for (int j = 0; j < numInteriorPoints; j++)
-                {
-                    pts.emplace_back(inInteriorCoords[startOff + 3 * j], inInteriorCoords[startOff + 3 * j + 1], inInteriorCoords[startOff + 3 * j + 2]);
-                }
-                ElasticRod rod(pts);
-                if(isCurvedEdge[i]==0) {
-                    std::vector<Real> kappas(rod.numRestKappaVars(), 0.0);
-                    rod.setRestKappaVars(kappas);
-                }
+                for (int j = 0; j < numInteriorPoints; j++) pts.emplace_back(inInteriorCoords[startOff + 3 * j], inInteriorCoords[startOff + 3 * j + 1], inInteriorCoords[startOff + 3 * j + 2]);
+                rodPoints[i] = pts;
+
                 startOff = endOff;
-
-                // Rod segments
-                size_t startJoint = RodLinkage::NONE, endJoint = RodLinkage::NONE;
-                if (inStartJoints[i] != -1)
-                    startJoint = (size_t)inStartJoints[i];
-                if (inEndJoints[i] != -1)
-                    endJoint = (size_t)inEndJoints[i];
-                rodSegments.emplace_back(startJoint, endJoint, std::move(rod));
-
-                // // Edges
-                size_t e0 = inEdges[2 * i], e1 = inEdges[2 * i + 1];
-                edges.emplace_back(e0, e1);
-                incidentEdges[e0].at(valence.at(e0)++) = i;
-                incidentEdges[e1].at(valence.at(e1)++) = i;
-            }
-
-            InterleavingType type;
-            switch (interleavingType)
-            {
-            case 0:
-                type = InterleavingType::xshell;
-                break;
-            case 1:
-                type = InterleavingType::weaving;
-                break;
-            case 2:
-                type = InterleavingType::noOffset;
-                break;
-            case 3:
-                type = InterleavingType::triaxialWeave;
-                break;
-            default:
-                type = InterleavingType::noOffset;
             }
 
             *errorMessage = "Rod Linkage Built";
-            return new RodLinkage(rodSegments, edges, incidentEdges, valence, restLengths,
-                                  jointPositions, edgeVecs, segmentsA, segmentsB,
-                                  isStartA, isStartB, jointForVertex, inFirstJointVtx, type, checkConsistentNormals, initConsistentAngle);
+            return new RodLinkage(vertices, normals, edges, rodPoints, restLengths, initConsistentAngle, initConsistentNormals, rod_interleaving_type);
         }
         catch (const std::runtime_error &error)
         {
@@ -399,7 +323,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return nullptr;
         }
     }
@@ -779,7 +703,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return -1;
         }
     }
@@ -1015,7 +939,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return 1;
         }
     }
@@ -1100,7 +1024,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return -1;
         }
     }
@@ -1178,7 +1102,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return -1;
         }
     }
@@ -1311,7 +1235,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return -1;
         }
     }
@@ -1379,7 +1303,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return -1;
         }
     }
@@ -2287,7 +2211,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return nullptr;
         }
     }
@@ -2311,7 +2235,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return nullptr;
         }
     }
@@ -2727,7 +2651,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return nullptr;
         }
     }
@@ -2751,7 +2675,7 @@ namespace ElasticRodsGH
         }
         catch (...)
         {
-            *errorMessage = "Unknown Error from the Unmanaged Code.";
+            *errorMessage = "Unknown error from the c++ library.";
             return nullptr;
         }
     }

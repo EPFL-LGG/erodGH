@@ -26,20 +26,14 @@ namespace ErodModelLib.Creators
 
             // Linkage
             [SuppressUnmanagedCodeSecurity]
-            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellBuildFromEdgeData")]
-            public static extern IntPtr ErodXShellBuildFromEdgeData(int numVertices, int numEdges, [In] double[] inCoords, [In] int[] inEdges, [In] double[] inNormals, int subdivision, int interleavingType, int initConsistentAngle, out IntPtr errorMessage);
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellBuildFromGraph")]
+            public static extern IntPtr ErodXShellBuildFromGraph(int numVertices, int numEdges, [In] double[] inCoords, [In] int[] inEdges, [In] double[] inNormals, int subdivision, int interleavingType, int initConsistentAngle, out IntPtr errorMessage);
 
             [SuppressUnmanagedCodeSecurity]
-            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellBuildFromJointData")]
-            public static extern IntPtr ErodXShellBuildFromJointData(int numVertices, int numJoints, int numEdges,
-                                                                     [In] double[] inRestLengths, [In] int[] inOffsetInteriorNodes, [In] double[] inInteriorNodes,
-                                                                     [In] int[] inStartJoints, [In] int[] inEndJoints,
-                                                                     [In] double[] inCoords, [In] double[] inNormals,
-                                                                     [In] double[] inEdgesA, [In] double[] inEdgesB,
-                                                                     [In] int[] inSegmentsA, [In] int[] inSegmentsB,
-                                                                     [In] int[] inIsStartA, [In] int[] inIsStartB,
-                                                                     [In] int[] inJointForVertex, [In] int[] inEdges, [In] int[] isCurvedEdges, int inFirstJointVtx,
-                                                                     int interleavingType, int checkConsistentNormals, int initConsistentAngle, out IntPtr errorMessage);
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellBuild")]
+            public static extern IntPtr ErodXShellBuild(int numVertices, int numEdges, [In] double[] inCoords, [In] int[] inEdges, [In] double[] inNormals,
+                                              [In] double[] inRestLengths, [In] int[] inOffsetInteriorCoords, [In] double[] inInteriorCoords,
+                                              int interleavingType, int initConsistentAngle, int initConsistentNormals, out IntPtr errorMessage);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodXShellCopy")]

@@ -121,7 +121,7 @@ namespace ErodModel.Solver
             if (run)
             {
                 // Cables are included in the simulation as external forces. Thus, the number of sub iterations needs to be 1 because positions need to be updated.
-                // TODO Add cable forces in the CPP code
+                // TODO Add cable forces in CPP
                 optionsCopy.NumIterations = 1;
 
                 if (steps <= options.NumDeploymentSteps && !equilibrium)

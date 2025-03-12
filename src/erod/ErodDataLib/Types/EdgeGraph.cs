@@ -2,6 +2,7 @@
 using Rhino.Geometry;
 using System.Linq;
 using System;
+//using Grasshopper.Kernel.Geometry;
 
 namespace ErodDataLib.Types
 {
@@ -56,15 +57,17 @@ namespace ErodDataLib.Types
 
             // Check for normals with unset reference positions 
             // The first normal found with an unset reference point will be applied globally.
-            var nG = normals.FirstOrDefault(n => n.ReferencePosition == Point3d.Unset);
-            if (nG != null) AddGlobalNormal(nG.NormalVector);
+            //var nG = normals.FirstOrDefault(n => n.ReferencePosition == Point3d.Unset);
+            //if (nG != null) AddGlobalNormal(nG.NormalVector);
 
-            // Then take all the normals with reference positions and update the graph
+            // First: take all the normals with reference positions and update the graph
             var normalsWithReferences = normals.Where(n => n.ReferencePosition != Point3d.Unset).ToList();
             if(normalsWithReferences.Count > 0) foreach (var norm in normalsWithReferences) nodeIndices.Remove(AddNormal(norm)); // Add normals for given inputs
-
-            // Compute normals
-            foreach (var nodeIdx in nodeIndices) ComputeNormalFromIncidentEdges(nodeIdx);
+            // Second: Check for normals with unset reference positions 
+            // The first normal found with an unset reference point will be applied globally.
+            var nG = normals.FirstOrDefault(n => n.ReferencePosition == Point3d.Unset);
+            if (nG != null) foreach (var nodeIdx in nodeIndices) AddNormal(nG.NormalVector, nodeIdx);
+            else foreach (var nodeIdx in nodeIndices) ComputeNormalFromIncidentEdges(nodeIdx); // Compute normals using incident edges
         }
 
         public EdgeGraph(EdgeGraph graph)
@@ -207,6 +210,16 @@ namespace ErodDataLib.Types
         {
             Point3d pos = _nodes[nodeIdx].Location;
             Vector3d normal = _nodes[nodeIdx].Normal;
+            if (normal == Vector3d.Unset)
+            {
+                Plane plane;
+                Plane.FitPlaneToPoints(_incidentEdges[nodeIdx].Select(idx => {
+                    var crv = EdgeCurves[idx];
+                    return crv.PointAtStart.DistanceTo(pos) < crv.PointAtEnd.DistanceTo(pos) ? crv.PointAtEnd : crv.PointAtStart;
+                }), out plane);
+                normal = plane.ZAxis;
+            }
+
             var indicesEdges = _incidentEdges[nodeIdx].ToArray();
             int nodeValence = indicesEdges.Length;
 
@@ -234,6 +247,30 @@ namespace ErodDataLib.Types
             return sortedIdx.ToArray();
         }
 
+        public int[] GetSortedIncidentEdgesWithCircleFit(int nodeIdx)
+        {
+            Point3d pos = _nodes[nodeIdx].Location;
+            var adjacentVtx = _incidentEdges[nodeIdx].Select(idx => {
+                var crv = EdgeCurves[idx];
+                return crv.PointAtStart.DistanceTo(pos) < crv.PointAtEnd.DistanceTo(pos) ? crv.PointAtEnd : crv.PointAtStart;
+            }).ToArray();
+
+            Circle circle;
+            Circle.TryFitCircleToPoints(adjacentVtx, out circle);
+            var tParams = adjacentVtx.Select(vtx => {
+                double t;
+                circle.ClosestParameter(vtx, out t);
+                return t;
+            }).ToList();
+
+            var tParamsSorted = new List<double>(tParams);
+            tParamsSorted.Sort();
+
+            var sortedIdx = tParamsSorted.Select(t => tParams.IndexOf(t)).ToArray();
+
+            return sortedIdx.ToArray();
+        }
+
         private int AddNormal(NormalIO normal)
         {
             Point3d p = normal.ReferencePosition;
@@ -245,6 +282,11 @@ namespace ErodDataLib.Types
         private void AddGlobalNormal(Vector3d normal)
         {
             foreach (var n in _nodes) n.Normal = normal;
+        }
+
+        private void AddNormal(Vector3d normal, int nodeIndex)
+        {
+            _nodes[nodeIndex].Normal = normal;
         }
 
         private Vector3d GetTangentAtPoint(Point3d node, Curve edge)
@@ -283,8 +325,15 @@ namespace ErodDataLib.Types
             bool[] isStartB = new bool[] { false, false };
             int numA=0, numB = 0;
             Vector3d vecA, vecB;
+            Vector3d tgt0, tgt1;
             switch (nodeValence)
             {
+                case 1:
+                    edgesA[0] = indicesEdges[0];
+                    isStartA[0] = IsStartNode(pos, EdgeCurves[edgesA[0]]);
+                    numA = 1;
+                    break;
+
                 case 2:
                     edgesA[0] = indicesEdges[0];
                     isStartA[0] = IsStartNode(pos, EdgeCurves[edgesA[0]]);
@@ -300,12 +349,12 @@ namespace ErodDataLib.Types
                     for (int j = 0; j < nodeValence; j++)
                     {
                         edgeIdx = indicesEdges[j];
-                        var tgt0 = GetTangentAtPoint(pos, EdgeCurves[edgeIdx]);
+                        tgt0 = GetTangentAtPoint(pos, EdgeCurves[edgeIdx]);
 
                         for (int k = j + 1; k < nodeValence; k++)
                         {
                             int nextEdgeIdx = indicesEdges[k];
-                            var tgt1 = GetTangentAtPoint(pos, EdgeCurves[nextEdgeIdx]);
+                            tgt1 = GetTangentAtPoint(pos, EdgeCurves[nextEdgeIdx]);
                             double cosTheta = tgt0 * tgt1;
 
                             if (cosTheta < minCosTheta)
@@ -345,7 +394,7 @@ namespace ErodDataLib.Types
                     numA = numB = 2;
                     break;
                 default:
-                    throw new Exception("Invalid valence at node with index " + nodeIdx + ". Valence must be 2, 3, or 4");
+                    throw new Exception("Invalid valence at node with index " + nodeIdx + ". Node valence is " + nodeValence + ". Valence must be 1, 2, 3, or 4");
 
             }
 

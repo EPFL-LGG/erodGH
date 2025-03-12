@@ -79,8 +79,10 @@ namespace ErodData.IO
             pManager.AddNumberParameter("t", "t", "Parameters defining the positions of the joints.", GH_ParamAccess.list);
             pManager.AddIntegerParameter("Subdivision", "Subdivision", "Number of edges per ribbon segment. The minimum number is 5.", GH_ParamAccess.list, new List<int>() { 10 });
             pManager.AddNumberParameter("Tolerance", "Tolerance", "Tolerance to use for checking linearity.", GH_ParamAccess.item, 0.01);
+            pManager.AddBooleanParameter("RemoveCurvature", "RemoveCurvature", "Remove rest curvature from the entire ribbon. The rest state will be a straight ribbon.", GH_ParamAccess.item, false);
             pManager[2].Optional = true;
             pManager[3].Optional = true;
+            pManager[4].Optional = true;
         }
 
         /// <summary>
@@ -102,11 +104,12 @@ namespace ErodData.IO
             List<double> t = new List<double>();
             List<int> subd = new List<int>();
             double tol = 0.01;
-
+            bool removeKappas = false;
             DA.GetData(0, ref crv);
             if(!DA.GetDataList(1, t)) return;
             DA.GetDataList(2, subd);
             DA.GetData(3, ref tol);
+            DA.GetData(4, ref removeKappas);
 
             SegmentLabels eLabel;
             switch (edgeLabel)
@@ -135,12 +138,12 @@ namespace ErodData.IO
                 Point3d p1 = crv.PointAtStart;
                 Point3d p2 = crv.PointAtEnd;
                 int subdivision = subd.Count == segments.Length ? subd[i] : subd[0];
-                if (subdivision < 5) subdivision = 5;
+                if (subdivision < 5) throw new Exception("Rod must have at least 5 edges (to prevent conflicting start/end joint constraints and fully separate joint influences in Hessian)");
 
                 double l = c.GetLength();
                 if (l > 0.01)
                 {
-                    SegmentIO edge = new SegmentIO(c, subdivision, tol);
+                    SegmentIO edge = new SegmentIO(c, subdivision, tol, removeKappas);
                     edge.SegmentIndexInRibbon = idx;
                     edge.EdgeLabel = eLabel;
                     edges.Add(edge);

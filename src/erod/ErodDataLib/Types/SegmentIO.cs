@@ -55,9 +55,10 @@ namespace ErodDataLib.Types
             EndJoint = segment.EndJoint;
         }
 
-        public SegmentIO(Curve curve, int subdivision = 10, double tol = 1e-06)
+        public SegmentIO(Curve curve, int subdivision = 10, double tol = 1e-06, bool removeRestCurvature = false)
         {
             _curve = curve.ToNurbsCurve();
+            if (removeRestCurvature) _curve = new LineCurve(curve.PointAtStart, curve.PointAtEnd);
 
             Indices = new int[2];
             StartJoint = -1;
@@ -220,19 +221,19 @@ namespace ErodDataLib.Types
             CurvePoints = new Point3d[Subdivision + 1];
             if (startVec != default)
             {
-                int sign = Math.Sign(GetStartVector(_curve)* startVec);
-                if (sign < 0) startVec.Reverse();
-                CurvePoints[0] = _curve.PointAtStart - startVec;
-                CurvePoints[1] = _curve.PointAtStart + startVec;
+                Vector3d start_vec = GetStartVector(_curve, true);
+                start_vec *= startVec.Length;
+                CurvePoints[0] = _curve.PointAtStart - start_vec;
+                CurvePoints[1] = _curve.PointAtStart + start_vec;
                 _curve.ClosestPoint(CurvePoints[1], out t0);
                 jointNum++;
             }
             if (endVec != default)
             {
-                int sign = Math.Sign(GetEndVector(_curve) * endVec);
-                if (sign < 0) endVec.Reverse();
-                CurvePoints[Subdivision - 1] = _curve.PointAtEnd + endVec;
-                CurvePoints[Subdivision] = _curve.PointAtEnd - endVec;
+                Vector3d end_vec = GetEndVector(_curve, true);
+                end_vec *= endVec.Length;
+                CurvePoints[Subdivision - 1] = _curve.PointAtEnd + end_vec;
+                CurvePoints[Subdivision] = _curve.PointAtEnd - end_vec;
                 _curve.ClosestPoint(CurvePoints[Subdivision - 1], out t1);
                 jointNum++;
             }

@@ -87,7 +87,7 @@ namespace ErodDataLib.Types
                 int[] incidentEdges = Graph.GetIncidentEdges(nodeIndex);
 
                 if (nodeValence == 1) continue; 
-                if (nodeValence > 4) throw new Exception("Invalid valence at node with index " + nodeIndex + ". Valence must be 2, 3, or 4");
+                if (nodeValence > 4) throw new Exception("Invalid valence at node with index " + nodeIndex + ". Node valence is " + nodeValence + ". Valence must be 1, 2, 3, or 4");
                 if (FirstJointNodeMap == NONE) FirstJointNodeMap = nodeIndex;
 
                 int jointIndex = tempJoints.Count();

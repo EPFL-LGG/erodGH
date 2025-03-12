@@ -317,6 +317,7 @@ namespace ErodDataLib.Utils
                     GH_Path path = new GH_Path(i);
 
                     int numSegments = data["deformed_rod_vertices"][i].Count();
+
                     for (int j = 0; j < numSegments; j++)
                     {
 
@@ -337,7 +338,11 @@ namespace ErodDataLib.Utils
                             segment_mesh.Faces.AddFace(new MeshFace((int)f[0], (int)f[1], (int)f[2], (int)f[3]));
                         }
                         ribbon_mesh.Append(segment_mesh);
+                    }
 
+                    int numJoints = data["deformed_joints"][i].Count();
+                    for (int j = 0; j < numJoints; j++)
+                    {
                         // Joints
                         var jt = data["deformed_joints"][i][j];
                         Point3d jt_pos = new Point3d((double)jt[0], (double)jt[1], (double)jt[2]);

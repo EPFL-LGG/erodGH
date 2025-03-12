@@ -83,6 +83,22 @@ namespace ErodModelLib.Types
                 isStartB[i * 2] = Convert.ToInt32(joint.IsStartB[0]);
                 isStartB[i * 2 + 1] = Convert.ToInt32(joint.IsStartB[1]);
             }
+
+            double[] coordsNodes = new double[numVertices * 3];
+            double[] normalsNodes = new double[numVertices * 3];
+            for (int i = 0; i < numVertices; i++)
+            {
+                Point3d node = modelIO.Graph.Nodes[i];
+                Vector3d normal = modelIO.Graph.Normals[i];
+
+                coordsNodes[i * 3] = node.X;
+                coordsNodes[i * 3 + 1] = node.Y;
+                coordsNodes[i * 3 + 2] = node.Z;
+
+                normalsNodes[i * 3] = normal.X;
+                normalsNodes[i * 3 + 1] = normal.Y;
+                normalsNodes[i * 3 + 2] = normal.Z;
+            }
             #endregion
 
             ///////////////////////////////////////////////////
@@ -106,7 +122,7 @@ namespace ErodModelLib.Types
             {
                 SegmentIO edge = modelIO.Segments[i];
 
-                isCurvedEdge[i] = edge.IsCurvedEdge ? 1: 0;
+                isCurvedEdge[i] = edge.IsCurvedEdge ? 1 : 0;
 
                 // Rest lengths
                 restLengths[i] = edge.RestLength;
@@ -151,15 +167,7 @@ namespace ErodModelLib.Types
             {
                 if (!edgeDataInitialization)
                 {
-                    Model = Kernel.RodLinkage.ErodXShellBuildFromJointData(numVertices, numJoints, numEdges,
-                                                                            restLengths, offsetCurvePoints, curvePoints.ToArray(),
-                                                                            startJoints, endJoints,
-                                                                            coords, normals,
-                                                                            edgesA, edgesB,
-                                                                            segmentsA, segmentsB,
-                                                                            isStartA, isStartB,
-                                                                            jointForVertex, edges, isCurvedEdge, modelIO.FirstJointNodeMap,
-                                                                            modelIO.Interleaving, Convert.ToInt32(checkConsistentNormals), Convert.ToInt32(initConsistentAngle), out Error);
+                    Model = Kernel.RodLinkage.ErodXShellBuild(numVertices, numEdges, coordsNodes, edges, normalsNodes, restLengths, offsetCurvePoints, curvePoints.ToArray(), modelIO.Interleaving, Convert.ToInt32(initConsistentAngle), Convert.ToInt32(initConsistentAngle), out Error);
                 }
                 else
                 {
@@ -168,7 +176,7 @@ namespace ErodModelLib.Types
                     modelIO.Graph.GetFlattenGraphData(out coords, out normals, out edges);
                     // For this constructor all rod segments needs to be subdivided equally
                     int subd = subdivisions.Sum() / subdivisions.Length;
-                    Model = Kernel.RodLinkage.ErodXShellBuildFromEdgeData(numVertices, numEdges, coords, edges, normals, subd, modelIO.Interleaving, Convert.ToInt32(initConsistentAngle), out Error);
+                    Model = Kernel.RodLinkage.ErodXShellBuildFromGraph(numVertices, numEdges, coords, edges, normals, subd, modelIO.Interleaving, Convert.ToInt32(initConsistentAngle), out Error);
                 }
 
                 if (ModelIO.ContainsTargetSurface()) AddTargetSurface(ModelIO.TargetSurface);

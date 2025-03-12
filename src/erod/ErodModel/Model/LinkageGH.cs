@@ -29,8 +29,8 @@ namespace ErodModel.Model
         {
             pManager.AddGenericParameter("LinkageIO", "LinkageIO", "Input data to construct an elastic linkage.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("ConsistentNormals", "CN", "Check normals direction to prevent 180 degree twists. When this flag is set to TRUE the direction of normals might change from the input (if normals were given).", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("ConsistentAngle", "CA", "Initialize with consistent angles.", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("EdgeData", "ED", "Initialize with edge data. This flag forces all beams to be straight.", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("ConsistentAngle", "CA", "Initialize with consistent angles. This option is always false when interleaving is weaving o triaxial-weave", GH_ParamAccess.item, true);
+            pManager.AddBooleanParameter("EdgeData", "ED", "Initialize with simple edge graph data. This flag forces all beams to be straight.", GH_ParamAccess.item, false);
         }
 
         /// <summary>
