@@ -1,4 +1,4 @@
-ElasticRod Pluging for Grasshopper
+X-Shell/C-Shell/Curved-Weaving Forward Design Tool for Rhino/Grasshopper
 ===========
 
 # Getting Started
