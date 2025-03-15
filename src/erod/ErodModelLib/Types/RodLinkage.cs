@@ -240,7 +240,7 @@ namespace ErodModelLib.Types
                 {
                     Point3d p = sp.ReferencePosition;
 
-                    int[] dof = new int[] { 0, 1, 2, 3, 4, 5 };
+                    int[] dof = new int[] { 0, 1, 2 };
                     int[] indicesDoFs = new int[dof.Length];
 
                     int idxJ = Joints.ClosestJoint(p);
@@ -259,6 +259,7 @@ namespace ErodModelLib.Types
                         sp.IsJointSupport = false;
                     }
 
+                    for (int j = 0; j < sp.LockedDoFs.Length; j++) if (!sp.LockedDoFs[j]) indicesDoFs[j] = -1;
                     sp.SetIndicesDoFs(indicesDoFs);
                 }
                 sp.UpdateReferencePosition(sp.IsJointSupport ? Joints[sp.IndexMap].Position : Segments.GetNode(sp.IndexMap));

@@ -27,9 +27,6 @@ namespace ErodData.IO
             pManager.AddBooleanParameter("X", "X", "Fix translation along the X-axis.", GH_ParamAccess.item, true);
             pManager.AddBooleanParameter("Y", "Y", "Fix translation along the Y-axis.", GH_ParamAccess.item, true);
             pManager.AddBooleanParameter("Z", "Z", "Fix translation along the Z-axis.", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("XX", "XX", "Fix rotation along the XX-axis.", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("YY", "YY", "Fix rotation along the YY-axis.", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("ZZ", "ZZ", "Fix rotation along the ZZ-axis.", GH_ParamAccess.item, true);
             pManager.AddBooleanParameter("IsTemporary", "IsTemporary", "Set a temporary support.", GH_ParamAccess.item, false);
             pManager.AddNumberParameter("ReleaseCoefficient", "ReleaseCoef", "The release coefficient is a numerical factor that determines how supports are released throughout the deployment process. It multiplies the number of deployment steps to determine the specific step at which a support is released. The coefficient value should be between 0 and 1, where 0 means a support is released at the very beginning of the deployment, and 1 means a support is released at the final step.", GH_ParamAccess.item, 0.5);
         }
@@ -49,22 +46,19 @@ namespace ErodData.IO
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Point3d pos = new Point3d();
-            bool[] flags = new bool[6];
+            bool[] flags = new bool[3];
             bool isTemp = false;
             double rCoef = 0.5;
             DA.GetData(0, ref pos);
             DA.GetData(1, ref flags[0]);
             DA.GetData(2, ref flags[1]);
             DA.GetData(3, ref flags[2]);
-            DA.GetData(4, ref flags[3]);
-            DA.GetData(5, ref flags[4]);
-            DA.GetData(6, ref flags[5]);
-            DA.GetData(7, ref isTemp);
-            DA.GetData(8, ref rCoef);
+            DA.GetData(4, ref isTemp);
+            DA.GetData(5, ref rCoef);
 
             SupportIO support = new SupportIO(pos);
             if(isTemp) support.SetTemporarySupport(rCoef);
-            support.FixTranslationAndRotation(flags);
+            support.FixTranslation(flags);
 
             DA.SetData(0, support);
         }

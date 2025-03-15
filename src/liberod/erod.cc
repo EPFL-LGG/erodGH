@@ -2623,6 +2623,17 @@ namespace ElasticRodsGH
         std::memcpy(*outField, field.data(), sizeField);
     }
 
+    EROD_API int erodElasticRodGetThetaOffset(ElasticRod *rod){
+        return rod->thetaOffset();
+    }
+
+    EROD_API int erodElasticRodGetRestLengthOffset(ElasticRod *rod){
+        return rod->restLenOffset();
+    }
+
+    EROD_API int erodElasticRodGetRestKappaOffset(ElasticRod *rod){
+        return rod->restKappaOffset();
+    }
 
     // Periodic ElasticRod
     EROD_API PeriodicRod *erodPeriodicElasticRodBuild(int numPoints, double *inCoords, int removeCurvature, const char **errorMessage)
@@ -3054,5 +3065,17 @@ namespace ElasticRodsGH
         auto sizeField = (*numField) * sizeof(double);
         *outField = static_cast<double *>(malloc(sizeField));
         std::memcpy(*outField, field.data(), sizeField);
+    }
+
+    EROD_API int erodPeriodicElasticRodGetThetaOffset(PeriodicRod *pRod){
+        return pRod->rod.thetaOffset();
+    }
+
+    EROD_API int erodPeriodicElasticRodGetRestLengthOffset(PeriodicRod *pRod){
+        return pRod->rod.restLenOffset();
+    }
+
+    EROD_API int erodPeriodicElasticRodGetRestKappaOffset(PeriodicRod *pRod){
+        return pRod->rod.restKappaOffset();
     }
 }

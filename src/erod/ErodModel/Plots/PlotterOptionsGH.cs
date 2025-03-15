@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using ErodDataLib.Types;
-using ErodModelLib.Types;
-using Grasshopper;
 using Grasshopper.Kernel;
-using Rhino.Geometry;
+using ErodModelLib.Utils;
 
-namespace ErodModel.Model
+namespace ErodModel.Plots
 {
-    public class RodGH : GH_Component
+    public class PlotterOptionsGH : GH_Component
     {
+
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
         /// constructor without any arguments.
@@ -17,10 +14,10 @@ namespace ErodModel.Model
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public RodGH()
-          : base("Rod", "Rod",
-              "Construct an elastic rod.",
-              "Erod", "Models")
+        public PlotterOptionsGH()
+          : base("PlotSettings", "PlotSettings",
+            "Graph plotter Settings.",
+            "Erod", "Plots")
         {
         }
 
@@ -29,7 +26,9 @@ namespace ErodModel.Model
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("RodIO", "RodIO", "Input data to construct an elastic rod.", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Width", "Width", "Sets the width of the plot in pixels.", GH_ParamAccess.item, 800);
+            pManager.AddIntegerParameter("Length", "Length", "Sets the length of the plot in pixels.", GH_ParamAccess.item, 800);
+            pManager.AddTextParameter("Title", "Title", "Sets the title of the plot.", GH_ParamAccess.item, "");
         }
 
         /// <summary>
@@ -37,7 +36,7 @@ namespace ErodModel.Model
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Rod", "Rod", "Elastic rod model.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("PlotSettings", "PlotSettings", "Set the graph plot settings.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -47,14 +46,20 @@ namespace ErodModel.Model
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            RodIO data = null;
+            string title = "";
+            int width = 800, length=800;
+            DA.GetData(0, ref width);
+            DA.GetData(1, ref length);
+            DA.GetData(2, ref title);
 
-            if(!DA.GetData(0, ref data)) return;
+            GraphPlotterOptions options = new GraphPlotterOptions(width, length, title);
 
-            if (data.Supports.GetNumberFixSupport() == 0) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Blank, "Only temporary supports have been found. The first temporary support is converted to a permanent support.");
-            ElasticRod model = new ElasticRod(data);
-   
-            DA.SetData(0, model);
+            DA.SetData(0, options);
+        }
+
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.primary; }
         }
 
         /// <summary>
@@ -65,7 +70,7 @@ namespace ErodModel.Model
         {
             get
             {
-                return Properties.Resources.Resources.rod;
+                return Properties.Resources.Resources.options_plot;
             }
         }
 
@@ -76,7 +81,7 @@ namespace ErodModel.Model
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("a6d9df04-1a0a-44a8-9545-215d6423960a"); }
+            get { return new Guid("1c50a6d5-c0e9-46fd-8515-af44a092dabf"); }
         }
     }
 }

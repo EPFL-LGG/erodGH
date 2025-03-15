@@ -27,7 +27,7 @@ namespace ErodData.IO
             pManager.AddCurveParameter("Curve", "Crv", "Curve or line defining the segment.", GH_ParamAccess.item);
             pManager.AddIntegerParameter("Subdivision", "Subdivision", "Number of edges per segment. The minimum number is 5.", GH_ParamAccess.item,10);
             pManager.AddNumberParameter("Tolerance", "Tolerance", "Tolerance to use for checking linearity.", GH_ParamAccess.item, 0.01);
-            pManager.AddBooleanParameter("RemoveCurvature", "RemoveCurvature", "Remove rest curvature from the segment. The rest state will be a straight beam.", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("IsStraight", "IsStraight", "Remove rest curvatures.", GH_ParamAccess.item, false);
             pManager[1].Optional = true;
             pManager[2].Optional = true;
             pManager[3].Optional = true;

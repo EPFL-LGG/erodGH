@@ -105,5 +105,23 @@
 	<data name="edit_rod" type="System.Resources.ResXFileRef, System.Windows.Forms">
 		<value>..\resources\edit_rod.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
 	</data>
+	<data name="line3d_plot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\line3d.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="point3d_plot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\point3d.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="range_plot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\range.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="pointdensity_plot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\pointdensity.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="histogram_plot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\histogram.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
+	<data name="options_plot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+		<value>..\resources\options_plot.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+	</data>
 </root>
 

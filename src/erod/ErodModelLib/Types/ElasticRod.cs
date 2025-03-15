@@ -102,6 +102,23 @@ namespace ErodModelLib.Types
             _nodes = new PointCloud(GetCenterLinePositionsAsPoint3d());
         }
 
+        private void UpdateNodes()
+        {
+            var pos = GetCenterLinePositionsAsPoint3d();
+            for (int i=0; i<_nodes.Count; i++) _nodes[i].Location = pos[i];
+        }
+
+        private void UpdateSupportPositions()
+        {
+            for (int i = 0; i < ModelIO.Supports.Count; i++)
+            {
+                var sp = ModelIO.Supports[i];
+                if (sp.IndexMap != -1) sp.UpdateReferencePosition(_nodes[sp.IndexMap].Location);
+                sp.UpdateReferencePosition(_nodes[sp.IndexMap].Location);
+                ModelIO.Supports[i] = sp;
+            }
+        }
+
         public override void InitMesh()
         {
             // Build visualization mesh
@@ -134,16 +151,14 @@ namespace ErodModelLib.Types
             GetMeshData(out outCoords, out outQuads);
 
             int vCount = outCoords.Length / 3;
-            for (int i = 0; i < vCount; i++)
-            {
-                MeshVis.Vertices.SetVertex(i, outCoords[i * 3], outCoords[i * 3 + 1], outCoords[i * 3 + 2]);
-            }
+            for (int i = 0; i < vCount; i++) MeshVis.Vertices.SetVertex(i, outCoords[i * 3], outCoords[i * 3 + 1], outCoords[i * 3 + 2]);
         }
 
         public override void Update()
         {
             UpdateMesh();
-            InitNodes();
+            UpdateNodes();
+            UpdateSupportPositions();
         }
 
         public override int GetDoFCount()
@@ -170,7 +185,10 @@ namespace ErodModelLib.Types
                 if (sp.IndexMap == -1)
                 {
                     sp.IndexMap = _nodes.ClosestPoint(sp.ReferencePosition);
-                    for (int j = 0; j < 3; j++) sp.SetIndexDoF(j, sp.IndexMap * 3 + j);
+                    // Degrees of freedom ordering is:
+                    // flattened centerline positions (x1, y1, z1, x2, y2, ...)
+                    // followed by thetas (xx1, yy1, zz1, xx2, yy2, zz2, ...)
+                    for (int j = 0; j < 3; j++) if(sp.LockedDoFs[j]) sp.SetIndexDoF(j, sp.IndexMap * 3 + j);
                 }
                 sp.UpdateReferencePosition(_nodes[sp.IndexMap].Location);
                 ModelIO.Supports[i] = sp;
@@ -217,6 +235,24 @@ namespace ErodModelLib.Types
             }
 
             ModelIO.SetForces(forces);
+        }
+
+        public int GetThetaOffset()
+        {
+            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetThetaOffset(Model);
+            else return Kernel.ElasticRod.ErodElasticRodGetThetaOffset(Model);
+        }
+
+        public int GetRestLengthOffset()
+        {
+            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestLengthOffset(Model);
+            else return Kernel.ElasticRod.ErodElasticRodGetRestLengthOffset(Model);
+        }
+
+        public int GetRestKappaOffset()
+        {
+            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestKappaOffset(Model);
+            else return Kernel.ElasticRod.ErodElasticRodGetRestKappaOffset(Model);
         }
 
         public double[] GetCenterLineCoordinates()

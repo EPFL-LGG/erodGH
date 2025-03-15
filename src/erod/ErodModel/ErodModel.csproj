@@ -37,6 +37,7 @@
     <Folder Include="Properties\" />
     <Folder Include="Properties\Resources\" />
     <Folder Include="Materials\" />
+    <Folder Include="Plots\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
@@ -65,6 +66,7 @@
     <None Remove="Properties\" />
     <None Remove="Properties\Resources\" />
     <None Remove="Materials\" />
+    <None Remove="Plots\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources\Resources.resx">

@@ -18,6 +18,7 @@ namespace ErodModelLib.Metrics
     public class RodStressesMetrics : IGH_PreviewData, IGH_Goo, IGH_BakeAwareData
     {
         public double[] Data { get; private set; }
+        public double[] DataPerNode { get; private set; }
         public double[] NormalizedData { get; private set; }
         public LinkageMetricTypes LTypes { get; private set; }
 
@@ -33,21 +34,27 @@ namespace ErodModelLib.Metrics
             {
                 case LinkageMetricTypes.SqrtBendingEnergies:
                     Data = rod.GetScalarFieldSqrtBendingEnergies();
+                    DataPerNode = rod.GetSqrtBendingEnergies();
                     break;
                 case LinkageMetricTypes.MaxBendingStresses:
                     Data = rod.GetScalarFieldMaxBendingStresses();
+                    DataPerNode = rod.GetMaxBendingStresses();
                     break;
                 case LinkageMetricTypes.MinBendingStresses:
                     Data = rod.GetScalarFieldMinBendingStresses();
+                    DataPerNode = rod.GetMinBendingStresses();
                     break;
                 case LinkageMetricTypes.TwistingStresses:
                     Data = rod.GetScalarFieldTwistingStresses();
+                    DataPerNode = rod.GetTwistingStresses();
                     break;
                 case LinkageMetricTypes.VonMises:
                     Data = rod.GetScalarFieldVonMisesStresses();
+                    DataPerNode = rod.GetVonMisesStresses();
                     break;
                 default:
                     Data = rod.GetScalarFieldSqrtBendingEnergies();
+                    DataPerNode = rod.GetSqrtBendingEnergies();
                     break;
             }
             double tol = +1.0e-8;

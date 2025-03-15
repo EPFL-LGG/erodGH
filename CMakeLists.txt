@@ -11,7 +11,7 @@ if(POLICY CMP0063)
 endif()
 
 ################################################################################
-set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/)
+set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 

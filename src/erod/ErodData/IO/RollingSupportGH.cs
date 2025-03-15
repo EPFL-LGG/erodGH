@@ -55,7 +55,6 @@ namespace ErodData.IO
             SupportIO support = new SupportIO(pos, target);
             if(isTemp) support.SetTemporarySupport(rCoef);
             support.FixTranslation(true);
-            support.FixRotation(false);
 
             DA.SetData(0, support);
         }

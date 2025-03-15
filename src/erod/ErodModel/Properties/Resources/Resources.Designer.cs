@@ -150,9 +150,29 @@ namespace ErodModel.Properties.Resources {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap histogram_plot {
+            get {
+                object obj = ResourceManager.GetObject("histogram_plot", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap infer_surface {
             get {
                 object obj = ResourceManager.GetObject("infer_surface", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap line3d_plot {
+            get {
+                object obj = ResourceManager.GetObject("line3d_plot", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -213,6 +233,46 @@ namespace ErodModel.Properties.Resources {
         internal static System.Drawing.Bitmap metrics_rods {
             get {
                 object obj = ResourceManager.GetObject("metrics_rods", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap options_plot {
+            get {
+                object obj = ResourceManager.GetObject("options_plot", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap point3d_plot {
+            get {
+                object obj = ResourceManager.GetObject("point3d_plot", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap pointdensity_plot {
+            get {
+                object obj = ResourceManager.GetObject("pointdensity_plot", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap range_plot {
+            get {
+                object obj = ResourceManager.GetObject("range_plot", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

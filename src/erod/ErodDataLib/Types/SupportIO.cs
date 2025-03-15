@@ -65,8 +65,8 @@ namespace ErodDataLib.Types
         {
             ReferencePosition = p;
             IndexMap = -1;
-            IndicesDoFs = new int[] { -1, -1, -1, -1, -1, -1 };
-            LockedDoFs = new bool[] { true, true, true, true, true, true };
+            IndicesDoFs = new int[] { -1, -1, -1 };
+            LockedDoFs = new bool[] { true, true, true };
             IsTemporary = false;
             TargetPosition = target == default ? Point3d.Unset : target;
             ContainsTarget = TargetPosition == Point3d.Unset ? false : true;
@@ -91,7 +91,7 @@ namespace ErodDataLib.Types
 
         public void SetIndicesDoFs(int[] indices)
         {
-            if (indices.Length != 6) throw new Exception("Invalid number of indices. The number of indices should be 6 (3 for translation and 3 for rotation)");
+            if (indices.Length != 3) throw new Exception("Invalid number of indices. The number of indices should be 3 for translation");
             IndicesDoFs = indices;
         }
 
@@ -107,14 +107,7 @@ namespace ErodDataLib.Types
             LockedDoFs[2] = flag;
         }
 
-        public void FixRotation(bool flag)
-        {
-            LockedDoFs[3] = flag;
-            LockedDoFs[4] = flag;
-            LockedDoFs[5] = flag;
-        }
-
-        public void FixTranslationAndRotation(bool[] flags)
+        public void FixTranslation(bool[] flags)
         {
             for (int i = 0; i < LockedDoFs.Length; i++) LockedDoFs[i] = flags[i];
         }
@@ -122,9 +115,6 @@ namespace ErodDataLib.Types
         public void FixTranslationAlongX(bool flag) => LockedDoFs[0] = flag;
         public void FixTranslationAlongY(bool flag) => LockedDoFs[1] = flag;
         public void FixTranslationAlongZ(bool flag) => LockedDoFs[2] = flag;
-        public void FixRotationAlongX(bool flag) => LockedDoFs[3] = flag;
-        public void FixRotationAlongY(bool flag) => LockedDoFs[4] = flag;
-        public void FixRotationAlongZ(bool flag) => LockedDoFs[5] = flag;
 
         public override string ToString()
         {

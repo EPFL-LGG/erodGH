@@ -126,27 +126,39 @@ namespace ErodModelLib.Creators
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodElasticRodGetScalarFieldSqrtBendingEnergies")]
-            internal static extern void ErodElasticRodGetScalarFieldSqrtBendingEnergies(IntPtr linkage, out IntPtr outDoFs, out int numDoFs);
+            internal static extern void ErodElasticRodGetScalarFieldSqrtBendingEnergies(IntPtr rod, out IntPtr outDoFs, out int numDoFs);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodElasticRodGetScalarFieldMaxBendingStresses")]
-            internal static extern void ErodElasticRodGetScalarFieldMaxBendingStresses(IntPtr linkage, out IntPtr outDoFs, out int numDoFs);
+            internal static extern void ErodElasticRodGetScalarFieldMaxBendingStresses(IntPtr rod, out IntPtr outDoFs, out int numDoFs);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodElasticRodGetScalarFieldMinBendingStresses")]
-            internal static extern void ErodElasticRodGetScalarFieldMinBendingStresses(IntPtr linkage, out IntPtr outDoFs, out int numDoFs);
+            internal static extern void ErodElasticRodGetScalarFieldMinBendingStresses(IntPtr rod, out IntPtr outDoFs, out int numDoFs);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodElasticRodGetScalarFieldTwistingStresses")]
-            internal static extern void ErodElasticRodGetScalarFieldTwistingStresses(IntPtr linkage, out IntPtr outDoFs, out int numDoFs);
+            internal static extern void ErodElasticRodGetScalarFieldTwistingStresses(IntPtr rod, out IntPtr outDoFs, out int numDoFs);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodElasticRodGetScalarFieldStretchingStresses")]
-            internal static extern void ErodElasticRodGetScalarFieldStretchingStresses(IntPtr linkage, out IntPtr outDoFs, out int numDoFs);
+            internal static extern void ErodElasticRodGetScalarFieldStretchingStresses(IntPtr rod, out IntPtr outDoFs, out int numDoFs);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodElasticRodGetScalarFieldVonMisesStresses")]
-            internal static extern void ErodElasticRodGetScalarFieldVonMisesStresses(IntPtr linkage, out IntPtr outDoFs, out int numDoFs);
+            internal static extern void ErodElasticRodGetScalarFieldVonMisesStresses(IntPtr rod, out IntPtr outDoFs, out int numDoFs);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodElasticRodGetThetaOffset")]
+            internal static extern int ErodElasticRodGetThetaOffset(IntPtr rod);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodElasticRodGetRestLengthOffset")]
+            internal static extern int ErodElasticRodGetRestLengthOffset(IntPtr rod);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(erod_dylib, CallingConvention = CallingConvention.StdCall, EntryPoint = "erodElasticRodGetRestKappaOffset")]
+            internal static extern int ErodElasticRodGetRestKappaOffset(IntPtr rod);
 
         }
     }

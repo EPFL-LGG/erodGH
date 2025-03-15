@@ -9,20 +9,21 @@ using static ErodModelLib.Metrics.LinkageStressesMetrics;
 using System.Linq;
 using static ErodModelLib.Utils.ColorMaps;
 using ErodModelLib.Utils;
+using static ErodModelLib.Utils.GraphPlotter;
 
-namespace ErodModel.Analysis
+namespace ErodModel.Plots
 {
-    public class MetricsModelsGH : GH_Component
+    public class PointDensityPlotGH : GH_Component
     {
-        int metricIdx, cmapIdx;
+        int normalizationIdx, colorscaleIdx;
         List<List<string>> menuAttributes;
         List<string> selection;
         bool buildAttributes = true;
 
         #region dropdownmenu content
-        readonly List<string> categories = new List<string>(new string[] { "Metrics", "ColorMaps" });
-        readonly List<string> metricTypes = ((LinkageMetricTypes[])Enum.GetValues(typeof(LinkageMetricTypes))).Select( t => t.ToString() ).ToList();
-        readonly List<string> cmapTypes = ((ColorMapTypes[])Enum.GetValues(typeof(ColorMapTypes))).Select(t => t.ToString()).ToList();
+        readonly List<string> categories = new List<string>(new string[] { "ColorScales", "Normalizations"});
+        readonly List<string> colorscalesTypes = ((ColorScales[])Enum.GetValues(typeof(ColorScales))).Select(t => t.ToString()).ToList();
+        readonly List<string> normalizationTypes = ((HistogramNormalization[])Enum.GetValues(typeof(HistogramNormalization))).Select(t => t.ToString()).ToList();
         #endregion
 
         /// <summary>
@@ -32,10 +33,10 @@ namespace ErodModel.Analysis
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public MetricsModelsGH()
-          : base("MetricsModels", "MeModels",
-            "Calculates and visualizes the metrics of an elastic model using their stresses.",
-            "Erod", "Analysis")
+        public PointDensityPlotGH()
+          : base("PointDensityPlot", "PointDensityPlot",
+            "Creates a point density plot which combines a scatter plot and a histogram with 2d contours.",
+            "Erod", "Plots")
         {
         }
 
@@ -55,21 +56,21 @@ namespace ErodModel.Analysis
             {
                 menuAttributes = new List<List<string>>();
                 selection = new List<string>();
-                menuAttributes.Add(metricTypes);
-                menuAttributes.Add(cmapTypes);
-                selection.Add(metricTypes[metricIdx]);
-                selection.Add(cmapTypes[cmapIdx]);
+                menuAttributes.Add(colorscalesTypes);
+                menuAttributes.Add(normalizationTypes);
+                selection.Add(colorscalesTypes[colorscaleIdx]);
+                selection.Add(normalizationTypes[normalizationIdx]);
             }
 
             if (dropdownListId == 0)
             {
-                metricIdx = selectedItemId;
+                colorscaleIdx = selectedItemId;
                 selection[0] = menuAttributes[0][selectedItemId];
             }
 
             if (dropdownListId == 1)
             {
-                cmapIdx = selectedItemId;
+                normalizationIdx = selectedItemId;
                 selection[1] = menuAttributes[1][selectedItemId];
             }
 
@@ -82,13 +83,18 @@ namespace ErodModel.Analysis
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("ElasticModel", "EModel", "Elastic model to analyse.", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Alpha", "Alpha", "Set the alpha value (from 0.0 to 1.0) to control the transparency of the visualization", GH_ParamAccess.item, 0.3);
-            pManager.AddNumberParameter("LowerBound", "LowerBound", "Lower bound of the data set. If no value is explicitly provided, the minimum value of the data set is assumed.", GH_ParamAccess.item);
-            pManager.AddNumberParameter("UpperBound", "UpperBound", "Upper bound of the data set. If no value is explicitly provided, the maximum value of the data set is assumed.", GH_ParamAccess.item);
-            pManager[1].Optional = true;
+            pManager.AddNumberParameter("DataX", "DataX", "Sets the x coordinates of the plotted data as well as the sample data to be binned on the x axis.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("DataY", "DataY", "Sets the y coordinates of the plotted data as well as the sample data to be binned on the y axis.", GH_ParamAccess.list);
+            pManager.AddTextParameter("ScaleLabel", "ScaleLabel", "Sets the label of the scale color.", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("NumContours", "NumContours", "Number of contours.", GH_ParamAccess.item, 0);
+            pManager.AddBooleanParameter("ShowContours", "ShowContours", "Shows the contour line.", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("ShowPlots", "ShowPlots", "Generate graph plots", GH_ParamAccess.item, false);
+            pManager.AddGenericParameter("Settings", "Settings", "Sets the plotter settings", GH_ParamAccess.item);
             pManager[2].Optional = true;
             pManager[3].Optional = true;
+            pManager[4].Optional = true;
+            pManager[5].Optional = true;
+            pManager[6].Optional = true;
         }
 
         /// <summary>
@@ -96,8 +102,6 @@ namespace ErodModel.Analysis
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Mesh", "M", "RodLinkage mesh color coded with selected metrics.", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Data", "Data", "Sacalr data field calculated based on the metric type.", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -107,53 +111,48 @@ namespace ErodModel.Analysis
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            object model = null;
-            double alpha = 0.3, lowerBound=default, upperBound=default;
-            if (!DA.GetData(0, ref model)) return;
-            DA.GetData(1, ref alpha);
-            DA.GetData(2, ref lowerBound);
-            DA.GetData(3, ref upperBound);
+            List<double> dataX = new List<double>();
+            List<double> dataY = new List<double>();
+            string label = "";
+            int numContours = 0;
+            bool showContours = false, show = false;
+            GraphPlotterOptions options = new GraphPlotterOptions();
 
-            LinkageMetricTypes linkageType = ((LinkageMetricTypes[])Enum.GetValues(typeof(LinkageMetricTypes)))[metricIdx];
-            ColorMapTypes cmapType = ((ColorMapTypes[])Enum.GetValues(typeof(ColorMapTypes)))[cmapIdx];
+            DA.GetDataList(0, dataX);
+            DA.GetDataList(1, dataY);
+            DA.GetData(2, ref label);
+            DA.GetData(3, ref numContours);
+            DA.GetData(4, ref showContours);
+            DA.GetData(5, ref show);
+            DA.GetData(6, ref options);
 
-            if (model is RodLinkage)
+            HistogramNormalization normalization = ((HistogramNormalization[])Enum.GetValues(typeof(HistogramNormalization)))[normalizationIdx];
+            ColorScales colorScales = ((ColorScales[])Enum.GetValues(typeof(ColorScales)))[colorscaleIdx];
+
+            if (show)
             {
-                LinkageStressesMetrics linkageMetrics = new LinkageStressesMetrics((RodLinkage)model, linkageType, cmapType, (int)(alpha * 255), lowerBound, upperBound);
-                double[] data = linkageMetrics.Data;
-
-                DA.SetData(0, linkageMetrics.Mesh);
-                DA.SetDataList(1, data);
+                GraphPlotter.PointDensity(options, dataX.ToArray(), dataY.ToArray(), label, colorScales, normalization, showContours, numContours);
             }
-            else if(model is ElasticRod)
-            {
-                RodStressesMetrics linkageMetrics = new RodStressesMetrics((ElasticRod)model, linkageType, cmapType, (int)(alpha * 255), lowerBound, upperBound);
-                double[] data = linkageMetrics.Data;
-
-                DA.SetData(0, linkageMetrics.Mesh);
-                DA.SetDataList(1, data);
-            }
-            else throw new Exception("Invalid input type. The type should be an elastic rod, a rod segment of an elastic linkage or an elastic linkage.");
         }
 
         public override bool Write(GH_IWriter writer)
         {
-            writer.SetInt32("metricsIdx", metricIdx);
-            writer.SetInt32("cmapIdx", cmapIdx);
+            writer.SetInt32("normalizationIdx", normalizationIdx);
+            writer.SetInt32("colorscaleIdx", colorscaleIdx);
             return base.Write(writer);
         }
 
         public override bool Read(GH_IReader reader)
         {
-            if (reader.TryGetInt32("metricsIdx", ref metricIdx))
+            if (reader.TryGetInt32("normalizationIdx)", ref normalizationIdx))
             {
-                FunctionToSetSelectedContent(0, metricIdx);
+                FunctionToSetSelectedContent(0, normalizationIdx);
                 m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, menuAttributes, selection, categories);
             }
 
-            if (reader.TryGetInt32("cmapIdx", ref cmapIdx))
+            if (reader.TryGetInt32("colorscaleIdx", ref colorscaleIdx))
             {
-                FunctionToSetSelectedContent(1, cmapIdx);
+                FunctionToSetSelectedContent(1, colorscaleIdx);
                 m_attributes = new DropDownAttributesGH(this, FunctionToSetSelectedContent, menuAttributes, selection, categories);
             }
             return base.Read(reader);
@@ -161,7 +160,7 @@ namespace ErodModel.Analysis
 
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.secondary; }
+            get { return GH_Exposure.primary; }
         }
 
         /// <summary>
@@ -172,7 +171,7 @@ namespace ErodModel.Analysis
         {
             get
             {
-                return Properties.Resources.Resources.metrics_linkage;
+                return Properties.Resources.Resources.pointdensity_plot;
             }
         }
 
@@ -183,7 +182,7 @@ namespace ErodModel.Analysis
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("ff1ea4af-a442-4750-a5f2-913b193b238d"); }
+            get { return new Guid("dc5dc77e-8f9c-4a1a-9c4b-68906dbd9e65"); }
         }
     }
 }

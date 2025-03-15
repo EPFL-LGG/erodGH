@@ -33,7 +33,7 @@ namespace ErodData.IO
             pManager.AddCurveParameter("Polyline", "Pl", "Polyline defining the elastic rod.", GH_ParamAccess.item);
             pManager.AddGenericParameter("Supports", "Supports", "Set of support conditions.", GH_ParamAccess.list);
             pManager.AddGenericParameter("Material", "Material", "Material required to build the elastic rod.", GH_ParamAccess.list);
-            pManager.AddBooleanParameter("IsStraight", "IsStraight", "Remove rest curvatures.",GH_ParamAccess.item, true);
+            pManager.AddBooleanParameter("IsStraight", "IsStraight", "Remove rest curvatures.",GH_ParamAccess.item, false);
             pManager.AddGenericParameter("Forces", "Forces", "Set of forces.", GH_ParamAccess.list);
             pManager[1].Optional = true;
             pManager[4].Optional = true;

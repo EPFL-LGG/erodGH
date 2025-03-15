@@ -79,7 +79,7 @@ namespace ErodData.IO
             pManager.AddNumberParameter("t", "t", "Parameters defining the positions of the joints.", GH_ParamAccess.list);
             pManager.AddIntegerParameter("Subdivision", "Subdivision", "Number of edges per ribbon segment. The minimum number is 5.", GH_ParamAccess.list, new List<int>() { 10 });
             pManager.AddNumberParameter("Tolerance", "Tolerance", "Tolerance to use for checking linearity.", GH_ParamAccess.item, 0.01);
-            pManager.AddBooleanParameter("RemoveCurvature", "RemoveCurvature", "Remove rest curvature from the entire ribbon. The rest state will be a straight ribbon.", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("IsStraight", "IsStraight", "Remove rest curvatures.", GH_ParamAccess.item, false);
             pManager[2].Optional = true;
             pManager[3].Optional = true;
             pManager[4].Optional = true;

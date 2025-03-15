@@ -340,6 +340,12 @@ namespace ElasticRodsGH
 
     EROD_API double erodElasticRodGetMaxStrain(ElasticRod *rod);
 
+    EROD_API void erodElasticRodGetBendingStiffness(ElasticRod *rod, double **lambda1, double **lambda2, size_t *numLambda1, size_t *numLambda2);
+
+    EROD_API void erodElasticRodGetTwistingStiffness(ElasticRod *rod, double **outData, size_t *numData);
+
+    EROD_API void erodElasticRodGetStretchingStiffness(ElasticRod *rod, double **outData, size_t *numData);
+
     EROD_API void erodElasticRodGetVonMisesStresses(ElasticRod *rod, double **outData, size_t *numData);
 
     EROD_API double erodElasticRodGetInitialMinRestLength(ElasticRod *rod);
@@ -357,6 +363,12 @@ namespace ElasticRodsGH
     EROD_API void erodElasticRodGetScalarFieldTwistingStresses(ElasticRod *rod, double **outField, size_t *numField);
 
     EROD_API void erodElasticRodGetScalarFieldStretchingStresses(ElasticRod *rod, double **outField, size_t *numField);
+
+    EROD_API int erodElasticRodGetThetaOffset(ElasticRod *rod);
+
+    EROD_API int erodElasticRodGetRestLengthOffset(ElasticRod *rod);
+
+    EROD_API int erodElasticRodGetRestKappaOffset(ElasticRod *rod);
 
     // ElasticRod Periodic
     EROD_API PeriodicRod *erodPeriodicElasticRodBuild(int numPoints, double *inCoords, int removeCurvature, const char **errorMessage);
@@ -428,5 +440,11 @@ namespace ElasticRodsGH
     EROD_API void erodPeriodicElasticRodGetScalarFieldTwistingStresses(PeriodicRod *pRod, double **outField, size_t *numField);
 
     EROD_API void erodPeriodicElasticRodGetScalarFieldStretchingStresses(PeriodicRod *pRod, double **outField, size_t *numField);
+
+    EROD_API int erodPeriodicElasticRodGetThetaOffset(PeriodicRod *pRod);
+
+    EROD_API int erodPeriodicElasticRodGetRestLengthOffset(PeriodicRod *pRod);
+
+    EROD_API int erodPeriodicElasticRodGetRestKappaOffset(PeriodicRod *pRod);
 }
 #endif
