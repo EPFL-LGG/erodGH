@@ -55,8 +55,8 @@ __pycache__
 .clangd/
 compile_commands.json
 
-# Dependencies
-/3rdparty
+# # Dependencies
+# /3rdparty
 
 # Mac/ntfs garbage
 .DS_Store
