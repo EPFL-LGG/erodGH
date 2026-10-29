@@ -6,18 +6,19 @@ $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 . (Join-Path $PSScriptRoot 'WindowsBuild.Common.ps1')
 $base=Join-Path $BuildDirectory 'dependencies'
-$prefix=Join-Path $base "$Configuration/install"
+$lock=Get-Content (Join-Path $root 'cmake/dependencies.json') -Raw | ConvertFrom-Json
+$prefix=Join-Path $base "$Configuration/install-suitesparse-$($lock.suitesparse.version)"
 $sources=Join-Path $base 'sources'
 $downloads=Join-Path $base 'downloads'
 New-Item -ItemType Directory -Force $sources,$downloads,$prefix | Out-Null
 [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
-$lock=Get-Content (Join-Path $root 'cmake/dependencies.json') -Raw | ConvertFrom-Json
 $signatureInputs=@(
     (Get-ErodFileHash $PSCommandPath -Algorithm SHA256).Hash,
     (Get-ErodFileHash (Join-Path $PSScriptRoot 'WindowsBuild.Common.ps1') -Algorithm SHA256).Hash,
     (Get-ErodFileHash (Join-Path $root 'cmake/dependencies.json') -Algorithm SHA256).Hash,
     (Get-ErodFileHash (Join-Path $root 'cmake/windows-dependencies/clapack/CMakeLists.txt') -Algorithm SHA256).Hash,
     (Get-ErodFileHash (Join-Path $root 'cmake/windows-dependencies/clapack/lapack-config.cmake.in') -Algorithm SHA256).Hash,
+    (Get-ErodFileHash (Join-Path $root 'cmake/SuiteSparseOptions.cmake') -Algorithm SHA256).Hash,
     $Configuration,
     (& cmake --version | Select-Object -First 1),
     (& "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -version '[17.0,18.0)' -products '*' -property installationVersion)
@@ -29,8 +30,8 @@ if(Test-Path $completion) {
     $previous=Get-Content $completion -Raw | ConvertFrom-Json
     if($previous.signature -eq $signature -and
        (Test-Path (Join-Path $prefix 'lib/lapack.lib')) -and
-       (Get-ChildItem (Join-Path $prefix 'bin') -Filter 'libcholmod*.dll' -ErrorAction SilentlyContinue) -and
-       (Get-ChildItem (Join-Path $prefix 'bin') -Filter 'libumfpack*.dll' -ErrorAction SilentlyContinue)) {
+       (Get-ChildItem (Join-Path $prefix 'bin') -Filter '*cholmod*.dll' -ErrorAction SilentlyContinue) -and
+       (Get-ChildItem (Join-Path $prefix 'bin') -Filter '*umfpack*.dll' -ErrorAction SilentlyContinue)) {
         Write-Host "Using previously source-built dependencies in $prefix"
         return
     }
@@ -78,25 +79,19 @@ function Build-Install([string]$name,[string]$source,[string[]]$options) {
 $boost=Source boost
 $clapack=Source clapack
 $suite=Source suitesparse
-$windows=Source suitesparse_windows
-$prepared=Join-Path $windows '.erod-prepared-v1'
-$preparationHash="v1:$($lock.suitesparse.hash):$($lock.suitesparse_windows.hash)"
-if(!(Test-Path $prepared) -or (Get-Content $prepared -Raw).Trim() -ne $preparationHash) {
-    # Preserve the CMake wrapper while replacing its bundled algorithms with pinned SuiteSparse 5.8.
-    foreach($component in @('SuiteSparse_config','AMD','BTF','CAMD','CCOLAMD','COLAMD','CHOLMOD','CXSparse','KLU','LDL','UMFPACK','SPQR')) {
-        Write-Host "Preparing SuiteSparse $component"
-        Copy-Item -LiteralPath (Join-Path $suite $component) -Destination (Join-Path $windows 'SuiteSparse') -Recurse -Force
-    }
-    Set-Content -LiteralPath $prepared -Value $preparationHash
-}
 # Upstream enables its extensive tests unconditionally; only the libraries are needed.
 $clapackCmake=Join-Path $clapack 'CMakeLists.txt'
 $text=[IO.File]::ReadAllText($clapackCmake).Replace('add_subdirectory(TESTING)','# Tests disabled by ERod bootstrap')
 [IO.File]::WriteAllText($clapackCmake,$text)
 Build-Install boost $boost @("-DBOOST_INCLUDE_LIBRARIES=$($lock.boost.libraries -join ';' )",'-DBUILD_SHARED_LIBS=OFF','-DBUILD_TESTING=OFF')
 Build-Install clapack (Join-Path $root 'cmake/windows-dependencies/clapack') @("-DEROD_CLAPACK_SOURCE=$clapack")
-Build-Install suitesparse $windows @('-DHUNTER_ENABLED=OFF','-DBUILD_METIS=OFF','-DWITH_CUDA=OFF','-DBUILD_SHARED_LIBS=ON',
-    '-DLIB_POSTFIX=',"-DLAPACK_DIR=$prefix/lib/cmake/lapack")
+# Explicit LP64 reference BLAS/LAPACK avoids finding a machine-specific BLAS.
+$blasLibraries="$prefix/lib/blas.lib;$prefix/lib/libf2c.lib"
+$lapackLibraries="$prefix/lib/lapack.lib;$prefix/lib/blas.lib;$prefix/lib/libf2c.lib"
+Build-Install "suitesparse-$($lock.suitesparse.version)" $suite @(
+    '-C',(Join-Path $root 'cmake/SuiteSparseOptions.cmake'),
+    '-DBUILD_SHARED_LIBS=ON','-DBUILD_STATIC_LIBS=OFF','-DBLA_VENDOR=Generic','-DBLA_SIZEOF_INTEGER=4',
+    "-DBLAS_LIBRARIES=$blasLibraries","-DLAPACK_LIBRARIES=$lapackLibraries")
 Copy-Item (Join-Path $root 'cmake/dependencies.json') (Join-Path $prefix 'erod-dependencies.json')
 @{signature=$signature} | ConvertTo-Json | Set-Content -LiteralPath $completion
 Write-Host "Dependencies built from source in $prefix"

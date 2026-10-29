@@ -15,7 +15,19 @@ it is not a complete Grasshopper plugin.
 Keep the GHA files and DLL dependencies together. Replace an old installation
 instead of keeping a second copy in another Components/Libraries folder.
 
-## Optional installers
+## Optional installers (packaged plugin ZIPs only)
+
+These helpers are added when creating a **plugin ZIP**. They are not copied to
+`bin/erod` by a normal build and are not included in native ZIPs.
+
+| Platform | Helper in the extracted plugin ZIP | Source in this repository |
+|---|---|---|
+| Windows | `Install.cmd` and `Install.ps1` | `scripts/installers/windows/` |
+| macOS | `Install.command` | `scripts/installers/macos/` |
+
+Run the helper from the extracted plugin ZIP, not its source folder: it needs
+the packaged binaries and metadata beside it. For local development builds,
+use the binaries in `bin/erod` as described in the README.
 
 On Windows, close Rhino and double-click `Install.cmd` from the extracted folder.
 It verifies the package, copies files to your user's Grasshopper Libraries folder,

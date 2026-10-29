@@ -19,7 +19,9 @@ files in `dist`. Same-version archives are replaced. Add `-NativeOnly` or
 packaging flag with managed-only or native-package reuse modes.
 
 Windows packaging requires Python 3.10+ (`-PythonExecutable` selects an explicit
-interpreter); macOS uses the builder's Python 3.12+. Plugin packaging also needs
+interpreter); macOS uses the builder's Python 3.10+ with `tarfile.data_filter`
+(install an up-to-date maintenance release). Set `PYTHON` to select the macOS
+interpreter. Plugin packaging also needs
 the .NET SDK to run its metadata scanner. End users need none of those tools.
 `-PackageDirectory` / `--package-dir` overrides `dist`.
 
@@ -30,6 +32,12 @@ It excludes host-provided Rhino/Grasshopper/.NET Framework assemblies and unused
 build-output DLLs. CMake collects the native dependency closure.
 
 ## ZIP contents
+
+Installer helpers come from `scripts/installers/windows/` or
+`scripts/installers/macos/` and are copied into the matching **plugin ZIP** during
+packaging. A normal build in `bin/erod` has no installer. `Install.cmd` is
+Windows-only; the macOS plugin ZIP contains `Install.command` instead. Native
+ZIPs contain neither helper. See [installation instructions](INSTALL.md).
 
 The Windows **plugin ZIP** is flat and contains:
 

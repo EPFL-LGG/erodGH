@@ -2,152 +2,103 @@
 
 X-Shell / C-Shell / Curved-Weaving tools for Rhino and Grasshopper.
 
-## Install a binary plugin
-
-Use the **plugin ZIP** matching your OS and CPU. Extract it and keep its GHA and
-DLL files together in one `ERod` folder in Grasshopper's Components folder
-(File → Special Folders → Components Folder). Close Rhino before copying and
-restart it afterwards. On Windows, the included `Install.cmd` can do the copying
-and back up an existing installation for you; using the installer is optional.
-
-End users need Rhino/Grasshopper, not Python, CMake or a compiler. Windows users
-may also need Microsoft's Visual C++ x64 Redistributable. See
-[installation instructions](docs/INSTALL.md) for runtime requirements.
-
-The Windows plugin ZIP has a flat layout: the ERod assemblies, their required
-DLL dependencies, `Install.cmd`, `Install.ps1`, `INSTALL.md`, `package.json`, and
-`LICENSES.txt`. It contains no developer SDK, debug symbols, translation folders,
-Windows system DLLs, or embedded Triangle source ZIP. `LICENSES.txt` preserves
-third-party notices and records the pinned Triangle source reference.
-
-The **native ZIP** is for developers integrating the C++ library. It contains
-the native runtime, an `sdk` folder with an import library/header where available,
-and license/build information. It is not a complete Grasshopper plugin.
-
-Windows x64 packages have been tested locally. The macOS scripts are provided
-for Intel and Apple Silicon builds but still need validation on Mac hardware.
-No public release has been published; current packages are previews pending
-project/dependency redistribution permissions. See [distribution details](docs/DISTRIBUTION.md).
-
 ## Build from source
 
-Clone with Git, open a terminal in the repository root, and install:
+Clone the repository with Git and run the commands below from its root folder.
 
-| Requirement | Windows | macOS |
+| Tool | Windows | macOS |
 |---|---|---|
-| Native compiler | Visual Studio 2022, Desktop development with C++ | Xcode command-line tools |
-| Build tools | CMake 3.20+ | CMake 3.20+, Ninja, Python 3.12+ |
-| Managed compiler | .NET SDK 8+ | .NET SDK 8+ |
-| ZIP packaging | Python 3.10+ | Uses the builder's Python 3.12+ |
+| C++ compiler | Visual Studio 2022 with Desktop development with C++ | Xcode command-line tools (`xcode-select --install`) |
+| Native build tools | CMake 3.23+ | CMake 3.23+ and Ninja |
+| C# compiler | .NET SDK 8+ | .NET SDK 8+ |
+| Python | Python 3.10+ for ZIP packaging only | Python 3.10+ for the build helper |
 
-Rhino is needed to run the components, but not to compile them. Dependencies are
-downloaded on the first build, so an internet connection is required. Boost and
-SuiteSparse are built from pinned source archives. Windows also builds reference
-BLAS/LAPACK; macOS uses Accelerate. Preinstalled Boost/SuiteSparse, a Fortran
-compiler, Mono, Visual Studio for Mac and a Knitro license are not required.
+On macOS, use an updated Python maintenance release with `tarfile.data_filter`
+(safe archive extraction). To select an interpreter, prefix any build command
+with `PYTHON=/path/to/python3`.
 
-### Windows
+The first build downloads dependencies, including Boost and SuiteSparse.
+Rhino is required to run the plugin, but not to compile it. Build for your host's
+CPU architecture and keep Intel and ARM build caches separate.
+
+### Full build
+
+Windows (PowerShell):
 
 ```powershell
-# Optimized native and managed build, followed by the native smoke test
 .\build-windows.cmd
-
-# Build and create cleaned native + plugin preview ZIPs in dist/
-.\build-windows.cmd -Package
-
-# Faster compilation for development (reduced native optimization)
-.\build-windows.cmd -FastBuild
-
-# C++ only; add -Package to create only the native ZIP
-.\build-windows.cmd -NativeOnly
 ```
 
-Python is required only when packaging. If it is not available as `python`, pass
-`-PythonExecutable "C:\path\to\python.exe"`. The standard binary output is always `bin/erod`; intermediate files stay under `build`. Only when explicitly needed, use `-OutputDirectory` for a separate
-build-output folder, `-BuildDirectory` for native/dependency caches, and
-`-PackageDirectory` for ZIPs. `-Configuration Debug` selects a debug build;
-optimized `Release` is the default.
-
-### macOS
+macOS (Terminal):
 
 ```sh
 bash build-macos.sh
-bash build-macos.sh --package
-bash build-macos.sh --fast
-bash build-macos.sh --native-only
 ```
 
-Install Xcode command-line tools with `xcode-select --install` and ensure CMake,
-Ninja, Python and the .NET SDK are on PATH. `--build-dir`, `--output` and
-`--package-dir` select custom locations. Build Intel and ARM libraries on their
-matching hosts; do not mix architectures in one build directory.
+Both commands build C++ and C#, then run a native smoke test.
 
-### Where files go
+### Development: build only what changed
 
-| Folder | Contents |
-|---|---|
-| `bin/erod` | Raw development build output; may include PDBs or optional DLLs |
-| `build/windows-source` | Windows dependencies, caches and CMake build |
-| `build/macos-arm64` or `build/macos-x86_64` | macOS dependencies, caches and CMake build |
-| `build/<platform>/stage/native` | CMake native install used by the packager |
-| `dist` | Cleaned distribution ZIPs and `.zip.sha256` files |
+Run a full build once, then use:
 
-Distribute the generated ZIPs rather than the raw `bin/erod` folder. The packager
-follows managed assembly references, including embedded resource readers, and
-selects only the required runtime DLLs. The minimal Windows plugin uses TBB's
-standard-allocator fallback and omits optional `tbbmalloc.dll`; the native
-developer ZIP retains that allocator. Package file counts can change when
-dependencies change.
+| What changed | Windows (PowerShell) | macOS (Terminal) |
+|---|---|---|
+| C++ only | `.\build-windows.cmd -NativeOnly` | `bash build-macos.sh --native-only` |
+| C# only | `.\build-windows.cmd -ManagedOnly` | `bash build-macos.sh --managed-only` |
+| C++ and C# | `.\build-windows.cmd` | `bash build-macos.sh` |
 
-`-Package` / `--package` regenerates same-version preview ZIPs in the chosen
-package directory. It does not publish them. For public release checks, signing,
-source availability and standalone packaging, see [binary distribution](docs/DISTRIBUTION.md).
+**C++ only** rebuilds the native library and leaves existing C# assemblies in
+place. It does not require the .NET SDK.
 
-## Build against a prebuilt native library
+**C# only** rebuilds the managed solution and reuses the native libraries already
+in `bin/erod`. It skips C++ compilation and dependency bootstrap, but still runs
+the native smoke test, so those native libraries must be present. It requires
+.NET SDK 8+ and, on macOS, Python for the helper.
 
-```powershell
-.\build-windows.cmd -NativePackage path\to\ERod-native-windows-x64-VERSION-preview.zip
-```
+Choose what to rebuild based on the change:
 
-```sh
-bash build-macos.sh --native-package path/to/ERod-native-macos-arm64-VERSION-preview.zip
-```
+- **C++ only:** change solver calculations or other internal C++ implementation,
+  without changing how C# calls it.
+- **C# only:** change Grasshopper components, UI, or managed logic, while using
+  the existing C++ functions and data formats.
+- **Both:** change how C# and C++ exchange data, or make changes in both languages.
 
-These commands verify the archive and build only the managed projects using the
-.NET SDK. The native ABI, OS and CPU must match. `-ManagedOnly` / `--managed-only`
-instead reuses native libraries already present in the selected output folder.
-The convenience packaging flag requires a full source build (or native-only
-source build), rather than either of these reuse modes.
+The **native/managed interface** is the boundary where C# calls the C++ library:
+function names, arguments, return types, and shared data layouts. For example,
+adding an argument to a C++ function called from C# requires updating the C#
+declaration and rebuilding both. Mismatched binaries can cause errors or crashes.
 
-## Validation
+Close Rhino before rebuilding, then restart it to load the updated plugin.
+Keep the files from `bin/erod` together when updating your Grasshopper installation.
 
-Both build helpers run native smoke tests. With Rhino 8 installed on Windows,
-run these checks against your selected output folder:
+Useful options (append to the relevant command):
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-plugin-windows.ps1 -BinDirectory "$PWD/bin/erod"
-```
+| Purpose | Windows | macOS |
+|---|---|---|
+| Faster C++ compilation with reduced optimization | `-FastBuild` | `--fast` |
+| Debug build (default is Release) | `-Configuration Debug` | `--configuration Debug` |
+| Build and create preview ZIPs | `-Package` | `--package` |
 
-This loads the component types, decodes embedded icons, renders a chart to HTML
-without opening a browser, and constructs an SSH client without connecting.
-Full interactive Grasshopper workflows and actual remote SSH transfers still
-need their own testing. Custom native/dependency cache locations can be passed
-to this check with `-BuildDirectory`.
+Packaging works with a full build or C++-only build, not C#-only mode.
 
-## Advanced CMake and notebooks
+### Build output
 
-The top-level CMake project uses standard Debug/Release configurations and
-exposes `EROD_BUILD_PYTHON`, `EROD_FAST_BUILD`, `EROD_DEPS_PREFIX` and
-`EROD_OUTPUT_DIRECTORY`. Native staging uses `cmake --install`; the helpers also
-handle source dependency bootstrap and managed compilation.
+| Folder | Purpose | When to use it |
+|---|---|---|
+| `bin/erod/` | Compiled C++ libraries and C# plugin assemblies. | Use these binaries to test your latest changes in Rhino and Grasshopper. |
+| `build/` | Downloaded dependencies, build caches and intermediate files. | Used by the build scripts; keep it between builds to speed up compilation. |
+| `dist/` | ZIP packages ready for distribution. | Created with `-Package` / `--package`; share these with other users. |
 
-Python bindings/notebooks are an optional legacy workflow, disabled by default.
-Their historical notebook package pins are not maintained by the plugin build.
+## Live solver reports
 
-### Native interop changes in 0.2.0
+Set a solver's **Live report (Log)** input to `True` before enabling **Run**.
+Iteration rows appear in Terminal on macOS or a separate report window on
+Windows. Closing the report window does not stop the solver.
 
-Use matching ABI 2 native and managed binaries. Models and materials now support deterministic disposal and independent duplication. See [ownership, compatibility and regression tests](docs/INTEROP.md).
+## More information
 
-### Live equilibrium report
-
-Enable **Live report (Log)** on any solver component to view live optimization rows: a separate report window on Windows or the system Terminal app on macOS. See [usage and limitations](docs/LIVE-REPORT.md).
+- [Installation](docs/INSTALL.md)
+- [Packaging and distribution](docs/DISTRIBUTION.md)
+- [Live reports](docs/LIVE-REPORT.md)
+- [Native/managed interop and regression tests](docs/INTEROP.md)
+- [SuiteSparse configuration and compatibility](docs/SUITESPARSE.md)

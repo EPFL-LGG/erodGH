@@ -5,7 +5,6 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'tools'))
 from release import extract, smoke
-COMPONENTS=('SuiteSparse_config','AMD','BTF','CAMD','CCOLAMD','COLAMD','CHOLMOD','CXSparse','KLU','LDL','UMFPACK','SPQR')
 def run(*args,env=None): subprocess.run([str(a) for a in args],check=True,env=env)
 def file_hash(path,algorithm='sha256'):
     h=hashlib.new(algorithm)
@@ -39,31 +38,17 @@ def configure_build(source_dir,binary,env,arch,configuration,*options):
     run('cmake','--build',binary,'--parallel','2',env=env)
 def dependencies(base,env,arch,configuration):
     lock=json.loads((ROOT/'cmake/dependencies.json').read_text())
-    prefix=base/configuration/'install'
-    signature=hashlib.sha256((json.dumps(lock,sort_keys=True)+file_hash(__file__)+arch+configuration+subprocess.check_output(['clang','--version'],text=True)).encode()).hexdigest()
+    prefix=base/configuration/('install-suitesparse-'+lock['suitesparse']['version'])
+    signature=hashlib.sha256((json.dumps(lock,sort_keys=True)+file_hash(__file__)+file_hash(ROOT/'cmake/SuiteSparseOptions.cmake')+arch+configuration+subprocess.check_output(['clang','--version'],text=True)).encode()).hexdigest()
     marker=base/configuration/'complete.txt'
     if marker.exists() and marker.read_text()==signature and (prefix/'lib/cmake/Boost-1.86.0/BoostConfig.cmake').exists():
         print('Using source-built dependencies: '+str(prefix)); return prefix
-    boost=source('boost',lock,base); suite=source('suitesparse',lock,base); windows=source('suitesparse_windows',lock,base)
-    prepared=windows/'.erod-prepared-macos'
-    if not prepared.exists() or prepared.read_text()!=signature:
-        for component in COMPONENTS: shutil.copytree(suite/component,windows/'SuiteSparse'/component,dirs_exist_ok=True)
-        prepared.write_text(signature)
-    # Static SuiteSparse/Boost plus Apple's system Accelerate avoids Homebrew runtime paths.
-    lapack=prefix/'lib/cmake/lapack'; lapack.mkdir(parents=True,exist_ok=True)
-    (lapack/'lapack-config.cmake').write_text("""
-foreach(_lib blas lapack)
-  if(NOT TARGET ${_lib})
-    add_library(${_lib} INTERFACE IMPORTED)
-    set_target_properties(${_lib} PROPERTIES INTERFACE_LINK_LIBRARIES "-framework Accelerate")
-  endif()
-endforeach()
-set(LAPACK_FOUND TRUE)
-set(BLAS_FOUND TRUE)
-""")
+    boost=source('boost',lock,base); suite=source('suitesparse',lock,base)
+    # Build upstream SuiteSparse directly; use Apple's LP64 Accelerate BLAS.
     for name,src,options in (
         ('boost',boost,['-DBOOST_INCLUDE_LIBRARIES='+';'.join(lock['boost']['libraries']),'-DBUILD_SHARED_LIBS=OFF','-DBUILD_TESTING=OFF']),
-        ('suitesparse',windows,['-DHUNTER_ENABLED=OFF','-DBUILD_METIS=OFF','-DWITH_CUDA=OFF','-DBUILD_SHARED_LIBS=OFF','-DLIB_POSTFIX=',f'-DLAPACK_DIR={lapack}'])):
+        ('suitesparse-'+lock['suitesparse']['version'],suite,['-C',ROOT/'cmake/SuiteSparseOptions.cmake',
+            '-DBUILD_SHARED_LIBS=OFF','-DBUILD_STATIC_LIBS=ON','-DBLA_VENDOR=Apple','-DBLA_SIZEOF_INTEGER=4'])):
         binary=base/configuration/name
         configure_build(src,binary,env,arch,configuration,f'-DCMAKE_INSTALL_PREFIX={prefix}','-DCMAKE_INSTALL_MESSAGE=NEVER',*options)
         run('cmake','--install',binary,env=env)
@@ -78,7 +63,8 @@ def main():
     p.add_argument('--package-dir',type=Path,default=ROOT/'dist',help='Distribution ZIP directory (default: dist)')
     a=p.parse_args()
     if sys.platform!='darwin': p.error('Run this builder on macOS; use build-windows.cmd on Windows')
-    if sys.version_info<(3,12): p.error('Python 3.12+ is required (brew install python)')
+    if sys.version_info<(3,10): p.error('Python 3.10+ is required; select a newer interpreter with PYTHON=/path/to/python3 bash build-macos.sh')
+    if not hasattr(tarfile,'data_filter'): p.error('This Python lacks safe tar extraction (tarfile.data_filter). Update to the latest maintenance release of Python 3.10+; archive extraction filters are required.')
     if a.package and (a.managed_only or a.native_package): p.error('--package requires a source build; combine it with the full build or --native-only')
     if a.native_only and a.native_package: p.error('Do not combine --native-only with --native-package')
     if a.native_only and a.managed_only: p.error('Choose native-only or managed-only')

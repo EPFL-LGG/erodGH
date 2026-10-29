@@ -1,4 +1,12 @@
+#ifdef _WIN32
 #include <windows.h>
+using NativePathChar = wchar_t;
+#else
+#include <dlfcn.h>
+using NativePathChar = char;
+using HMODULE = void *;
+#define __cdecl
+#endif
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -9,7 +17,12 @@
 #include <cstdint>
 
 template<class T> T symbol(HMODULE lib,const char *name) {
-    auto p=GetProcAddress(lib,name); if(!p)throw std::runtime_error(name);return reinterpret_cast<T>(p);
+#ifdef _WIN32
+    auto p=GetProcAddress(lib,name);
+#else
+    auto p=dlsym(lib,name);
+#endif
+    if(!p)throw std::runtime_error(name);return reinterpret_cast<T>(p);
 }
 struct Api {
     HMODULE library;
@@ -20,10 +33,14 @@ struct Api {
     uint64_t (__cdecl *objects)();
     uint64_t (__cdecl *buffers)();
     void *(__cdecl *build)(int,double *,const char **);
-    explicit Api(const wchar_t *folder) {
+    explicit Api(const NativePathChar *folder) {
+#ifdef _WIN32
         SetDllDirectoryW(folder);
         library=LoadLibraryW((std::wstring(folder)+L"/erod.dll").c_str());
-        if(!library)throw std::runtime_error("Could not load erod.dll");
+#else
+        library=dlopen((std::string(folder)+"/liberod.dylib").c_str(),RTLD_NOW|RTLD_LOCAL);
+#endif
+        if(!library)throw std::runtime_error("Could not load ERod native library");
         if(symbol<int(__cdecl*)()>(library,"erodGetApiVersion")()!=2)throw std::runtime_error("ABI mismatch");
         error=symbol<decltype(error)>(library,"erodGetLastError");destroy=symbol<decltype(destroy)>(library,"erodDestroyObject");
         freeBuffer=symbol<decltype(freeBuffer)>(library,"erodFree");bufferSize=symbol<decltype(bufferSize)>(library,"erodGetBufferSize");
@@ -96,6 +113,21 @@ void run(Api &api,const std::wstring &mode) {
         }
         std::cout<<"PASS 250 allocation/copy/free cycles and count canaries"<<std::endl;return;
     }
+    if(mode==L"equilibrium") {
+        auto solve=symbol<int(__cdecl*)(void*,int,int,int,int*,double*,double,double,int,int,int,int,int,int,int,double**,const char**)>(api.library,"erodElasticRodNewtonSolver");
+        auto set=symbol<void(__cdecl*)(void*,double*,int)>(api.library,"erodElasticRodSetDoFs");
+        auto energy=symbol<double(__cdecl*)(void*)>(api.library,"erodElasticRodGetEnergy");
+        double stretched[]={0,0,0,1,0,0,2.25,0,0,0,0};
+        set(rod.pointer,stretched,11);api.check();
+        const double initial=energy(rod.pointer);api.check();
+        expect(initial>1e-6,"Test rod must begin out of equilibrium");
+        int supports[]={0,1,2,3,4,5,9,10};double *report=nullptr;
+        const auto result=solve(rod.pointer,100,8,0,supports,nullptr,1e-8,1e-8,0,0,1,0,0,0,1,&report,&error);api.check();
+        api.freeBuffer(report);
+        const double finalEnergy=energy(rod.pointer);api.check();
+        expect(result==1 && std::isfinite(finalEnergy) && finalEnergy<1e-10,"Stretched rod did not relax to equilibrium");
+        std::cout<<"PASS equilibrium energy "<<initial<<" -> "<<finalEnergy<<std::endl;return;
+    }
     if(mode==L"solver") {
         auto solve=symbol<int(__cdecl*)(void*,int,int,int,int*,double*,double,double,int,int,int,int,int,int,int,double**,const char**)>(api.library,"erodElasticRodNewtonSolver");
         int supports[]={0,1,2,3,4,5,6,7,8,9,10};double *report=nullptr;
@@ -134,10 +166,19 @@ void run(Api &api,const std::wstring &mode) {
     }
     throw std::runtime_error("Unknown test mode");
 }
+#ifdef _WIN32
 int wmain(int argc,wchar_t **argv) {
+#else
+int main(int argc,char **argv) {
+#endif
     if(argc!=3)return 2;
     try {
-        Api api(argv[1]);run(api,argv[2]);
+        Api api(argv[1]);
+#ifdef _WIN32
+        run(api,argv[2]);
+#else
+        const std::string mode(argv[2]);run(api,std::wstring(mode.begin(),mode.end()));
+#endif
         expect(api.objects()==0 && api.buffers()==0,"Native objects or buffers left outstanding");
         std::cout<<"PASS zero outstanding owned objects and buffers"<<std::endl;
         return 0;

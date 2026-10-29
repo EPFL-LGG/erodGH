@@ -151,14 +151,16 @@ def copy_licenses(destination,build):
         for p in (ROOT/'dependencies/elastic_rods/3rdparty'/name).glob('LICENSE*'): take(name,p)
     if build:
         source=Path(build)/'dependencies/sources'
-        for component in source.glob('*'):
-            # The portable build wrapper is a build tool, not a distributed runtime.
-            if not component.name.startswith(('boost-','clapack-','SuiteSparse-')): continue
+        lock=json.loads((ROOT/'cmake/dependencies.json').read_text())
+        for entry in lock.values():
+            component=source/entry['directory']
+            if not component.is_dir(): continue
             for pattern in ('LICENSE*','COPYING*'):
                 for p in component.glob(pattern): take(component.name,p)
             if component.name.startswith('SuiteSparse-'):
-                for name in ('AMD','CAMD','CCOLAMD','COLAMD','CHOLMOD','SuiteSparse_config'):
-                    for p in (component/name/'Doc').glob('*[Ll]icense*'): take('SuiteSparse/'+name,p)
+                for name in ('AMD','CAMD','CCOLAMD','COLAMD','CHOLMOD','UMFPACK','SuiteSparse_config'):
+                    for pattern in ('LICENSE*','COPYING*','Doc/*[Ll]icense*'):
+                        for p in (component/name).glob(pattern): take('SuiteSparse/'+name,p)
         shipped={p.name.casefold():digest(p) for p in destination.glob('*.dll')}
         for nuspec in (Path(build)/'nuget/packages').glob('*/*/*.nuspec'):
             binaries=[]

@@ -5,7 +5,7 @@ root=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('release',root/'tools/release.py')
 release=importlib.util.module_from_spec(spec);spec.loader.exec_module(release)
 plugin=Path(sys.argv[1]).resolve()
-build=root/'build/windows-source'
+build=Path(sys.argv[2]).resolve() if len(sys.argv)>2 else root/'build/windows-source'
 files,audit=release.managed_closure(plugin,build)
 names={p.name for p in files}
 assert 'Giraffe.ViewEngine.StrongName.dll' in names

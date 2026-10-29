@@ -55,7 +55,7 @@ try {
     $env:DOTNET_CLI_TELEMETRY_OPTOUT='1'
     $env:MSBuildEnableWorkloadResolver='false'
     if(!$ManagedOnly) {
-        if(!(Get-Command cmake -ErrorAction SilentlyContinue)) { throw 'Install CMake 3.20 or later and add it to PATH.' }
+        if(!(Get-Command cmake -ErrorAction SilentlyContinue)) { throw 'Install CMake 3.23 or later and add it to PATH.' }
         $vswhere="${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
         $vs=if(Test-Path $vswhere) { & $vswhere -latest -version '[17.0,18.0)' -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath }
         if(!$vs) { throw 'Install Visual Studio 2022 Desktop development with C++, or use -NativePackage to skip C++ compilation.' }
@@ -76,7 +76,8 @@ try {
             if($LapackBin) { Get-ChildItem $LapackBin -Filter '*.dll' | Copy-Item -Destination $OutputDirectory -Force }
         } else {
             & (Join-Path $PSScriptRoot 'bootstrap-windows.ps1') -BuildDirectory $BuildDirectory -Configuration $Configuration
-            $prefix=Join-Path $BuildDirectory "dependencies/$Configuration/install"
+            $dependencyLock=Get-Content (Join-Path $root 'cmake/dependencies.json') -Raw | ConvertFrom-Json
+            $prefix=Join-Path $BuildDirectory "dependencies/$Configuration/install-suitesparse-$($dependencyLock.suitesparse.version)"
             $cmakeArgs+="-DEROD_DEPS_PREFIX=$prefix"
         }
         Run cmake $cmakeArgs
