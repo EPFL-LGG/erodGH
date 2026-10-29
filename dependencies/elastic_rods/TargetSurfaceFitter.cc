@@ -1,3 +1,4 @@
+#include "RuntimeChecks.hh"
 #include "TargetSurfaceFitter.hh"
 #include "infer_target_surface.hh"
 #include <MeshFEM/MeshIO.hh>
@@ -136,7 +137,7 @@ void TargetSurfaceFitter::forceUpdateClosestPoints(const RodLinkage_T<Real_> &li
                 // if (target_surface->vertex(m_tgt_surf_F(closest_idx, i)).isBoundary())
                     boundaryNonzeroLoc[numBoundaryNonzero++] = i;
             }
-            assert(numNonzero >= 1);
+            EROD_REQUIRE(numNonzero >= 1);
 
             if ((numNonzero == 3) || (numNonzero != numBoundaryNonzero)) {
                 // If the closest point lies in the interior, the sensitivity is (I - n n^T) (the query point perturbation is projected onto the tangent plane).
@@ -158,7 +159,7 @@ void TargetSurfaceFitter::forceUpdateClosestPoints(const RodLinkage_T<Real_> &li
                 ++numBdryVtx;
             }
             else {
-                assert(false);
+                EROD_REQUIRE(false);
             }
         }
     });

@@ -55,7 +55,7 @@ struct Impl {
         if (!skipping && skipElem.size()) throw std::runtime_error("Invalid skipElem array size.");
 
         using NG = NodeGetter<Deg, _FEMMesh>;
-        constexpr size_t K = _FEMMesh::K;
+        static constexpr size_t K = _FEMMesh::K;
 
         size_t nn = NG::numNodes(mesh);
         size_t nen = NG::numElementNodes();

@@ -284,7 +284,7 @@ Eigen::MatrixXd torsionAnalysis(const CrossSectionMesh &mesh, const std::string 
     auto L = Laplacian::construct(mesh);
 
     constexpr size_t Deg = 2;
-    constexpr size_t K   = 2;
+    static constexpr size_t K   = 2;
 
     // Compute load vector for the Neuman condition:
     //      d psi / dn  = (y, -x) * n := g.n
@@ -352,7 +352,7 @@ RodMaterial::m_computeStiffnesses(Real E, Real nu,
                                   const std::string &debug_psi_path) {
     const Real G = E / (2 * (1 + nu));
 
-    constexpr size_t K = 2;
+    static constexpr size_t K = 2;
 
     m_crossSectionMesh = std::make_shared<CrossSectionMesh>(elements, vertices);
     auto &mesh = crossSectionMesh();

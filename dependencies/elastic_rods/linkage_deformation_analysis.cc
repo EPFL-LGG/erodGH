@@ -1,3 +1,4 @@
+#include "RuntimeChecks.hh"
 #include "linkage_deformation_analysis.hh"
 #include "RodLinkage.hh"
 #include <MeshFEM/MSHFieldWriter.hh>
@@ -44,7 +45,7 @@ void linkage_deformation_analysis(const RodLinkage &rest, const RodLinkage &defo
             size_t count = 0;
             do {
                 size_t neighborJoint = originJointRest.at(curr.tail().index());
-                assert(neighborJoint != NONE);
+                EROD_REQUIRE(neighborJoint != NONE);
                 restAngles[vi] += restAngles[neighborJoint];
                 defoAngles[vi] += defoAngles[neighborJoint];
                 curr = curr.ccw();

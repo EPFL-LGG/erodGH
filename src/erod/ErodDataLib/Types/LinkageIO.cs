@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -71,6 +71,11 @@ namespace ErodDataLib.Types
         public override object Clone()
         {
             return new LinkageIO(this); ;
+        }
+
+        public void SetTargetSurface(TargetSurfaceIO surface)
+        {
+            TargetSurface = surface == null ? null : (TargetSurfaceIO)surface.Clone();
         }
 
         public bool ContainsTargetSurface()

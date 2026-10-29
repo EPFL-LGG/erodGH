@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ErodModelLib.Creators;
 
 namespace ErodModelLib.Types
@@ -7,52 +7,52 @@ namespace ErodModelLib.Types
     {
         public double GetMaxRodEnergy()
         {
-            return Kernel.Analysis.ErodXShellGetMaxRodEnergy(Model);
+            return Kernel.Analysis.ErodXShellGetMaxRodEnergy(Handle);
         }
 
         public double GetTotalRestLengths()
         {
-            return Kernel.RodLinkage.ErodXShellGetTotalRestLength(Model);
+            return Kernel.RodLinkage.ErodXShellGetTotalRestLength(Handle);
         }
 
         public double GetMinJointAngle()
         {
-            return Kernel.RodLinkage.ErodXShellGetMinJointAngle(Model);
+            return Kernel.RodLinkage.ErodXShellGetMinJointAngle(Handle);
         }
 
         public override int GetDoFCount()
         {
-            return Kernel.RodLinkage.ErodXShellGetDoFCount(Model);
+            return Kernel.RodLinkage.ErodXShellGetDoFCount(Handle);
         }
 
         public override double GetMaxStrain()
         {
-            return Kernel.Analysis.ErodXShellGetMaxStrain(Model);
+            return Kernel.Analysis.ErodXShellGetMaxStrain(Handle);
         }
 
         public double GetAverageJointAngle()
         {
-            return Kernel.RodLinkage.ErodXShellGetAverageJointAngle(Model);
+            return Kernel.RodLinkage.ErodXShellGetAverageJointAngle(Handle);
         }
 
         public override double GetEnergy()
         {
-            return Kernel.Analysis.ErodXShellGetEnergy(Model);
+            return Kernel.Analysis.ErodXShellGetEnergy(Handle);
         }
 
         public override double GetBendingEnergy()
         {
-            return Kernel.Analysis.ErodXShellGetEnergyBend(Model);
+            return Kernel.Analysis.ErodXShellGetEnergyBend(Handle);
         }
 
         public override double GetStretchingEnergy()
         {
-            return Kernel.Analysis.ErodXShellGetEnergyStretch(Model);
+            return Kernel.Analysis.ErodXShellGetEnergyStretch(Handle);
         }
 
         public override double GetTwistingEnergy()
         {
-            return Kernel.Analysis.ErodXShellGetEnergyTwist(Model);
+            return Kernel.Analysis.ErodXShellGetEnergyTwist(Handle);
         }
     }
 }

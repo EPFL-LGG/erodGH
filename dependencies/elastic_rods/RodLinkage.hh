@@ -1,3 +1,4 @@
+#include "RuntimeChecks.hh"
 ////////////////////////////////////////////////////////////////////////////////
 // RodLinkage.hh
 ////////////////////////////////////////////////////////////////////////////////
@@ -761,7 +762,7 @@ struct RodLinkage_T {
             result.block(offset, 0, vf.rows(), cols) = vf;
             offset += vf.rows();
         }
-        assert(offset == fullSize);
+        EROD_REQUIRE(offset == fullSize);
         return result;
     }
 
@@ -918,6 +919,9 @@ struct RodLinkage_T {
         const std::array<  bool, 2> & isStart(bool isB) const { return isB ?   m_isStartB   :   m_isStartA  ; }
 
         // Joint crossing type: 0 for A passing through B, 1 for A atop B, -1 for B atop A.
+#ifdef PASSTHROUGH
+#undef PASSTHROUGH // Windows GDI macro conflicts with the joint type name.
+#endif
         enum Type { PASSTHROUGH = 0, A_OVER_B = 1, B_OVER_A = -1  };
         Type type = PASSTHROUGH;
 
@@ -927,7 +931,7 @@ struct RodLinkage_T {
         // If restrict_AB is 0 or 1, then only visit joints attached via rod A or B, respectively
         template<class F>
         void visitNeighbors(const F &f, const size_t restrict_AB = 2) const {
-            assert(m_linkage);
+            EROD_REQUIRE(m_linkage);
             // m_isStartA[i] return a bool, so if the current joint is not the start of the rod, int(m_isStartA[i])=0 and segment(si).joint(0) will find the start joint of the rod, which is its neighbor.
             auto neighbor = [&](size_t si, bool isStart) { return m_linkage->segment(si).joint(isStart); };
             for (size_t i = 0; i < 2; ++i) {
@@ -1070,7 +1074,7 @@ struct RodLinkage_T {
 
         // Get the two distinct rest lengths for the edges this joint controls (one for the rods of segment A, one for B)
         Vec2 getRestLengths() const {
-            assert(m_linkage);
+            EROD_REQUIRE(m_linkage);
             auto getLen = [&](size_t sidx, bool isStart) {
                 const auto &r = m_linkage->segment(sidx).rod;
                 return r.restLengthForEdge(isStart ? 0 : (r.numEdges() - 1));
@@ -1086,7 +1090,7 @@ struct RodLinkage_T {
 
         // Set the two distinct rest lengths for the edges this joint controls (one for the rods of segment A, one for B)
         void setRestLengths(const Vec2 &rlens) {
-            assert(m_linkage);
+            EROD_REQUIRE(m_linkage);
             auto setLen = [&](size_t sidx, bool isStart, Real_ val) {
                 if (sidx == NONE) return;
                 auto &r = m_linkage->segment(sidx).rod;
@@ -1178,7 +1182,7 @@ struct RodLinkage_T {
         // Gets the segment corresponding to local index "lsi" in {0, 1, 2, 3}.
         // 0, 1 correspond to rod A; 2, 3 to rod B.
         size_t segment(size_t lsi) const {
-            assert(lsi < 4);
+            EROD_REQUIRE(lsi < 4);
             if (lsi < 2) { return m_segmentsA[lsi]; }
             return m_segmentsB[lsi - 2];
         }

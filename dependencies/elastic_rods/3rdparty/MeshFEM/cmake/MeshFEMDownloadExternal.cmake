@@ -66,31 +66,27 @@ endfunction()
 ## TBB
 function(meshfem_download_tbb)
     meshfem_download_project(tbb
-        GIT_REPOSITORY https://github.com/wjakob/tbb.git
-        GIT_TAG        141b0e310e1fb552bdca887542c9c1a8544d6503
+        URL https://github.com/wjakob/tbb/archive/141b0e310e1fb552bdca887542c9c1a8544d6503.tar.gz
     )
 endfunction()
 
 ## Tinyexpr
 function(meshfem_download_tinyexpr)
     meshfem_download_project(tinyexpr
-        GIT_REPOSITORY https://github.com/codeplea/tinyexpr.git
-        GIT_TAG        ffb0d41b13e5f8d318db95feb071c220c134fe70
+        URL https://github.com/codeplea/tinyexpr/archive/ffb0d41b13e5f8d318db95feb071c220c134fe70.tar.gz
     )
 endfunction()
 
 ## Triangle
 function(meshfem_download_triangle)
     meshfem_download_project(triangle
-        GIT_REPOSITORY https://github.com/libigl/triangle.git
-        GIT_TAG        d6761dd691e2e1318c83bf7773fea88d9437464a
+        URL https://github.com/libigl/triangle/archive/d6761dd691e2e1318c83bf7773fea88d9437464a.tar.gz
     )
 endfunction()
 
 ## Spectra
 function(meshfem_download_spectra)
     meshfem_download_project(spectra
-        GIT_REPOSITORY https://github.com/yixuan/spectra.git
-        GIT_TAG        ec27cfd2210a9b2322825c4cb8e5d47f014e1ac3
+        URL https://github.com/yixuan/spectra/archive/ec27cfd2210a9b2322825c4cb8e5d47f014e1ac3.tar.gz
     )
 endfunction()

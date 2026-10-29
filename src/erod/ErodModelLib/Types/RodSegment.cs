@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using ErodDataLib.Utils;
 using ErodModelLib.Creators;
@@ -11,12 +11,12 @@ namespace ErodModelLib.Types
 {
     public class RodSegment : IGH_Goo
     {
-        private IntPtr _ptr;
+        private NativeHandle _ptr;
         public int EdgeCount { get; private set; }
         public int VerticesCount { get; private set; }
         public int EdgeMaterialCount { get; private set; }
 
-        public RodSegment(IntPtr linkage, int index)
+        public RodSegment(NativeHandle linkage, int index)
         {
             _ptr = Kernel.RodSegment.ErodRodSegmentBuild(linkage, index);
             EdgeCount = Kernel.RodSegment.ErodRodSegmentGetEdgesCount(_ptr);
@@ -49,14 +49,19 @@ namespace ErodModelLib.Types
 
         public double[] GetCenterLineCoordinates()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
             Kernel.RodSegment.ErodRodSegmentGetCenterLinePositions(_ptr, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public Point3d[] GetCenterLinePositionsAsPoint3d()
@@ -79,86 +84,121 @@ namespace ErodModelLib.Types
 
         public double[] GetRestLengths()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
             Kernel.RodSegment.ErodRodSegmentGetRestLengths(_ptr, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public double[] GetRestKappas()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
             Kernel.RodSegment.ErodRodSegmentGetRestKappas(_ptr, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public double[] GetStretchingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
             Kernel.RodSegment.ErodRodSegmentGetStretchingStresses(_ptr, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public double[] GetTwistingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
             Kernel.RodSegment.ErodRodSegmentGetTwistingStresses(_ptr, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public double[] GetMaxBendingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
             Kernel.RodSegment.ErodRodSegmentGetMaxBendingStresses(_ptr, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public double[] GetMinBendingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
             Kernel.RodSegment.ErodRodSegmentGetMinBendingStresses(_ptr, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public double[] GetSqrtBendingEnergies()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
             Kernel.RodSegment.ErodRodSegmentGetSqrtBendingEnergies(_ptr, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public double GetEnergy() {
@@ -185,16 +225,21 @@ namespace ErodModelLib.Types
 
         public void GetMeshData(out double[] outCoords, out int[] outQuads)
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numCoords, numQuads;
             IntPtr cPtr, qPtr;
             Kernel.RodSegment.ErodRodSegmentGetMeshData(_ptr, out cPtr, out qPtr, out numCoords, out numQuads);
 
             outCoords = new double[numCoords];
             outQuads = new int[numQuads];
-            Marshal.Copy(cPtr, outCoords, 0, numCoords);
-            Marshal.Copy(qPtr, outQuads, 0, numQuads);
-            Marshal.FreeCoTaskMem(cPtr);
-            Marshal.FreeCoTaskMem(qPtr);
+            NativeBufferScope.Copy(cPtr, outCoords, 0, numCoords);
+            NativeBufferScope.Copy(qPtr, outQuads, 0, numQuads);
+            Kernel.FreeNativeBuffer(cPtr);
+            Kernel.FreeNativeBuffer(qPtr);
+
+            }
         }
 
         public Mesh GetMesh()
@@ -208,55 +253,73 @@ namespace ErodModelLib.Types
 
         public double[] GetStretchingStiffnesses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
             Kernel.RodSegment.ErodRodSegmentGetStretchingStiffness(_ptr, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public double[] GetTwistingStiffnesses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
             Kernel.RodSegment.ErodRodSegmentGetTwistingStiffness(_ptr, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public void GetBendingStiffnesses(out double[] lambda1, out double[] lambda2)
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData1, ptrData2;
             int numData1, numData2;
             Kernel.RodSegment.ErodRodSegmentGetBendingStiffness(_ptr, out ptrData1, out ptrData2, out numData1, out numData2);
 
             lambda1 = new double[numData1];
-            Marshal.Copy(ptrData1, lambda1, 0, numData1);
-            Marshal.FreeCoTaskMem(ptrData1);
+            NativeBufferScope.Copy(ptrData1, lambda1, 0, numData1);
+            Kernel.FreeNativeBuffer(ptrData1);
 
             lambda2 = new double[numData2];
-            Marshal.Copy(ptrData2, lambda2, 0, numData2);
-            Marshal.FreeCoTaskMem(ptrData2);
+            NativeBufferScope.Copy(ptrData2, lambda2, 0, numData2);
+            Kernel.FreeNativeBuffer(ptrData2);
+
+            }
         }
 
         public Plane[] GetMaterialFames()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr outCoordsD1, outCoordsD2;
             int outCoordsCount;
             Kernel.RodSegment.ErodRodSegmentGetMaterialFrame(_ptr, out outCoordsCount, out outCoordsD1, out outCoordsD2);
 
             double[] coordsD1 = new double[outCoordsCount];
             double[] coordsD2 = new double[outCoordsCount];
-            Marshal.Copy(outCoordsD1, coordsD1, 0, outCoordsCount);
-            Marshal.Copy(outCoordsD2, coordsD2, 0, outCoordsCount);
-            Marshal.FreeCoTaskMem(outCoordsD1);
-            Marshal.FreeCoTaskMem(outCoordsD2);
+            NativeBufferScope.Copy(outCoordsD1, coordsD1, 0, outCoordsCount);
+            NativeBufferScope.Copy(outCoordsD2, coordsD2, 0, outCoordsCount);
+            Kernel.FreeNativeBuffer(outCoordsD1);
+            Kernel.FreeNativeBuffer(outCoordsD2);
 
             int numFrames = outCoordsCount / 3;
             Plane[] frames = new Plane[numFrames];
@@ -270,19 +333,24 @@ namespace ErodModelLib.Types
             }
 
             return frames;
+
+            }
         }
 
 
         public double[][] GetRestPoints()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr outCoords;
             int outCoordsCount;
 
             Kernel.RodSegment.ErodRodSegmentGetRestPoints(_ptr, out outCoords, out outCoordsCount);
 
             double[] coords = new double[outCoordsCount];
-            Marshal.Copy(outCoords, coords, 0, outCoordsCount);
-            Marshal.FreeCoTaskMem(outCoords);
+            NativeBufferScope.Copy(outCoords, coords, 0, outCoordsCount);
+            Kernel.FreeNativeBuffer(outCoords);
 
             int count = outCoordsCount / 3;
             double[][] pts = new double[count][];
@@ -292,18 +360,23 @@ namespace ErodModelLib.Types
             }
 
             return pts;
+
+            }
         }
 
         public double[][][] GetRestDirectors()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr outCoords;
             int outCoordsCount;
 
             Kernel.RodSegment.ErodRodSegmentGetRestDirectors(_ptr, out outCoords, out outCoordsCount);
 
             double[] coords = new double[outCoordsCount];
-            Marshal.Copy(outCoords, coords, 0, outCoordsCount);
-            Marshal.FreeCoTaskMem(outCoords);
+            NativeBufferScope.Copy(outCoords, coords, 0, outCoordsCount);
+            Kernel.FreeNativeBuffer(outCoords);
 
             int count = outCoordsCount / 6;
             double[][][] dir = new double[count][][];
@@ -313,20 +386,27 @@ namespace ErodModelLib.Types
             }
 
             return dir;
+
+            }
         }
 
         public double[] GetRestTwists()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr outData;
             int outDataCount;
 
             Kernel.RodSegment.ErodRodSegmentGetRestTwists(_ptr, out outData, out outDataCount);
 
             double[] data = new double[outDataCount];
-            Marshal.Copy(outData, data, 0, outDataCount);
-            Marshal.FreeCoTaskMem(outData);
+            NativeBufferScope.Copy(outData, data, 0, outDataCount);
+            Kernel.FreeNativeBuffer(outData);
 
             return data;
+
+            }
         }
 
         public int GetBendingEnergyType()
@@ -336,30 +416,40 @@ namespace ErodModelLib.Types
 
         public double[] GetDensities()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr outData;
             int outDataCount;
 
             Kernel.RodSegment.ErodRodSegmentGetDensities(_ptr, out outData, out outDataCount);
 
             double[] data = new double[outDataCount];
-            Marshal.Copy(outData, data, 0, outDataCount);
-            Marshal.FreeCoTaskMem(outData);
+            NativeBufferScope.Copy(outData, data, 0, outDataCount);
+            Kernel.FreeNativeBuffer(outData);
 
             return data;
+
+            }
         }
 
         public double[] GetVonMisesStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr outData;
             int outDataCount;
 
             Kernel.RodSegment.ErodRodSegmentGetVonMisesStresses(_ptr, out outData, out outDataCount);
 
             double []stresses = new double[outDataCount];
-            Marshal.Copy(outData, stresses, 0, outDataCount);
-            Marshal.FreeCoTaskMem(outData);
+            NativeBufferScope.Copy(outData, stresses, 0, outDataCount);
+            Kernel.FreeNativeBuffer(outData);
 
             return stresses;
+
+            }
         }
 
         public double GetInitialMinRestLength()
@@ -369,7 +459,10 @@ namespace ErodModelLib.Types
 
         public void GetEdgeMaterial(int idx, out double[] matData, out double[][] boundaryPts, out int[][] boundaryEdges)
         {
-            if (idx >= EdgeMaterialCount) throw new Exception("Edge index out of range.");
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
+            if (idx < 0 || idx >= EdgeMaterialCount) throw new Exception("Edge index out of range.");
 
             IntPtr outMatData, outCoords, outEdges;
             int numMatData, numCoords, numEdges;
@@ -378,13 +471,13 @@ namespace ErodModelLib.Types
 
             // Material Data
             matData = new double[numMatData];
-            Marshal.Copy(outMatData, matData, 0, numMatData);
-            Marshal.FreeCoTaskMem(outMatData);
+            NativeBufferScope.Copy(outMatData, matData, 0, numMatData);
+            Kernel.FreeNativeBuffer(outMatData);
 
             // CrossSection Boundary Points2D
             double[] coords = new double[numCoords];
-            Marshal.Copy(outCoords, coords, 0, numCoords);
-            Marshal.FreeCoTaskMem(outCoords);
+            NativeBufferScope.Copy(outCoords, coords, 0, numCoords);
+            Kernel.FreeNativeBuffer(outCoords);
 
             int count = numCoords / 2;
             boundaryPts = new double[count][];
@@ -395,8 +488,8 @@ namespace ErodModelLib.Types
 
             // CrossSection Boundary Edges
             int[] edges = new int[numEdges];
-            Marshal.Copy(outEdges, edges, 0, numEdges);
-            Marshal.FreeCoTaskMem(outEdges);
+            NativeBufferScope.Copy(outEdges, edges, 0, numEdges);
+            Kernel.FreeNativeBuffer(outEdges);
 
             count = numEdges / 2;
             boundaryEdges = new int[count][];
@@ -404,10 +497,15 @@ namespace ErodModelLib.Types
             {
                 boundaryEdges[i] = new int[] { edges[i * 2], edges[i * 2 + 1] };
             }
+
+            }
         }
 
         public void GetDeformedState(out double[][] points, out double[] thetas, out double[][] sourceTangent, out double[][] sourceReferenceDirectors, out double[] sourceTheta, out double[] sourceReferenceTwist)
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrPts, ptrThetas, ptrSrcTangents, ptrDir, ptrSrcThetas, ptrSrcTwist;
             int numPts, numThetas, numSrcTangents, numDir, numSrcThetas, numSrcTwist;
 
@@ -416,8 +514,8 @@ namespace ErodModelLib.Types
 
             // Points
             double[] pts = new double[numPts];
-            Marshal.Copy(ptrPts, pts, 0, numPts);
-            Marshal.FreeCoTaskMem(ptrPts);
+            NativeBufferScope.Copy(ptrPts, pts, 0, numPts);
+            Kernel.FreeNativeBuffer(ptrPts);
 
             int count = numPts / 3;
             points = new double[count][];
@@ -428,13 +526,13 @@ namespace ErodModelLib.Types
 
             // Thetas
             thetas = new double[numThetas];
-            Marshal.Copy(ptrThetas, thetas, 0, numThetas);
-            Marshal.FreeCoTaskMem(ptrThetas);
+            NativeBufferScope.Copy(ptrThetas, thetas, 0, numThetas);
+            Kernel.FreeNativeBuffer(ptrThetas);
 
             //SourceTangent
             double[] tangents = new double[numSrcTangents];
-            Marshal.Copy(ptrSrcTangents, tangents, 0, numSrcTangents);
-            Marshal.FreeCoTaskMem(ptrSrcTangents);
+            NativeBufferScope.Copy(ptrSrcTangents, tangents, 0, numSrcTangents);
+            Kernel.FreeNativeBuffer(ptrSrcTangents);
 
             count = numSrcTangents / 3;
             sourceTangent = new double[count][];
@@ -445,8 +543,8 @@ namespace ErodModelLib.Types
 
             //Reference Directors
             double[] directors = new double[numDir];
-            Marshal.Copy(ptrDir, directors, 0, numDir);
-            Marshal.FreeCoTaskMem(ptrDir);
+            NativeBufferScope.Copy(ptrDir, directors, 0, numDir);
+            Kernel.FreeNativeBuffer(ptrDir);
 
             count = numDir / 3;
             sourceReferenceDirectors = new double[count][];
@@ -457,13 +555,15 @@ namespace ErodModelLib.Types
 
             //Source Thetas
             sourceTheta = new double[numSrcThetas];
-            Marshal.Copy(ptrSrcThetas, sourceTheta, 0, numSrcThetas);
-            Marshal.FreeCoTaskMem(ptrSrcThetas);
+            NativeBufferScope.Copy(ptrSrcThetas, sourceTheta, 0, numSrcThetas);
+            Kernel.FreeNativeBuffer(ptrSrcThetas);
 
             //Source twist
             sourceReferenceTwist = new double[numSrcTwist];
-            Marshal.Copy(ptrSrcTwist, sourceReferenceTwist, 0, numSrcTwist);
-            Marshal.FreeCoTaskMem(ptrSrcTwist);
+            NativeBufferScope.Copy(ptrSrcTwist, sourceReferenceTwist, 0, numSrcTwist);
+            Kernel.FreeNativeBuffer(ptrSrcTwist);
+
+            }
         }
 
         #region GH_Methods
@@ -471,7 +571,7 @@ namespace ErodModelLib.Types
         {
             get
             {
-                if (_ptr != null || _ptr != IntPtr.Zero) return true;
+                if (_ptr != null && _ptr.IsAlive) return true;
                 else return false;
             }
         }
@@ -484,7 +584,9 @@ namespace ErodModelLib.Types
 
         public IGH_Goo Duplicate()
         {
-            return (IGH_Goo)this.MemberwiseClone();
+            var copy=(RodSegment)MemberwiseClone();
+            copy._ptr=_ptr.RetainView();
+            return copy;
         }
 
         public IGH_GooProxy EmitProxy()

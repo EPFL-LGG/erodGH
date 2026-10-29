@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using ErodDataLib.Types;
@@ -29,146 +29,167 @@ namespace ErodModelLib.Types
 
         public double[] GetDoFs()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numDoFs;
             IntPtr cPtr;
-            Kernel.RodLinkage.ErodXShellGetDoFs(Model, out cPtr, out numDoFs);
+            Kernel.RodLinkage.ErodXShellGetDoFs(Handle, out cPtr, out numDoFs);
 
             double[] outDoFs = new double[numDoFs];
-            Marshal.Copy(cPtr, outDoFs, 0, numDoFs);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outDoFs, 0, numDoFs);
+            Kernel.FreeNativeBuffer(cPtr);
             return outDoFs;
+
+            }
         }
 
         public void SetDoFs(double[] dofs)
         {
-            Kernel.RodLinkage.ErodXShellSetDoFs(Model, dofs, dofs.Length);
+            Kernel.RodLinkage.ErodXShellSetDoFs(Handle, dofs, dofs.Length);
         }
 
         public double[] GetScalarFieldSqrtBendingEnergies()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            Kernel.RodLinkage.ErodXShellScalarFieldSqrtBendingEnergies(Model, out cPtr, out numField);
+            Kernel.RodLinkage.ErodXShellScalarFieldSqrtBendingEnergies(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         public double[] GetScalarFieldMaxBendingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            Kernel.RodLinkage.ErodXShellScalarFieldMaxBendingStresses(Model, out cPtr, out numField);
+            Kernel.RodLinkage.ErodXShellScalarFieldMaxBendingStresses(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         public double[] GetScalarFieldMinBendingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            Kernel.RodLinkage.ErodXShellScalarFieldMinBendingStresses(Model, out cPtr, out numField);
+            Kernel.RodLinkage.ErodXShellScalarFieldMinBendingStresses(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         public double[] GetScalarFieldTwistingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            Kernel.RodLinkage.ErodXShellScalarFieldTwistingStresses(Model, out cPtr, out numField);
+            Kernel.RodLinkage.ErodXShellScalarFieldTwistingStresses(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         public double[] GetScalarFieldStretchingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            Kernel.RodLinkage.ErodXShellScalarFieldStretchingStresses(Model, out cPtr, out numField);
+            Kernel.RodLinkage.ErodXShellScalarFieldStretchingStresses(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         public double[] GetScalarFieldVonMisesStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            Kernel.RodLinkage.ErodXShellScalarFieldVonMisesStresses(Model, out cPtr, out numField);
+            Kernel.RodLinkage.ErodXShellScalarFieldVonMisesStresses(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         public override void SetMaterial(int sectionType, double E, double poisonRatio, double[] sectionParams, int axisType)
         {
-            Kernel.RodLinkage.ErodXShellSetMaterial(Model, sectionType, E, poisonRatio, sectionParams, sectionParams.Length, axisType);
+            Kernel.RodLinkage.ErodXShellSetMaterial(Handle, sectionType, E, poisonRatio, sectionParams, sectionParams.Length, axisType);
         }
 
         public void SetCustomMaterial(double E, double poisonRatio, double[] inProfileCoords, int numVertices, double[] inHolesCoords, int numHoles, int axisType)
         {
-            Kernel.RodLinkage.ErodXShellSetCustomMaterial(Model, E, poisonRatio, inProfileCoords, numVertices, inHolesCoords, numHoles, axisType);
+            Kernel.RodLinkage.ErodXShellSetCustomMaterial(Handle, E, poisonRatio, inProfileCoords, numVertices, inHolesCoords, numHoles, axisType);
         }
 
         public void SetMaterial(int[] sectionType, double[] E, double[] poisonRatio, double[] sectionParams, int[] sectionParamsCount, int[] axisType)
         {
-            Kernel.RodLinkage.ErodXShellSetJointMaterial(Model, sectionType.Length, sectionType, E, poisonRatio, sectionParams, sectionParamsCount, axisType);
+            Kernel.RodLinkage.ErodXShellSetJointMaterial(Handle, sectionType.Length, sectionType, E, poisonRatio, sectionParams, sectionParamsCount, axisType);
         }
 
         public void SetCustomMaterial(int[] sectionType, double[] E, double[] poisonRatio, double[] inProfileCoords, int[] profileParamsCount, double[] inHolesCoords, int[] holesCount, int[] axisType)
         {
-            Kernel.RodLinkage.ErodXShellSetCustomJointMaterial(Model, sectionType.Length, sectionType, E, poisonRatio, inProfileCoords, profileParamsCount, inHolesCoords, holesCount, axisType);
+            Kernel.RodLinkage.ErodXShellSetCustomJointMaterial(Handle, sectionType.Length, sectionType, E, poisonRatio, inProfileCoords, profileParamsCount, inHolesCoords, holesCount, axisType);
         }
 
         public int GetJointsCount()
         {
-            return Kernel.RodLinkage.ErodXShellGetJointsCount(Model);
+            return Kernel.RodLinkage.ErodXShellGetJointsCount(Handle);
         }
 
         public int GetNodesCount()
         {
-            return Kernel.RodLinkage.ErodXShellGetCenterLinePositionsCount(Model);
+            return Kernel.RodLinkage.ErodXShellGetCenterLinePositionsCount(Handle);
         }
 
         public int GetCentralJointIndex()
         {
-            return Kernel.RodLinkage.ErodXShellGetCentralJointIndex(Model);
+            return Kernel.RodLinkage.ErodXShellGetCentralJointIndex(Handle);
         }
 
         public void AddStiffenRegion(Box[] boxes, double factor)
         {
-            int numBoxes = boxes.Length;
-            double[] coords = new double[numBoxes * 8 * 3];
-            int idx = 0;
-            for (int i = 0; i < numBoxes; i++)
-            {
-                Box b = boxes[i];
-                foreach (Point3d pt in b.GetCorners())
-                {
-                    coords[idx] = pt.X;
-                    coords[idx + 1] = pt.X;
-                    coords[idx + 2] = pt.X;
-                    idx += 3;
-                }
-            }
-
-            Kernel.RodLinkage.ErodXShellSetStiffenRegions(Model, factor, coords, numBoxes);
+            var coordinates=NativeChecks.BoxCoordinates(boxes);
+            Kernel.RodLinkage.ErodXShellSetStiffenRegions(Handle,factor,coordinates,boxes.Length);
         }
 
         public override double[] GetForceVars(bool includeExternalForces= true, bool includeCables=false)
@@ -213,65 +234,78 @@ namespace ErodModelLib.Types
 
         public void RemoveInitialCurvatures()
         {
-            Kernel.RodLinkage.ErodXShellRemoveRestCurvatures(Model);
+            Kernel.RodLinkage.ErodXShellRemoveRestCurvatures(Handle);
         }
 
         public void SetDesignParameters(bool use_restLength, bool use_restKappa, bool update_designParams_cache = true)
         {
-            Kernel.RodLinkage.ErodXShellSetDesignParameterConfig(Model, Convert.ToInt32(use_restLength), Convert.ToInt32(use_restKappa), Convert.ToInt32(update_designParams_cache));
+            Kernel.RodLinkage.ErodXShellSetDesignParameterConfig(Handle, Convert.ToInt32(use_restLength), Convert.ToInt32(use_restKappa), Convert.ToInt32(update_designParams_cache));
         }
 
         public int GetRestKappaVarsCount()
         {
-            return Kernel.RodLinkage.ErodXShellGetRestKappaVarsCount(Model);
+            return Kernel.RodLinkage.ErodXShellGetRestKappaVarsCount(Handle);
         }
 
         public double[] GetRestKappaVars()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numD;
             IntPtr ptrD;
-            Kernel.RodLinkage.ErodXShellGetRestKappaVars(Model, out ptrD, out numD);
+            Kernel.RodLinkage.ErodXShellGetRestKappaVars(Handle, out ptrD, out numD);
 
             double[] data = new double[numD];
-            Marshal.Copy(ptrD, data, 0, numD);
-            Marshal.FreeCoTaskMem(ptrD);
+            NativeBufferScope.Copy(ptrD, data, 0, numD);
+            Kernel.FreeNativeBuffer(ptrD);
 
             return data;
+
+            }
         }
 
         public int GetHessianNNZ(bool variableDesignParameters)
         {
-            return Kernel.RodLinkage.ErodXShellGetHessianNNZ(Model, Convert.ToInt32(variableDesignParameters));
+            return Kernel.RodLinkage.ErodXShellGetHessianNNZ(Handle, Convert.ToInt32(variableDesignParameters));
         }
 
         protected override void GetMeshData(out double[] outCoords, out int[] outQuads)
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numCoords, numQuads;
             IntPtr cPtr, qPtr;
-            Kernel.RodLinkage.ErodXShellGetMeshData(Model, out cPtr, out qPtr, out numCoords, out numQuads);
+            Kernel.RodLinkage.ErodXShellGetMeshData(Handle, out cPtr, out qPtr, out numCoords, out numQuads);
 
             outCoords = new double[numCoords];
             outQuads = new int[numQuads];
-            Marshal.Copy(cPtr, outCoords, 0, numCoords);
-            Marshal.Copy(qPtr, outQuads, 0, numQuads);
-            Marshal.FreeCoTaskMem(cPtr);
-            Marshal.FreeCoTaskMem(qPtr);
+            NativeBufferScope.Copy(cPtr, outCoords, 0, numCoords);
+            NativeBufferScope.Copy(qPtr, outQuads, 0, numQuads);
+            Kernel.FreeNativeBuffer(cPtr);
+            Kernel.FreeNativeBuffer(qPtr);
+
+            }
         }
 
         public Mesh InferTargetSurface(int nsubdiv, int numExtensionLayers=1)
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numCoords, numTrias;
             IntPtr cPtr, qPtr;
-            int error = Kernel.RodLinkage.ErodXShellInferTargetSurface(Model, nsubdiv, numExtensionLayers,out cPtr, out qPtr, out numCoords, out numTrias, out Error);
+            int error = Kernel.RodLinkage.ErodXShellInferTargetSurface(Handle, nsubdiv, numExtensionLayers,out cPtr, out qPtr, out numCoords, out numTrias, out Error);
 
             if (error==0)
             {
                 double[] outCoords = new double[numCoords];
                 int[] outTrias = new int[numTrias];
-                Marshal.Copy(cPtr, outCoords, 0, numCoords);
-                Marshal.Copy(qPtr, outTrias, 0, numTrias);
-                Marshal.FreeCoTaskMem(cPtr);
-                Marshal.FreeCoTaskMem(qPtr);
+                NativeBufferScope.Copy(cPtr, outCoords, 0, numCoords);
+                NativeBufferScope.Copy(qPtr, outTrias, 0, numTrias);
+                Kernel.FreeNativeBuffer(cPtr);
+                Kernel.FreeNativeBuffer(qPtr);
 
                 Mesh m = Helpers.GetTriasMesh(outCoords, outTrias);
 
@@ -282,36 +316,46 @@ namespace ErodModelLib.Types
                 string errorMsg = Marshal.PtrToStringAnsi(Error);
                 throw new Exception(errorMsg);
             }
+
+            }
         }
 
         public double[] GetDesignParameters()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numDP;
             IntPtr ptrDP;
-            Kernel.RodLinkage.ErodXShellGetDesignParams(Model, out ptrDP, out numDP);
+            Kernel.RodLinkage.ErodXShellGetDesignParams(Handle, out ptrDP, out numDP);
 
             double[] designParams = new double[numDP];
-            Marshal.Copy(ptrDP, designParams, 0, numDP);
-            Marshal.FreeCoTaskMem(ptrDP);
+            NativeBufferScope.Copy(ptrDP, designParams, 0, numDP);
+            Kernel.FreeNativeBuffer(ptrDP);
 
             return designParams;
+
+            }
         }
 
         public int GetDesignParametersNumber()
         {
-            return Kernel.RodLinkage.ErodXShellGetDesignParametersNumber(Model);
+            return Kernel.RodLinkage.ErodXShellGetDesignParametersNumber(Handle);
         }
 
         public double GetInitialMinRestLength()
         {
-            return Kernel.RodLinkage.ErodXShellGetInitialMinRestLength(Model);
+            return Kernel.RodLinkage.ErodXShellGetInitialMinRestLength(Handle);
         }
 
         public SparseMatrixData GetSegmentRestLenToEdgeRestLenMapTranspose()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrAx, ptrAi, ptrAp;
             long M, N, NZ;
-            int errorCode = Kernel.RodLinkage.ErodXShellGetSegmentRestLenToEdgeRestLenMapTranspose(Model, out ptrAx, out ptrAi, out ptrAp, out M, out N, out NZ, out Error);
+            int errorCode = Kernel.RodLinkage.ErodXShellGetSegmentRestLenToEdgeRestLenMapTranspose(Handle, out ptrAx, out ptrAi, out ptrAp, out M, out N, out NZ, out Error);
 
             if (errorCode == 0)
             {
@@ -319,12 +363,12 @@ namespace ErodModelLib.Types
                 long[] Ai = new long[NZ];
                 long[] Ap = new long[N + 1];
 
-                Marshal.Copy(ptrAx, Ax, 0, (int)NZ);
-                Marshal.Copy(ptrAi, Ai, 0, (int)NZ);
-                Marshal.Copy(ptrAp, Ap, 0, (int)N + 1);
-                Marshal.FreeCoTaskMem(ptrAx);
-                Marshal.FreeCoTaskMem(ptrAi);
-                Marshal.FreeCoTaskMem(ptrAp);
+                NativeBufferScope.Copy(ptrAx, Ax, 0, (int)NZ);
+                NativeBufferScope.Copy(ptrAi, Ai, 0, (int)NZ);
+                NativeBufferScope.Copy(ptrAp, Ap, 0, (int)N + 1);
+                Kernel.FreeNativeBuffer(ptrAx);
+                Kernel.FreeNativeBuffer(ptrAi);
+                Kernel.FreeNativeBuffer(ptrAp);
 
                 SparseMatrixData matrix = new SparseMatrixData(M, N, NZ);
                 matrix.Ai = Ai.ToList();
@@ -338,66 +382,83 @@ namespace ErodModelLib.Types
                 string errorMsg = Marshal.PtrToStringAnsi(Error);
                 throw new Exception(errorMsg);
             }
+
+            }
         }
 
         public void GetDesignParametersConfig(out bool restLength, out bool restKappa)
         {
             int outRestLength, outRestKappa;
-            Kernel.RodLinkage.ErodXShellGetDesignParameterConfig(Model, out outRestLength, out outRestKappa);
+            Kernel.RodLinkage.ErodXShellGetDesignParameterConfig(Handle, out outRestLength, out outRestKappa);
             restLength = Convert.ToBoolean(outRestLength);
             restKappa = Convert.ToBoolean(outRestKappa);
         }
 
         public double[] GetRestLenghtsSolveDoFs()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrDoFs;
-            long numDofs;
-            Kernel.RodLinkage.ErodXShellGetRestLengthsSolveDoFs(Model, out ptrDoFs, out numDofs);
+            int numDofs;
+            Kernel.RodLinkage.ErodXShellGetRestLengthsSolveDoFs(Handle, out ptrDoFs, out numDofs);
 
             double[] dofs = new double[numDofs];
 
-            Marshal.Copy(ptrDoFs, dofs, 0, (int) numDofs);
-            Marshal.FreeCoTaskMem(ptrDoFs);
+            NativeBufferScope.Copy(ptrDoFs, dofs, 0, (int) numDofs);
+            Kernel.FreeNativeBuffer(ptrDoFs);
 
             return dofs;
+
+            }
         }
 
         public void SetRestLenghtsSolveDoFs(double[] dofs)
         {
-            Kernel.RodLinkage.ErodXShellSetRestLengthsSolveDoFs(Model, dofs, dofs.Length);
+            Kernel.RodLinkage.ErodXShellSetRestLengthsSolveDoFs(Handle, dofs, dofs.Length);
         }
 
         public double[] GetPerSegmentRestLenghts()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrLengths;
-            long numLengths;
-            Kernel.RodLinkage.ErodXShellGetPerSegmentRestLengths(Model, out ptrLengths, out numLengths);
+            int numLengths;
+            Kernel.RodLinkage.ErodXShellGetPerSegmentRestLengths(Handle, out ptrLengths, out numLengths);
 
             double[] lengths = new double[numLengths];
 
-            Marshal.Copy(ptrLengths, lengths, 0, (int)numLengths);
-            Marshal.FreeCoTaskMem(ptrLengths);
+            NativeBufferScope.Copy(ptrLengths, lengths, 0, (int)numLengths);
+            Kernel.FreeNativeBuffer(ptrLengths);
 
             return lengths;
+
+            }
         }
 
         public void SetPerSegmentRestLenghts(double[] lengths)
         {
-            Kernel.RodLinkage.ErodXShellSetPerSegmentRestLengths(Model, lengths, lengths.Length);
+            Kernel.RodLinkage.ErodXShellSetPerSegmentRestLengths(Handle, lengths, lengths.Length);
         }
 
         public double[] GetJointAngles()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr angPtr;
-            long numAng;
-            Kernel.RodLinkage.ErodXShellGetJointAngles(Model, out angPtr, out numAng);
+            int numAng;
+            Kernel.RodLinkage.ErodXShellGetJointAngles(Handle, out angPtr, out numAng);
 
             double[] angles = new double[numAng];
 
-            Marshal.Copy(angPtr, angles, 0, (int)numAng);
-            Marshal.FreeCoTaskMem(angPtr);
+            NativeBufferScope.Copy(angPtr, angles, 0, (int)numAng);
+            Kernel.FreeNativeBuffer(angPtr);
 
             return angles;
+
+            }
         }
 
         public LineCurve[] GetSegmentsAsLines()

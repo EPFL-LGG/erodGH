@@ -1,3 +1,4 @@
+#include "RuntimeChecks.hh"
 #include "ElasticRod.hh"
 #include <stdexcept>
 #include <cmath>
@@ -11,6 +12,26 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Compute the unit tangents (normalized edge vectors) for the chain of edges
 // connecting "pts"
+// Validate before modifying state or normalizing an edge. Collapsed edges and
+// antiparallel adjacent tangents make the discrete rod frame singular.
+template<typename Point>
+void validateRodCenterline(const std::vector<Point> &points) {
+    EROD_REQUIRE(points.size() >= 2);
+    for (size_t i = 0; i < points.size(); ++i)
+        for (int d = 0; d < 3; ++d)
+            EROD_REQUIRE(std::isfinite(stripAutoDiff(points[i][d])));
+    for (size_t i = 1; i < points.size(); ++i) {
+        auto edge = (points[i] - points[i - 1]).eval();
+        double length = stripAutoDiff(edge.norm());
+        EROD_REQUIRE(std::isfinite(length) && length > 0);
+        if (i > 1) {
+            auto previous = (points[i - 1] - points[i - 2]).eval();
+            double cosine = stripAutoDiff((previous / previous.norm()).dot(edge / length));
+            EROD_REQUIRE(std::isfinite(cosine) && 1.0 + cosine > 1e-14);
+        }
+    }
+}
+
 template<typename Real_>
 void unitTangents(const std::vector<Pt3_T<Real_>> &pts, std::vector<Vec3_T<Real_>> &result) {
     const size_t ne = pts.size() - 1;
@@ -36,6 +57,7 @@ template<typename Real_>
 void ElasticRod_T<Real_>::setRestConfiguration(const std::vector<Pt3_T<Real_>> &points) {
     if (points.size() < 3) throw std::runtime_error("Must have at least three points (two edges)");
 
+    validateRodCenterline(points);
     m_restPoints = points;
 
     const size_t nv = points.size();
@@ -170,6 +192,9 @@ void ElasticRod_T<Real_>::DeformedState::initialize(const ElasticRod_T &rod) {
 // Constructor for cached deformed quantities.
 template<typename Real_>
 void ElasticRod_T<Real_>::DeformedState::update(const std::vector<Pt3_T<Real_>> &points, const std::vector<Real_> &thetas) {
+    validateRodCenterline(points);
+    EROD_REQUIRE(thetas.size() + 1 == points.size());
+    for (const auto &theta : thetas) EROD_REQUIRE(std::isfinite(stripAutoDiff(theta)));
     const size_t nv = points.size(),
                  ne = thetas.size();
     m_point = points;
@@ -390,7 +415,7 @@ Real_ ElasticRod_T<Real_>::energyBend() const {
             }
         }
     }
-    else { assert(false); }
+    else { EROD_REQUIRE(false); }
 
     return result;
 }
@@ -445,7 +470,7 @@ VecX_T<Real_> ElasticRod_T<Real_>::energyBendPerVertex() const {
             }
         }
     }
-    else { assert(false); }
+    else { EROD_REQUIRE(false); }
 
     return result;
 }
@@ -583,7 +608,7 @@ typename ElasticRod_T<Real_>::Gradient ElasticRod_T<Real_>::gradEnergyBend(bool 
                 dE_dkappa_k_j = {{2.0 * m_restLen[j] * inv_2libar * inv_2libar * m_bendingStiffness[i].lambda_1 * kappaDiff[0],
                                   2.0 * m_restLen[j] * inv_2libar * inv_2libar * m_bendingStiffness[i].lambda_2 * kappaDiff[1]}};
             }
-            else { assert(false); }
+            else { EROD_REQUIRE(false); }
 
             // Accumulate energy dependence through (kappa_k)_i^j
             // Compute material frame angle (theta) dependence
@@ -753,7 +778,7 @@ typename ElasticRod_T<Real_>::CSCMat ElasticRod_T<Real_>::hessianSparsityPattern
 
     // Append the indices [start, end) to Ai
     auto addIdxRange = [&](const size_t start, const size_t end) {
-        assert((start <= ndof) && (end <= ndof));
+        EROD_REQUIRE((start <= ndof) && (end <= ndof));
         const size_t len = end - start, oldSize = Ai.size();
         Ai.resize(oldSize + len);
         for (size_t i = 0; i < len; ++i)
@@ -852,9 +877,9 @@ TriDiagonalSystem<Real_> ElasticRod_T<Real_>::hessThetaEnergyTwist() const {
 template<typename Real_>
 void ElasticRod_T<Real_>::hessEnergyStretch(ElasticRod_T<Real_>::CSCMat &H, bool variableDesignParameters) const {
     using M3d = Mat3_T<Real_>;
-    assert(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
+    EROD_REQUIRE(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
     const size_t ndof = variableDesignParameters ? numExtendedDoF() : numDoF();
-    assert((size_t(H.m) == ndof) && (size_t(H.n) == ndof));
+    EROD_REQUIRE((size_t(H.m) == ndof) && (size_t(H.n) == ndof));
     UNUSED(ndof);
 
     const auto &dc = deformedConfiguration();
@@ -898,10 +923,10 @@ void ElasticRod_T<Real_>::hessEnergyStretch(ElasticRod_T<Real_>::CSCMat &H, bool
 // Hessian ***evaluated assuming the source frame has been updated to the current frame***
 template<typename Real_>
 void ElasticRod_T<Real_>::hessEnergyBend(ElasticRod_T<Real_>::CSCMat &H, bool variableDesignParameters) const {
-    assert(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
+    EROD_REQUIRE(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
     const size_t ndof = variableDesignParameters ? numExtendedDoF() : numDoF();
     UNUSED(ndof);
-    assert((size_t(H.m) == ndof) && (size_t(H.n) == ndof));
+    EROD_REQUIRE((size_t(H.m) == ndof) && (size_t(H.n) == ndof));
 
     using M3d = Mat3_T<Real_>;
     using M2d = Mat2_T<Real_>;
@@ -1016,7 +1041,7 @@ void ElasticRod_T<Real_>::hessEnergyBend(ElasticRod_T<Real_>::CSCMat &H, bool va
                 dE_dkappa_k_j = {{2.0 * m_restLen[j] * inv_2libar * B_div_2libar[0] * kappaDiff[0],
                                   2.0 * m_restLen[j] * inv_2libar * B_div_2libar[1] * kappaDiff[1]}};
             }
-            else { assert(false); }
+            else { EROD_REQUIRE(false); }
 
             for (size_t k = 0; k < 2; ++k) {
                 const size_t kother = (k + 1) % 2;
@@ -1140,7 +1165,7 @@ void ElasticRod_T<Real_>::hessEnergyBend(ElasticRod_T<Real_>::CSCMat &H, bool va
                     if (var > varOther) std::swap(var, varOther); // Upper triangle entry only
                     H.addNZ(var, varOther, contrib * (4 * m_restLen[j] - 2 * m_restLen[jother]));
                 }
-                else { assert(false); }
+                else { EROD_REQUIRE(false); }
 
                 // Accumulate energy dependence through (kappa_k)_i^j
                 for (size_t k = 0; k < 2; ++k) {
@@ -1229,9 +1254,9 @@ void ElasticRod_T<Real_>::hessEnergyBend(ElasticRod_T<Real_>::CSCMat &H, bool va
 // Hessian ***evaluated assuming the source frame has been updated to the current frame***
 template<typename Real_>
 void ElasticRod_T<Real_>::hessEnergyTwist(ElasticRod_T<Real_>::CSCMat &H, bool variableDesignParameters) const {
-    assert(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
+    EROD_REQUIRE(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
     const size_t ndof = variableDesignParameters ? numExtendedDoF() : numDoF();
-    assert((size_t(H.m) == ndof) && (size_t(H.n) == ndof));
+    EROD_REQUIRE((size_t(H.m) == ndof) && (size_t(H.n) == ndof));
     UNUSED(ndof);
 
     using M3d = Eigen::Matrix<Real_, 3, 3>;
@@ -1371,7 +1396,7 @@ void ElasticRod_T<Real_>::hessEnergyTwist(ElasticRod_T<Real_>::CSCMat &H, bool v
 
 template<typename Real_>
 void ElasticRod_T<Real_>::hessEnergy(ElasticRod_T<Real_>::CSCMat &H, bool variableRestLen) const {
-    assert(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
+    EROD_REQUIRE(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
     // BENCHMARK_START_TIMER_SECTION("ElasticRod hessEnergy()");
     hessEnergyStretch(H, variableRestLen);
     hessEnergyBend   (H, variableRestLen);
@@ -1381,7 +1406,7 @@ void ElasticRod_T<Real_>::hessEnergy(ElasticRod_T<Real_>::CSCMat &H, bool variab
 
 template<typename Real_>
 void ElasticRod_T<Real_>::massMatrix(ElasticRod_T<Real_>::CSCMat &M) const {
-    assert(M.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
+    EROD_REQUIRE(M.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
 
     using M3d = Eigen::Matrix<Real_, 3, 3>;
     // Per-edge contribution to the mass matrix:

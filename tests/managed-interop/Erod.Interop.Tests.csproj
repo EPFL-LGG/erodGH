@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net48</TargetFramework>
+    <AssemblyName>Erod.Interop.Tests</AssemblyName><PlatformTarget>x64</PlatformTarget>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo><LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/erod/ErodModelLib/ErodModelLib.csproj" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="RhinoCommon" Version="7.10.21256.17001" ExcludeAssets="runtime" />
+    <PackageReference Include="Grasshopper" Version="7.10.21256.17001" ExcludeAssets="runtime" />
+  </ItemGroup>
+</Project>

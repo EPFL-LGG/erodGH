@@ -1,0 +1,46 @@
+set(CMAKE_GET_RUNTIME_DEPENDENCIES_PLATFORM "@CMAKE_GET_RUNTIME_DEPENDENCIES_PLATFORM@")
+if(WIN32)
+    set(CMAKE_GET_RUNTIME_DEPENDENCIES_PLATFORM windows+pe)
+    set(CMAKE_GET_RUNTIME_DEPENDENCIES_TOOL dumpbin)
+    set(CMAKE_GET_RUNTIME_DEPENDENCIES_COMMAND "@_erod_dumpbin@")
+    set(_library "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/erod.dll")
+    set(_system_excludes ".*/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/.*")
+else()
+    set(CMAKE_GET_RUNTIME_DEPENDENCIES_PLATFORM macos+macho)
+    set(CMAKE_GET_RUNTIME_DEPENDENCIES_TOOL otool)
+    set(CMAKE_GET_RUNTIME_DEPENDENCIES_COMMAND /usr/bin/otool)
+    set(_library "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/liberod.dylib")
+    set(_system_excludes "^/usr/lib/.*" "^/System/Library/.*")
+endif()
+# CMake has already installed ERod and TBB in the stage. Resolve source-built
+# SuiteSparse from its pinned prefix, avoiding stale DLLs in raw build output.
+set(_runtime_directories @EROD_RUNTIME_SEARCH_DIRECTORIES@)
+if(NOT "@EROD_DEPS_PREFIX@" STREQUAL "")
+    list(APPEND _runtime_directories "@EROD_DEPS_PREFIX@/bin")
+else()
+    list(APPEND _runtime_directories "@EROD_OUTPUT_DIRECTORY@")
+endif()
+file(GET_RUNTIME_DEPENDENCIES
+    LIBRARIES "${_library}"
+    DIRECTORIES ${_runtime_directories}
+    RESOLVED_DEPENDENCIES_VAR _resolved
+    UNRESOLVED_DEPENDENCIES_VAR _unresolved
+    PRE_EXCLUDE_REGEXES "^[Aa][Pp][Ii]-[Mm][Ss]-" "^[Ee][Xx][Tt]-[Mm][Ss]-" "^[Kk][Ee][Rr][Nn][Ee][Ll]32[.][Dd][Ll][Ll]$"
+    POST_EXCLUDE_REGEXES ${_system_excludes})
+if(_unresolved)
+    message(FATAL_ERROR "Unresolved runtime dependencies: ${_unresolved}")
+endif()
+foreach(_dependency IN LISTS _resolved)
+    if(WIN32)
+        file(TO_CMAKE_PATH "${_dependency}" _normalized_dependency)
+        file(TO_CMAKE_PATH "$ENV{SystemRoot}" _normalized_system_root)
+        string(TOLOWER "${_normalized_dependency}" _normalized_dependency)
+        string(TOLOWER "${_normalized_system_root}" _normalized_system_root)
+        string(FIND "${_normalized_dependency}/" "${_normalized_system_root}/" _is_windows_system)
+        if(_is_windows_system EQUAL 0)
+            continue()
+        endif()
+    endif()
+    file(INSTALL "${_dependency}" DESTINATION "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}"
+         TYPE SHARED_LIBRARY FOLLOW_SYMLINK_CHAIN)
+endforeach()

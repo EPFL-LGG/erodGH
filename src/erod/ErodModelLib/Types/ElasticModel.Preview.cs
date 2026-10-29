@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Grasshopper.Kernel;
 using Rhino;
 using Rhino.DocObjects;

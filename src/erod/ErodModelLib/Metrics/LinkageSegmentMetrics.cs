@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -128,7 +128,7 @@ namespace ErodModelLib.Metrics
 
         public override string ToString()
         {
-            return "SegmentMetrics"; 
+            return "SegmentMetrics";
         }
 
         public BoundingBox ClippingBox
@@ -163,7 +163,7 @@ namespace ErodModelLib.Metrics
                 default:
                     break;
             }
-            
+
         }
 
         public void DrawViewportWires(GH_PreviewWireArgs args)

@@ -1,86 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{853C533F-CC60-4F0D-AB8B-3D9B212E637C}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>ErodModelLib</RootNamespace>
-    <AssemblyName>ErodModelLib</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <RhinoPluginType>none</RhinoPluginType>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\..\..\bin\erod</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <Optimize>true</Optimize>
-    <OutputPath>..\..\bin</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
+    <PackageReference Include="DynamicObj" Version="2.0.0" />
+    <PackageReference Include="FSharp.Core" Version="8.0.200" />
+    <PackageReference Include="Giraffe.ViewEngine.StrongName" Version="2.0.0-alpha1" />
+    <PackageReference Include="Grasshopper" Version="7.10.21256.17001" ExcludeAssets="runtime" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Plotly.NET" Version="4.2.0" />
+    <PackageReference Include="RhinoCommon" Version="7.10.21256.17001" ExcludeAssets="runtime" />
     <Reference Include="System.Drawing" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="WindowsBase" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="Eto">
-      <HintPath>..\packages\RhinoCommon.7.10.21256.17001\lib\net48\Eto.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Rhino.UI">
-      <HintPath>..\packages\RhinoCommon.7.10.21256.17001\lib\net48\Rhino.UI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="RhinoCommon">
-      <HintPath>..\packages\RhinoCommon.7.10.21256.17001\lib\net48\RhinoCommon.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="GH_IO">
-      <HintPath>..\packages\Grasshopper.7.10.21256.17001\lib\net48\GH_IO.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Grasshopper">
-      <HintPath>..\packages\Grasshopper.7.10.21256.17001\lib\net48\Grasshopper.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.8.0.200\lib\netstandard2.0\FSharp.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Giraffe.ViewEngine">
-      <HintPath>..\packages\Giraffe.ViewEngine.1.4.0\lib\netstandard2.0\Giraffe.ViewEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="DynamicObj">
-      <HintPath>..\packages\DynamicObj.2.0.0\lib\netstandard2.0\DynamicObj.dll</HintPath>
-    </Reference>
-    <Reference Include="Plotly.NET">
-      <HintPath>..\packages\Plotly.NET.4.2.0\lib\netstandard2.0\Plotly.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="Giraffe.ViewEngine.StrongName">
-      <HintPath>..\packages\Giraffe.ViewEngine.StrongName.2.0.0-alpha1\lib\netstandard2.0\Giraffe.ViewEngine.StrongName.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
+    <ProjectReference Include="..\ErodDataLib\ErodDataLib.csproj" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Creators\Kernel.RodLinkage.cs" />
+    <Compile Include="Creators\NativeInterop.cs" />
     <Compile Include="Types\RodLinkage.cs" />
     <Compile Include="Types\RodSegment.cs" />
     <Compile Include="Types\Joint.cs" />
@@ -113,27 +52,4 @@
     <Compile Include="Metrics\RodMetrics.cs" />
     <Compile Include="Metrics\RodStressesMetrics.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Creators\" />
-    <Folder Include="Types\" />
-    <Folder Include="Utils\" />
-    <Folder Include="Metrics\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="..\..\..\bin\liberod\liberod.dylib">
-      <Link>liberod.dylib</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ErodDataLib\ErodDataLib.csproj">
-      <Project>{3015EABE-09C1-418D-A019-122CF1969948}</Project>
-      <Name>ErodDataLib</Name>
-      <Private>False</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\RhinoCommon.7.10.21256.17001\build\RhinoCommon.targets" Condition="Exists('..\packages\RhinoCommon.7.10.21256.17001\build\RhinoCommon.targets')" />
-  <Import Project="..\packages\Grasshopper.7.10.21256.17001\build\Grasshopper.targets" Condition="Exists('..\packages\Grasshopper.7.10.21256.17001\build\Grasshopper.targets')" />
 </Project>

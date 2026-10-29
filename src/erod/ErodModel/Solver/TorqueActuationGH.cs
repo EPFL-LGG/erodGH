@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ErodDataLib.Types;
@@ -10,7 +10,7 @@ using Rhino.Geometry;
 
 namespace ErodModel.Model
 {
-    public class TorqueActuationGH : GH_Component
+    public class TorqueActuationGH : global::ErodModel.Solver.LiveReportSolverComponent
     {
         private bool run;
         private int steps = 0;//, openingSteps = 0;
@@ -45,6 +45,7 @@ namespace ErodModel.Model
             pManager.AddBooleanParameter("Run", "Run", "Compute equilibrium.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Reset", "Reset", "Restart computation.", GH_ParamAccess.item);
             pManager[1].Optional = true;
+            AddLiveReportInput(pManager);
         }
 
         /// <summary>
@@ -93,6 +94,7 @@ namespace ErodModel.Model
             DA.GetData(2, ref angleDegrees);
             DA.GetData(3, ref run);
             DA.GetData(4, ref reset);
+            ConfigureLiveReport(DA, 5, run, reset);
 
             if (model.ModelType != ElasticModelType.RodLinkage)
             {
@@ -124,7 +126,7 @@ namespace ErodModel.Model
                         this.Message = "Opening Step " + steps;
                         double angle = closedAngle + refAngle * steps;
 
-                        NewtonSolver.Optimize(copy, supports, forces, opts, out report, true, angle, false);
+                        OptimizeWithLiveReport(copy, supports, forces, opts, out report, true, angle, false, context: "Step " + steps);
 
                         report.OpeningStep = steps;
                         steps++;
@@ -132,7 +134,7 @@ namespace ErodModel.Model
                     }
                     else if (steps == opts.NumDeploymentSteps)
                     {
-                        NewtonSolver.Optimize(copy, supports, forces, opts, out report, true, deployedAngle, true);
+                        OptimizeWithLiveReport(copy, supports, forces, opts, out report, true, deployedAngle, true, context: "Step " + steps);
                         
                         report.OpeningStep = steps;
                         steps++;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using ErodModelLib.Creators;
@@ -11,22 +11,22 @@ namespace ErodModelLib.Types
     {
         private List<RodSegment> _segments;
         private PointCloud _nodes;
-        private IntPtr _model;
+        private NativeHandle _model;
 
         public Point3d[] Nodes => _nodes.GetPoints();
 
-        public RodSegmentCollection(IntPtr model)
+        public RodSegmentCollection(NativeHandle model)
 		{
             _segments = new List<RodSegment>();
             _nodes = new PointCloud();
-            _model = model;
+            _model = model.RetainView();
 		}
 
         public RodSegmentCollection(RodSegmentCollection segments)
         {
             _segments = new List<RodSegment>(segments._segments);
             _nodes = new PointCloud(segments._nodes);
-            _model = segments._model;
+            _model = segments._model.RetainView();
         }
 
         public void Add(RodSegment item)
@@ -46,16 +46,21 @@ namespace ErodModelLib.Types
 
         public void UpdateNodePositions()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numCoords;
             IntPtr cPtr;
             Kernel.RodLinkage.ErodXShellGetCenterLinePositions(_model, out cPtr, out numCoords);
 
             double[] pos = new double[numCoords];
-            Marshal.Copy(cPtr, pos, 0, numCoords);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, pos, 0, numCoords);
+            Kernel.FreeNativeBuffer(cPtr);
 
             _nodes = new PointCloud();
             for (int i = 0; i < pos.Length / 3; i++) _nodes.Add(new Point3d(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]));
+
+            }
         }
 
         public RodSegment this[int index] => _segments[index];

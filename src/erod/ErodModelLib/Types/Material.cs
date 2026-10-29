@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ErodDataLib.Types;
 using ErodModelLib.Creators;
 using GH_IO.Serialization;
@@ -7,7 +7,7 @@ using Rhino.Geometry;
 
 namespace ErodModelLib.Types
 {
-    public struct Material : IGH_Goo
+    public struct Material : IGH_Goo, IDisposable
     {
         public double E { get; set; }
         public double PoisonsRatio { get; set; }
@@ -20,30 +20,36 @@ namespace ErodModelLib.Types
         public double CrossSectionHeight { get; set; }
         public (double Lambda1, double Lambda2) BendingStiffness { get; set; }
         public (double Lambda1, double Lambda2) MomentOfInertia { get; set; }
-        public IntPtr Model { get; private set; }
+        internal NativeHandle Handle { get; private set; }
+        public IntPtr Model => Handle != null && Handle.IsAlive ? Handle.DangerousGetHandle() : IntPtr.Zero;
+        public void Dispose() { Handle?.Dispose(); }
 
-        public Material(MaterialIO matData)
+        public Material(MaterialIO matData) : this()
         {
-            if (matData.HasCustomProfile()) Model = Kernel.Material.ErodMaterialCustomBuild(matData.E, matData.PoisonsRatio, matData.ContourProfile, matData.ContourProfile.Length / 3, new double[0], 0, matData.Orientation);
-            else Model = Kernel.Material.ErodMaterialBuild(matData.CrossSectionType, matData.E, matData.PoisonsRatio, matData.Parameters, matData.Parameters.Length, matData.Orientation);
+            try {
+
+            if (matData.HasCustomProfile()) Handle = Kernel.Material.ErodMaterialCustomBuild(matData.E, matData.PoisonsRatio, matData.ContourProfile, matData.ContourProfile.Length / 3, new double[0], 0, matData.Orientation);
+            else Handle = Kernel.Material.ErodMaterialBuild(matData.CrossSectionType, matData.E, matData.PoisonsRatio, matData.Parameters, matData.Parameters.Length, matData.Orientation);
 
             E = matData.E;
             PoisonsRatio = matData.PoisonsRatio;
             Orientation = Enum.GetName(typeof(StiffAxis), matData.Orientation);
             CrossSection = Enum.GetName(typeof(CrossSectionType), matData.CrossSectionType);
 
-            Area = Kernel.Material.ErodMaterialGetArea(Model);
-            G = Kernel.Material.ErodMaterialGetSherModulus(Model);
-            StretchingStiffness = Kernel.Material.ErodMaterialGetStretchingStiffness(Model);
-            TwistingStiffness = Kernel.Material.ErodMaterialGetTwistingStiffness(Model);
-            CrossSectionHeight = Kernel.Material.ErodMaterialGetCrossSectionHeight(Model);
+            Area = Kernel.Material.ErodMaterialGetArea(Handle);
+            G = Kernel.Material.ErodMaterialGetSherModulus(Handle);
+            StretchingStiffness = Kernel.Material.ErodMaterialGetStretchingStiffness(Handle);
+            TwistingStiffness = Kernel.Material.ErodMaterialGetTwistingStiffness(Handle);
+            CrossSectionHeight = Kernel.Material.ErodMaterialGetCrossSectionHeight(Handle);
 
             double lambda1, lambda2;
-            Kernel.Material.ErodMaterialGetBendingStiffness(Model, out lambda1, out lambda2);
+            Kernel.Material.ErodMaterialGetBendingStiffness(Handle, out lambda1, out lambda2);
             BendingStiffness = (lambda1, lambda2);
 
-            Kernel.Material.ErodMaterialGetMomentOfInertia(Model, out lambda1, out lambda2);
+            Kernel.Material.ErodMaterialGetMomentOfInertia(Handle, out lambda1, out lambda2);
             MomentOfInertia = (lambda1, lambda2);
+
+            } catch { Handle?.Dispose(); throw; }
         }
 
         public override string ToString()
@@ -52,7 +58,7 @@ namespace ErodModelLib.Types
         }
 
         #region GH_Methods
-        public bool IsValid => true;
+        public bool IsValid => Handle != null && Handle.IsAlive;
 
         public string IsValidWhyNot => "Missing pointer";
 
@@ -62,7 +68,7 @@ namespace ErodModelLib.Types
 
         public IGH_Goo Duplicate()
         {
-            return (IGH_Goo)this.MemberwiseClone();
+            var copy=this; copy.Handle=Kernel.Material.ErodMaterialCopy(Handle); return copy;
         }
 
         public IGH_GooProxy EmitProxy()

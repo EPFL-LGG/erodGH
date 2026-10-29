@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using ErodModelLib.Creators;
 
@@ -10,38 +10,40 @@ namespace ErodModelLib.Types
         public bool Success { get; private set; }
         public bool BacktrackingFailure { get; private set; }
         public int Iterations { get; private set; }
+        public int SampleCount => Energy == null ? 0 : Energy.Length;
         public double[] Energy { get; private set; }
         public double[] GradientNorm { get; private set; }
         public double[] FreeGradientNorm { get; private set; }
         public double[] StepLength { get; private set; }
         public bool[] Indefinite { get; private set; }
 
-        public ConvergenceReport(double[] data, int numIterations)
+        public ConvergenceReport(double[] data, int sampleCount)
         {
+            if (data == null || sampleCount < 0 || data.Length != checked(2 + sampleCount * 5)) throw new ArgumentException("Invalid convergence report length", nameof(data));
             OpeningStep = 0;
-            Iterations = numIterations;
+            Iterations = Math.Max(0, sampleCount - 1);
             Success = Convert.ToBoolean(data[0]);
             BacktrackingFailure = Convert.ToBoolean(data[1]);
 
             int idx = 2;
-            Energy = new double[Iterations];
-            Array.Copy(data, idx, Energy, 0, Iterations);
+            Energy = new double[sampleCount];
+            Array.Copy(data, idx, Energy, 0, sampleCount);
 
-            idx += Iterations;
-            GradientNorm = new double[Iterations];
-            Array.Copy(data, idx, GradientNorm, 0, Iterations);
+            idx += sampleCount;
+            GradientNorm = new double[sampleCount];
+            Array.Copy(data, idx, GradientNorm, 0, sampleCount);
 
-            idx += Iterations;
-            FreeGradientNorm = new double[Iterations];
-            Array.Copy(data, idx, FreeGradientNorm, 0, Iterations);
+            idx += sampleCount;
+            FreeGradientNorm = new double[sampleCount];
+            Array.Copy(data, idx, FreeGradientNorm, 0, sampleCount);
 
-            idx += Iterations;
-            StepLength = new double[Iterations];
-            Array.Copy(data, idx, StepLength, 0, Iterations);
+            idx += sampleCount;
+            StepLength = new double[sampleCount];
+            Array.Copy(data, idx, StepLength, 0, sampleCount);
 
-            idx += Iterations;
-            Indefinite = new bool[Iterations];
-            for (int i=0; i<Iterations; i++)
+            idx += sampleCount;
+            Indefinite = new bool[sampleCount];
+            for (int i=0; i<sampleCount; i++)
             {
                 Indefinite[i] = Convert.ToBoolean(data[idx + i]);
             }
@@ -49,10 +51,10 @@ namespace ErodModelLib.Types
 
         public override string ToString()
         {
-            if(Iterations>0)
+            if(SampleCount>0)
             {
                 string txt = "--- Convergence Report ---\nOpening Step: " + OpeningStep + " :: Success: " + Success + " :: Backtracking Failure: " + BacktrackingFailure;
-                for (int i = 0; i < Iterations; i++)
+                for (int i = 0; i < SampleCount; i++)
                 {
                     txt += "\nIter(" + i + ") Energy: " + Energy[i] + " -- GradientNorm: " + GradientNorm[i] + " -- FreeGradientNorm: " + FreeGradientNorm[i] + " -- StepLength: " + StepLength[i] + " -- Indefinite: " + Indefinite[i];
                 }

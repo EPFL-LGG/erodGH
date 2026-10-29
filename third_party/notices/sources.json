@@ -1,0 +1,37 @@
+{
+  "Plotly.NET-4.2.0": {
+    "file": "Plotly.NET-4.2.0.txt",
+    "url": "https://raw.githubusercontent.com/plotly/Plotly.NET/4.2.0/LICENSE",
+    "sha256": "28206ec0ed0696dff7adcac2aa599b72904a8867a333c351f6309ea46817e484"
+  },
+  "DynamicObj-2.0.0": {
+    "file": "DynamicObj-2.0.0.txt",
+    "url": "https://raw.githubusercontent.com/CSBiology/DynamicObj/2.0.0/LICENSE",
+    "sha256": "9edd7442559a9852a7f43e6a6791d73da0b1a94e7178cdaf971d31f686219795"
+  },
+  "SSH.NET-2026.0.0": {
+    "file": "SSH.NET-2026.0.0.txt",
+    "url": "https://raw.githubusercontent.com/sshnet/SSH.NET/2026.0.0/LICENSE",
+    "sha256": "84c79a38515de2833a7c353395e04056c0cbd77545d450fe216d569e1570b78e"
+  },
+  "Microsoft.Bcl.Cryptography-10.0.10": {
+    "file": "Microsoft.Bcl.Cryptography-10.0.10.txt",
+    "url": "https://raw.githubusercontent.com/dotnet/runtime/v10.0.10/LICENSE.TXT",
+    "sha256": "cfc21f5e8bd655ae997eec916138b707b1d290b83272c02a95c9f821b8c87310"
+  },
+  "System.Formats.Asn1-10.0.10": {
+    "file": "System.Formats.Asn1-10.0.10.txt",
+    "url": "https://raw.githubusercontent.com/dotnet/runtime/v10.0.10/LICENSE.TXT",
+    "sha256": "cfc21f5e8bd655ae997eec916138b707b1d290b83272c02a95c9f821b8c87310"
+  },
+  "FSharp.Core-8.0.200": {
+    "file": "FSharp.Core-8.0.200.txt",
+    "url": "https://raw.githubusercontent.com/dotnet/fsharp/a7979111f86ab7332897ea617635bf3435c39bc3/License.txt",
+    "sha256": "480d420fd388a3ce0cecb73d79aee3f02f70fee060e95f4727b1335feff33201"
+  },
+  "Giraffe.ViewEngine.StrongName-2.0.0-alpha1": {
+    "file": "Giraffe.ViewEngine.StrongName-2.0.0-alpha1.txt",
+    "url": "https://raw.githubusercontent.com/giraffe-fsharp/Giraffe.ViewEngine/467524c5f607619193013a8c5fdc0da4b66c598b/LICENSE",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  }
+}

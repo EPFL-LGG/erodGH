@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Renci.SshNet;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -106,7 +106,7 @@ namespace ErodDataLib.Utils
             }
 
             // Transfer the temporary file to the server
-            using (var scp = new ScpClient(_connectionInfo))
+            using (var scp = new ScpClient(_connectionInfo, RemotePathTransformation.ShellQuote))
             {
                 scp.Connect();
                 scp.Upload(new FileInfo(tempFileName), fileName);
@@ -154,7 +154,7 @@ namespace ErodDataLib.Utils
             }
 
             // Transfer the temporary file to the server
-            using (var scp = new ScpClient(connectionInfo))
+            using (var scp = new ScpClient(connectionInfo, RemotePathTransformation.ShellQuote))
             {
                 try
                 {

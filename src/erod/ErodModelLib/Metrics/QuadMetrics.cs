@@ -1,4 +1,4 @@
-﻿using ErodModelLib.Utils;
+using ErodModelLib.Utils;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
@@ -25,7 +25,7 @@ namespace ErodModelLib.Metrics
         public QuadMetrics(Curve[] edges, QuadMetricTypes qType, ColorMapTypes colorMapType=ColorMapTypes.Blues_Sequential, int alpha=75)
         {
             _mesh = Mesh.CreateFromLines(edges, 4, 1e-3);
-            
+
             int numFaces = _mesh.Faces.Count;
             Data = new double[numFaces];
             NormalizedData = new double[numFaces];

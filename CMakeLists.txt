@@ -1,114 +1,52 @@
-################################################################################
-# General Informations
-################################################################################
+cmake_minimum_required(VERSION 3.20)
+project(erodGH VERSION 0.2.0 LANGUAGES C CXX)
+set(EROD_NATIVE_ABI 2)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
-cmake_minimum_required(VERSION 3.1)
-project(erodGH)
-
-# CMP0063: Honor visibility properties for all target types.
-if(POLICY CMP0063)
-    cmake_policy(SET CMP0063 NEW)
+option(EROD_BUILD_PYTHON "Build the optional legacy Python bindings" OFF)
+option(EROD_FAST_BUILD "Disable optimization of template-heavy rod code" OFF)
+set(EROD_DEPS_PREFIX "" CACHE PATH "Prefix containing the bootstrapped dependencies")
+set(EROD_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/erod" CACHE PATH "Runtime/plugin output folder")
+# Compatibility with the first Windows bootstrap.
+if(EROD_WINDOWS_DEPS_PREFIX AND NOT EROD_DEPS_PREFIX)
+    set(EROD_DEPS_PREFIX "${EROD_WINDOWS_DEPS_PREFIX}")
 endif()
-
-################################################################################
-set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-
-set(CMAKE_CXX_FLAGS_RELWITHASSERT        "-O3" CACHE STRING "Flags used during RelWithAssertions builds" FORCE)
-set(CMAKE_C_FLAGS_RELWITHASSERT          "-O3" CACHE STRING "Flags used during RelWithAssertions builds" FORCE)
-set(CMAKE_EXE_LINKER_FLAGS_RELWITHASSERT    "" CACHE STRING "Flags used during RelWithAssertions builds" FORCE)
-set(CMAKE_SHARED_LINKER_FLAGS_RELWITHASSERT "" CACHE STRING "Flags used during RelWithAssertions builds" FORCE)
-set(CMAKE_MODULE_LINKER_FLAGS_RELWITHASSERT "" CACHE STRING "Flags used during RelWithAssertions builds" FORCE)
-set(CMAKE_STATIC_LINKER_FLAGS_RELWITHASSERT "" CACHE STRING "Flags used during RelWithAssertions builds" FORCE)
-mark_as_advanced(
-    CMAKE_CXX_FLAGS_RELWITHASSERT
-    CMAKE_C_FLAGS_RELWITHASSERT
-    CMAKE_EXE_LINKER_FLAGS_RELWITHASSERT
-    CMAKE_SHARED_LINKER_FLAGS_RELWITHASSERT
-    CMAKE_MODULE_LINKER_FLAGS_RELWITHASSERT
-    CMAKE_STATIC_LINKER_FLAGS_RELWITHASSERT
-    )
-
-set(CMAKE_CXX_FLAGS_RELEASENATIVE        "-O3 -march=native -DNDEBUG" CACHE STRING "Flags used during native release builds" FORCE)
-set(CMAKE_C_FLAGS_RELEASENATIVE          "-O3 -march=native -DNDEBUG" CACHE STRING "Flags used during native release builds" FORCE)
-set(CMAKE_EXE_LINKER_FLAGS_RELEASENATIVE    "" CACHE STRING "Flags used during native release builds" FORCE)
-set(CMAKE_SHARED_LINKER_FLAGS_RELEASENATIVE "" CACHE STRING "Flags used during native release builds" FORCE)
-set(CMAKE_MODULE_LINKER_FLAGS_RELEASENATIVE "" CACHE STRING "Flags used during native release builds" FORCE)
-set(CMAKE_STATIC_LINKER_FLAGS_RELEASENATIVE "" CACHE STRING "Flags used during native release builds" FORCE)
-mark_as_advanced(
-    CMAKE_CXX_FLAGS_RELEASENATIVE
-    CMAKE_C_FLAGS_RELEASENATIVE
-    CMAKE_EXE_LINKER_FLAGS_RELEASENATIVE
-    CMAKE_SHARED_LINKER_FLAGS_RELEASENATIVE
-    CMAKE_MODULE_LINKER_FLAGS_RELEASENATIVE
-    CMAKE_STATIC_LINKER_FLAGS_RELEASENATIVE
-    )
-
-set(CMAKE_CXX_FLAGS_DEBUGNATIVE        "-g -march=native" CACHE STRING "Flags used during native debug builds" FORCE)
-set(CMAKE_C_FLAGS_DEBUGNATIVE          "-g -march=native" CACHE STRING "Flags used during native debug builds" FORCE)
-set(CMAKE_EXE_LINKER_FLAGS_DEBUGNATIVE    "" CACHE STRING "Flags used during native debug builds" FORCE)
-set(CMAKE_SHARED_LINKER_FLAGS_DEBUGNATIVE "" CACHE STRING "Flags used during native debug builds" FORCE)
-set(CMAKE_MODULE_LINKER_FLAGS_DEBUGNATIVE "" CACHE STRING "Flags used during native debug builds" FORCE)
-set(CMAKE_STATIC_LINKER_FLAGS_DEBUGNATIVE "" CACHE STRING "Flags used during native debug builds" FORCE)
-mark_as_advanced(
-    CMAKE_CXX_FLAGS_DEBUGNATIVE
-    CMAKE_C_FLAGS_DEBUGNATIVE
-    CMAKE_EXE_LINKER_FLAGS_DEBUGNATIVE
-    CMAKE_SHARED_LINKER_FLAGS_DEBUGNATIVE
-    CMAKE_MODULE_LINKER_FLAGS_DEBUGNATIVE
-    CMAKE_STATIC_LINKER_FLAGS_DEBUGNATIVE
-    )
-
-# # Enable address sanitizer in debug mode.
-# # WARNING: this causes JupyterLab/Python to crash when loading our module, at
-# # least on macOS: care must be taken to preload the asan verison of libclang_rt,
-# # which is tricky since lldb/JupyterLab strip the `DYLD_INSERT_LIBRARIES` variable...
-# set (CMAKE_C_FLAGS_DEBUG      "${CMAKE_C_FLAGS_DEBUG}      -fno-omit-frame-pointer -fsanitize=address")
-# set (CMAKE_CXX_FLAGS_DEBUG    "${CMAKE_CXX_FLAGS_DEBUG}    -fno-omit-frame-pointer -fsanitize=address")
-# set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-
-
-if(NOT CMAKE_BUILD_TYPE)
-    message(STATUS "No build type selected, default to RelWithAssert")
-    set(CMAKE_BUILD_TYPE "RelWithAssert")
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build configuration" FORCE)
 endif()
-
-set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING "Choose the type of build. Options are: None Debug Release RelWithDebInfo MinSizeRel RelWithAssert" FORCE)
-
-# Color output
-#include(UseColors)
-
-# Make sure warnings/errors are still colorized when using Ninja for building.
-if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    add_definitions(-fdiagnostics-color=always)
-endif()
-
-# Make sure warnings/errors are still colorized when using Ninja for building.
-add_definitions(-fdiagnostics-color=always)
-
-# Export compile flags(used for autocompletion of the C++ code)
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-
-# CMake plugin for vscode
-include(CMakeToolsHelpers OPTIONAL)
-
-# Enable more warnings
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wno-comment")
-
-# We need -fPIC when compiling our libraries and our dependencies for
-# the python bindings to link.
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-################################################################################
-# Common libraries
-################################################################################
-if(NOT TARGET MeshFEM)
-    add_subdirectory(${THIRD_PARTY_DIR}/elastic_rods)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+if(MSVC)
+    add_compile_options(/bigobj /MP4)
+    add_compile_definitions(NOMINMAX _USE_MATH_DEFINES)
 endif()
-
-
-################################################################################
-# Libraries for Rhino
-################################################################################
+foreach(_option LIBIGL_WITH_OPENGL LIBIGL_WITH_OPENGL_GLFW LIBIGL_WITH_OPENGL_GLFW_IMGUI LIBIGL_WITH_VIEWER LIBIGL_USE_STATIC_LIBRARY)
+    option(${_option} "Optional standalone editor dependency" OFF)
+endforeach()
+option(DISABLE_Knitro "Exclude optional commercial Knitro code" ON)
+set(THIRD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dependencies")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+if(EROD_DEPS_PREFIX)
+    include(cmake/ManagedDependencies.cmake)
+endif()
+add_subdirectory(dependencies/elastic_rods)
 add_subdirectory(src)
+if(EROD_FAST_BUILD)
+    foreach(_target ElasticRods RodLinkages erod)
+        if(MSVC)
+            target_compile_options(${_target} PRIVATE /Od /Ob0)
+        else()
+            target_compile_options(${_target} PRIVATE -O0)
+        endif()
+    endforeach()
+endif()
+include(cmake/InstallRuntime.cmake)
+
+option(EROD_BUILD_HARDENING_TESTS "Build native failure-path regression tests" OFF)
+if(EROD_BUILD_HARDENING_TESTS)
+    enable_testing()
+    add_executable(erod-hardening-tests tests/native-hardening/main.cpp)
+    target_link_libraries(erod-hardening-tests PRIVATE RodLinkages MeshFEM)
+    target_compile_features(erod-hardening-tests PRIVATE cxx_std_14)
+    add_test(NAME erod-hardening COMMAND erod-hardening-tests)
+endif()

@@ -1,3 +1,21 @@
+#include "ProgressLog.hh"
+#include <sstream>
+#include <iomanip>
+namespace erod_progress {
+namespace { thread_local Callback sink = nullptr; thread_local void *sinkContext = nullptr; }
+void setCallback(Callback callback, void *context) noexcept { sink = callback; sinkContext = context; }
+void iteration(size_t i, double energy, double gradient, double freeGradient, double step, bool indefinite) {
+    if (!sink) return;
+    // Logging must never change the outcome of an optimization.
+    try {
+        std::ostringstream text;
+        text << std::setprecision(12) << i << '\t' << energy << '\t' << gradient
+             << '\t' << freeGradient << '\t' << step << '\t' << indefinite << '\n';
+        sink(text.str().c_str(), sinkContext);
+    } catch (...) { }
+}
+}
+
 #include "newton_optimizer.hh"
 #include "../AutomaticDifferentiation.hh"
 
@@ -197,6 +215,7 @@ ConvergenceReport NewtonOptimizer::optimize(WorkingSet &workingSet) {
     auto reportIterate = [&](size_t i, Real energy, const Eigen::VectorXd &g, const Eigen::VectorXd &g_free) {
         prob->writeIterateFiles(i);
         report.addEntry(energy, g.norm(), g_free.norm(), alpha, isIndefinite);
+        erod_progress::iteration(i, energy, report.gradientNorm.back(), report.freeGradientNorm.back(), alpha, isIndefinite);
 
         if (options.verbose && ((i % options.verbose) == 0)) {
             std::cout << i << '\t';

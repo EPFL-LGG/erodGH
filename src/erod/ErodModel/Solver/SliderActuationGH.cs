@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ErodModelLib.Types;
 using GH_IO.Serialization;
 using Grasshopper.Kernel;
@@ -9,7 +9,7 @@ using Rhino.Geometry;
 
 namespace ErodModel.Model
 {
-	public class SliderActuationGH : GH_Component
+	public class SliderActuationGH : global::ErodModel.Solver.LiveReportSolverComponent
 	{
         private bool run;
         private RodLinkage copy;
@@ -50,6 +50,7 @@ namespace ErodModel.Model
             pManager.AddBooleanParameter("SlideAlongA", "SlideAlongA", "Sets whether to slide the joint along ribbons of family A or B.", GH_ParamAccess.list);
             pManager.AddNumberParameter("SlidingStep","SlidingStep", "Sets the signed step to modify the position of the joint. A joint can be positioned within at most two segments of the same family. The value should be between -1.0 and 1.0.", GH_ParamAccess.list);
             pManager[1].Optional = true;
+            AddLiveReportInput(pManager);
         }
 
         /// <summary>
@@ -100,6 +101,7 @@ namespace ErodModel.Model
             DA.GetData(1, ref options);
             DA.GetData(2, ref run);
             DA.GetData(3, ref reset);
+            ConfigureLiveReport(DA, 7, run, reset);
             DA.GetDataList(4, jointIndices);
             DA.GetDataList(5, isFamiliesAs);
             DA.GetDataList(6, slidingStep);
@@ -212,7 +214,7 @@ namespace ErodModel.Model
                 double[] forces = copy.GetForceVars(options.IncludeForces);
                 int[] supports = copy.GetFixedVars(false, 0.0);
 
-                NewtonSolver.Optimize(copy, supports, forces, options, out report);
+                OptimizeWithLiveReport(copy, supports, forces, options, out report, context: "Sliding batch");
             }
 
             DA.SetData(0, copy);

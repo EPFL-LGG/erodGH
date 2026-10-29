@@ -1,3 +1,4 @@
+#include "RuntimeChecks.hh"
 ////////////////////////////////////////////////////////////////////////////////
 // ElasticRod.hh
 ////////////////////////////////////////////////////////////////////////////////
@@ -156,7 +157,7 @@ struct ElasticRod_T {
 
     // Edge's edge vector in the rest configuration (i.e., the non-unit tangent vector)
     Vec3 restEdgeVector(size_t j) const {
-        assert(j < numEdges());
+        EROD_REQUIRE(j < numEdges());
         return m_restPoints[j + 1] - m_restPoints[j];
     }
 
@@ -231,7 +232,7 @@ struct ElasticRod_T {
     std::vector<Real_> &restKappaVars() { return m_restKappaVars; }
 
     const Vec3 &restMaterialFrameD2(size_t j) const {
-        assert(j < numEdges());
+        EROD_REQUIRE(j < numEdges());
         // Note: assume the rest configuration has no twist (all rest thetas are zero).
         return m_restDirectors.at(j).d2;
     }
@@ -240,7 +241,7 @@ struct ElasticRod_T {
     }
 
     const Vec3 &restMaterialFrameD1(size_t j) const {
-        assert(j < numEdges());
+        EROD_REQUIRE(j < numEdges());
         // Note: assume the rest configuration has no twist (all rest thetas are zero).
         return m_restDirectors.at(j).d1;
     }
@@ -441,16 +442,16 @@ struct ElasticRod_T {
     Real_ &stretchingStiffness(size_t j) { return m_stretchingStiffness[j]; }
 
     // Allow manual modification of the density
-    Real_ &density(size_t j)       { assert(j < numEdges()); return m_density[j]; }
-    Real_  density(size_t j) const { assert(j < numEdges()); return m_density[j]; }
+    Real_ &density(size_t j)       { EROD_REQUIRE(j < numEdges()); return m_density[j]; }
+    Real_  density(size_t j) const { EROD_REQUIRE(j < numEdges()); return m_density[j]; }
     const std::vector<Real_> &densities() const { return m_density; }
     void setDensities(const std::vector<Real_> &d) { m_density = d; }
 
     // Access a given vertex's bending and twisting stiffness.
-          RodMaterial::BendingStiffness  &bendingStiffness(size_t i)       { assert(i < numVertices()); return  m_bendingStiffness[i]; }
-    const RodMaterial::BendingStiffness  &bendingStiffness(size_t i) const { assert(i < numVertices()); return  m_bendingStiffness[i]; }
-    Real_ &                              twistingStiffness(size_t i)       { assert(i < numVertices()); return m_twistingStiffness[i]; }
-    Real_                                twistingStiffness(size_t i) const { assert(i < numVertices()); return m_twistingStiffness[i]; }
+          RodMaterial::BendingStiffness  &bendingStiffness(size_t i)       { EROD_REQUIRE(i < numVertices()); return  m_bendingStiffness[i]; }
+    const RodMaterial::BendingStiffness  &bendingStiffness(size_t i) const { EROD_REQUIRE(i < numVertices()); return  m_bendingStiffness[i]; }
+    Real_ &                              twistingStiffness(size_t i)       { EROD_REQUIRE(i < numVertices()); return m_twistingStiffness[i]; }
+    Real_                                twistingStiffness(size_t i) const { EROD_REQUIRE(i < numVertices()); return m_twistingStiffness[i]; }
     const std::vector<RodMaterial::BendingStiffness> &   bendingStiffnesses() const { return    m_bendingStiffness; }
     const std::vector<Real_                        > &  twistingStiffnesses() const { return   m_twistingStiffness; }
     const std::vector<Real_                        > &stretchingStiffnesses() const { return m_stretchingStiffness; }
@@ -498,14 +499,14 @@ struct ElasticRod_T {
         auto   gradPos  (size_t i)       { return this->template segment<3>(3 * i); }
         Real_  gradTheta(size_t j) const { return (*this)[thetaOffset + j]; }
         Real_ &gradTheta(size_t j)       { return (*this)[thetaOffset + j]; }
-        Real_  gradDesignParameters(size_t j) const { assert(variableRestLens || variableRestKappas); return (*this)[designParameterOffset + j]; }
-        Real_ &gradDesignParameters(size_t j)       { assert(variableRestLens || variableRestKappas); return (*this)[designParameterOffset + j]; }
+        Real_  gradDesignParameters(size_t j) const { EROD_REQUIRE(variableRestLens || variableRestKappas); return (*this)[designParameterOffset + j]; }
+        Real_ &gradDesignParameters(size_t j)       { EROD_REQUIRE(variableRestLens || variableRestKappas); return (*this)[designParameterOffset + j]; }
 
         // Gradient wrt rest length for edge j
-        Real_ &gradRestLen  (size_t j) { assert(variableRestLens  ); return (*this)[j + restLenOffset]; }
+        Real_ &gradRestLen  (size_t j) { EROD_REQUIRE(variableRestLens  ); return (*this)[j + restLenOffset]; }
         // Gradient wrt rest kappa of *vertex* i.
         // WARNING: vertex i = 1 corresponds to the 0^th rest curvature variable, since vertex i = 0 has no rest curvature variable.
-        Real_ &gradRestKappa(size_t i) { assert(variableRestKappas); return (*this)[i - 1 + restKappaOffset]; }
+        Real_ &gradRestKappa(size_t i) { EROD_REQUIRE(variableRestKappas); return (*this)[i - 1 + restKappaOffset]; }
 
         size_t thetaOffset = 0;
         size_t designParameterOffset = 0;
@@ -777,7 +778,7 @@ struct ElasticRod_T {
     // to keep these strictly positive.
     std::vector<size_t> lengthVars(bool variableDesignParameters = false) const {
         std::vector<size_t> result;
-        if (!variableDesignParameters or !m_designParameterConfig.restLen) return result;
+        if (!variableDesignParameters || !m_designParameterConfig.restLen) return result;
         const size_t nrl = numRestLengths(),
                      rlo = designParameterOffset();
         for (size_t i = 0; i < nrl; ++i)

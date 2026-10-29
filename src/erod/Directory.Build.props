@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath Condition="'$(ErodOutputDirectory)' != ''">$(ErodOutputDirectory)/</OutputPath>
+    <OutputPath Condition="'$(ErodOutputDirectory)' == ''">$(MSBuildThisFileDirectory)../../bin/erod/</OutputPath>
+    <DefineConstants Condition="'$(OS)' == 'Windows_NT'">$(DefineConstants);EROD_WINDOWS</DefineConstants>
+    <PlatformTarget Condition="'$(OS)' == 'Windows_NT'">x64</PlatformTarget>
+    <Deterministic>true</Deterministic>
+    <!-- Keep neutral English resources; omit dependency translation folders. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

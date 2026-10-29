@@ -1,3 +1,4 @@
+#include "RuntimeChecks.hh"
 #include "RodLinkage.hh"
 #include "LinkageTerminalEdgeSensitivity.hh"
 #include <queue>
@@ -107,7 +108,7 @@ void RodLinkage_T<Real_>::set(std::vector<MeshIO::IOVertex > vertices, // copy e
 
             isStartPt[k] = (e[0] == vi);
             if (isStartPt[k]) continue;
-            assert(e[1] == vi);
+            EROD_REQUIRE(e[1] == vi);
             edgeVecs.col(k) *= -1.0;
         }
         edgeVecLens = edgeVecs.colwise().norm();
@@ -304,7 +305,7 @@ void RodLinkage_T<Real_>::set(std::vector<MeshIO::IOVertex > vertices, // copy e
                 edgeVecLens[k] = edgeVecs[k].norm();
                 edgeVecs[k] /= edgeVecLens[k];
                 if (!isStartPt[k]) {
-                    (m_rod_orientation_indicator[incidentEdges[vi][k]]) ? assert(e[1] == vi) : assert(e[0] == vi);
+                    (m_rod_orientation_indicator[incidentEdges[vi][k]]) ? EROD_REQUIRE(e[1] == vi) : EROD_REQUIRE(e[0] == vi);
                     edgeVecs[k] *= -1.0;
                 }
             } else {
@@ -410,11 +411,11 @@ void RodLinkage_T<Real_>::set(std::vector<MeshIO::IOVertex > vertices, // copy e
         while (!bfsQueue.empty()) {
             size_t u = bfsQueue.front();
             size_t ju = jointForVertex[u];
-            assert(ju != NONE);
+            EROD_REQUIRE(ju != NONE);
             bfsQueue.pop();
             for (size_t k = 0; k < valence[u]; ++k) {
                 const auto &e = edges.at(incidentEdges[u][k]);
-                assert((e[0] == u) != (e[1] == u));
+                EROD_REQUIRE((e[0] == u) != (e[1] == u));
                 const size_t v = (e[0] == u) ? e[1] : e[0];
                 if (visited[v]) continue;
                 size_t jv = jointForVertex[v];
@@ -720,7 +721,7 @@ void RodLinkage_T<Real_>::set(std::vector<MeshIO::IOVertex > vertices,
 
             isStartPt[k] = (e[0] == vi);
             if (isStartPt[k]) continue;
-            assert(e[1] == vi);
+            EROD_REQUIRE(e[1] == vi);
             edgeVecs.col(k) *= -1.0;
         }
         edgeVecLens = edgeVecs.colwise().norm();
@@ -981,11 +982,11 @@ void RodLinkage_T<Real_>::set(std::vector<MeshIO::IOVertex > vertices,
         while (!bfsQueue.empty()) {
             size_t u = bfsQueue.front();
             size_t ju = jointForVertex[u];
-            assert(ju != NONE);
+            EROD_REQUIRE(ju != NONE);
             bfsQueue.pop();
             for (size_t k = 0; k < valence[u]; ++k) {
                 const auto &e = edges.at(incidentEdges[u][k]);
-                assert((e[0] == u) != (e[1] == u));
+                EROD_REQUIRE((e[0] == u) != (e[1] == u));
                 const size_t v = (e[0] == u) ? e[1] : e[0];
                 if (visited[v]) continue;
                 size_t jv = jointForVertex[v];
@@ -1373,7 +1374,7 @@ void RodLinkage_T<Real_>::m_buildDoFOffsets() {
 // edges.
 template<typename Real_>
 void RodLinkage_T<Real_>:: m_constructSegmentRestLenToEdgeRestLenMapTranspose(const VecX_T<Real_> &segmentRestLenGuess) {
-    assert(size_t(segmentRestLenGuess.size()) == numSegments());
+    EROD_REQUIRE(size_t(segmentRestLenGuess.size()) == numSegments());
     // Get the initial ideal rest length for the edges of each segment; this is
     // used to decide which segments control which terminal edges.
     VecX idealEdgeLenForSegment(numSegments());
@@ -1417,7 +1418,7 @@ void RodLinkage_T<Real_>:: m_constructSegmentRestLenToEdgeRestLenMapTranspose(co
             if (ji == NONE) return;
             const auto &j = joint(ji);
             size_t controller = controllersForJoint[ji][j.segmentABOffset(si)];
-            assert(controller != NONE);
+            EROD_REQUIRE(controller != NONE);
             if (controller != si) nz += numFreeEdges;
         };
         processJoint(s.startJoint);
@@ -1473,7 +1474,7 @@ void RodLinkage_T<Real_>:: m_constructSegmentRestLenToEdgeRestLenMapTranspose(co
             if (ji == NONE) return;
             const auto &j = joint(ji);
             size_t c = controllersForJoint[ji][j.segmentABOffset(si)];
-            assert(c != NONE);
+            EROD_REQUIRE(c != NONE);
             if (c == si) { infl[0].val -= (0.5 * (1.0 / (ne - 1))) / numFreeIntervals; return; }
             infl[lji + 1].idx = c;
             infl[lji + 1].val = -(0.5 * (1.0 / (numEdgesForSegment[c] - 1))) / numFreeIntervals;
@@ -1505,9 +1506,9 @@ void RodLinkage_T<Real_>:: m_constructSegmentRestLenToEdgeRestLenMapTranspose(co
         }
     }
 
-    assert(Ax.size() == size_t(nz   ));
-    assert(Ai.size() == size_t(nz   ));
-    assert(Ap.size() == size_t(n + 1));
+    EROD_REQUIRE(Ax.size() == size_t(nz   ));
+    EROD_REQUIRE(Ai.size() == size_t(nz   ));
+    EROD_REQUIRE(Ap.size() == size_t(n + 1));
 
     m_segmentRestLenToEdgeRestLenMapTranspose = std::move(result);
 }
@@ -1800,7 +1801,7 @@ RodLinkage_T<Real_>::Joint::Joint(RodLinkage_T *l, const Pt3 &p, const Vec3 &eA,
 
     // Compute angle bisector "t"; the joint's orientation will be described by frame (t | n x t | n)
     m_source_t = tA + tB;
-    assert(m_source_t.norm() > 1e-8); // B's sign was chosen to make alpha acute...
+    EROD_REQUIRE(m_source_t.norm() > 1e-8); // B's sign was chosen to make alpha acute...
     m_source_t.normalize();
 
     m_alpha = asin(sin_alpha); // always in [0, pi/2]
@@ -1841,7 +1842,7 @@ RodLinkage_T<Real_>::Joint::Joint(RodLinkage_T *l, const Pt3 &p, const Vec3 &n, 
 
     // Compute angle bisector "t"; the joint's orientation will be described by frame (t | n x t | n)
     m_source_t = tA + tB;
-    assert(m_source_t.norm() > 1e-8); // B's sign was chosen to make alpha acute...
+    EROD_REQUIRE(m_source_t.norm() > 1e-8); // B's sign was chosen to make alpha acute...
     m_source_t.normalize();
 
     m_alpha = asin(sin_alpha); // always in [0, pi/2]
@@ -1892,8 +1893,8 @@ void RodLinkage_T<Real_>::Joint::applyConfiguration(const std::vector<RodSegment
     auto configureEdge = [&](Vec3 e, bool isStart, const ElasticRod_T<Real_> &rod, std::vector<Pt3> &pts, std::vector<Real_> &thetas, int direction, int normal_sign) {
         const size_t nv = pts.size();
         const size_t ne = thetas.size();
-        assert(nv == rod.numVertices());
-        assert(ne == rod.numEdges());
+        EROD_REQUIRE(nv == rod.numVertices());
+        EROD_REQUIRE(ne == rod.numEdges());
 
         const size_t edgeIdx = isStart ? 0 : ne - 1;
 
@@ -2289,8 +2290,8 @@ VecX_T<Real_> RodLinkage_T<Real_>::gradient(bool updatedSource, EnergyType eType
                         std::tie(sA, sB, isStart) = joint.terminalEdgeIdentification(si);
                         // Decode which of the global variables controls this segment.
                         if (sA != 0) { dofIdx = m_designParameterDoFOffsetForJoint[jindex]; }
-                        if (sB != 0) { assert(dofIdx == NONE); dofIdx = m_designParameterDoFOffsetForJoint[jindex] + 1; }
-                        assert(dofIdx != NONE);
+                        if (sB != 0) { EROD_REQUIRE(dofIdx == NONE); dofIdx = m_designParameterDoFOffsetForJoint[jindex] + 1; }
+                        EROD_REQUIRE(dofIdx != NONE);
                         edgeIdx = isStart ? 0 : r.numEdges() - 1;
                     }
                     gout[dofIdx] += sg.gradDesignParameters(edgeIdx);
@@ -2445,7 +2446,7 @@ dv_dr_for_segment(const typename RodLinkage_T<Real_>::RodSegment &s,
             else                                              dvk_dr.push_back({index_type(segmentDofOffset + s.numPosDoF() + eidx - s.hasStartJoint()), 1.0}); // Permuted Kronecker delta
         }
         else {
-            assert(variableDesignParameters);
+            EROD_REQUIRE(variableDesignParameters);
             size_t eidx = k - r.designParameterOffset();
             // The k here is indexing over the dof in a single elastic rod, so we still have rest length before rest kappa.
             // Rest length variable...
@@ -2575,7 +2576,7 @@ auto RodLinkage_T<Real_>::hessianSparsityPattern(bool variableDesignParameters, 
 
     // Append the indices [start, end) to Ai
     auto addIdxRange = [&](const size_t start, const size_t end) {
-        assert((start <= ndof) && (end <= ndof));
+        EROD_REQUIRE((start <= ndof) && (end <= ndof));
         const size_t len = end - start, oldSize = Ai.size();
         Ai.resize(oldSize + len);
         for (size_t i = 0; i < len; ++i)
@@ -2649,7 +2650,7 @@ auto RodLinkage_T<Real_>::hessianSparsityPattern(bool variableDesignParameters, 
             if      (d <= 6) { addIdxRange(jo, jo + d + 1);             } // (pos, omega, alpha) all interact with each other
             else if (d == 7) { addIdxRange(jo, jo + 8);                 } // len_A interacts with (pos, omega, alpha, self)
             else if (d == 8) { addIdxRange(jo, jo + 7); addIdx(jo + 8); } // len_B interacts with (pos, omega, alpha, self) but not len_A
-            else assert(false);
+            else EROD_REQUIRE(false);
 
             finalizeCol(true); // variables weren't added in order; need sorting
         }
@@ -2688,7 +2689,7 @@ auto RodLinkage_T<Real_>::hessianSparsityPattern(bool variableDesignParameters, 
                     //                         one end vertex and one closest free vertex of segment A interact with alpha, len_A
                     //                         one end vertex and one closest free vertex of segment B interact with alpha, len_B
                     auto jointInteraction = [&](const size_t ji) {
-                        assert(ji != NONE);
+                        EROD_REQUIRE(ji != NONE);
                         const size_t jo = m_dofOffsetForJoint[ji];
                         const auto &  j = m_joints[ji];
                         const size_t abo = j.segmentABOffset(si);
@@ -2741,7 +2742,7 @@ auto RodLinkage_T<Real_>::hessianSparsityPattern(bool variableDesignParameters, 
                     //                       closest two edges of segment A interact with alpha, len_A
                     //                       closest two edges of segment B interact with alpha, len_B
                     auto jointInteraction = [&](const size_t ji) {
-                        assert(ji != NONE);
+                        EROD_REQUIRE(ji != NONE);
                         const size_t jo = m_dofOffsetForJoint[ji];
                         const auto &  j = m_joints[ji];
                         const size_t abo = j.segmentABOffset(si);
@@ -2898,11 +2899,11 @@ auto RodLinkage_T<Real_>::hessianPerSegmentRestlenSparsityPattern(Real_ val) con
 
 template<typename Real_>
 void RodLinkage_T<Real_>::hessianPerSegmentRestlen(CSCMat &H, EnergyType eType) const {
-    assert(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
+    EROD_REQUIRE(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
     BENCHMARK_SCOPED_TIMER_SECTION timer("hessianPerSegmentRestlen");
     const size_t restLenOffset = numDoF() + m_linkage_dPC.restKappa * numRestKappaVars();
     const size_t ndof = restLenOffset + numSegments() * m_linkage_dPC.restLen;
-    assert((size_t(H.m) == ndof) && (size_t(H.n) == ndof));
+    EROD_REQUIRE((size_t(H.m) == ndof) && (size_t(H.n) == ndof));
     UNUSED(ndof);
 
     // Compute Hessian using per-edge rest lengths
@@ -3040,7 +3041,7 @@ std::vector<std::tuple<bool, std::vector<size_t>>> RodLinkage_T<Real_>::traceRod
     for (size_t ri = 0; ri < result.size(); ++ri) {
         auto &segs      = std::get<1>(result[ri]);
         const bool is_A = std::get<0>(result[ri]);
-        assert(segs.size() != 0);
+        EROD_REQUIRE(segs.size() != 0);
         if (segs.size() <= 1) continue; // nothing to sort...
         const auto &r1 = segment(segs[1]).rod;
         const auto &r0 = segment(segs[0]).rod;
@@ -3104,7 +3105,7 @@ void RodLinkage_T<Real_>::addAnglePenaltyHessian(CSCMat &H) const {
 
 template<typename Real_>
 void RodLinkage_T<Real_>::Joint::visitInfluencedSegmentVars(const size_t joint_var_ind, const std::function<void(size_t)> &visitor, bool restLenVar) const {
-    assert(m_linkage);
+    EROD_REQUIRE(m_linkage);
     const auto &l = *m_linkage;
     // Visit the affected variables of segment "si".
     // closestOnly: whether to visit only the closest free vertex/theta instead of the closest two.
@@ -3128,7 +3129,7 @@ void RodLinkage_T<Real_>::Joint::visitInfluencedSegmentVars(const size_t joint_v
         for (size_t i = so + 3 * nfv + estart; i < so + 3 * nfv + eend; ++i) visitor(i);
 
         if (restLenVar) {
-            assert(closestOnly);
+            EROD_REQUIRE(closestOnly);
             // Influenced segment rest length
             visitor(l.restLenDofOffsetForSegment(si) + estart);
             // Influenced segment rest kappa
@@ -3156,7 +3157,7 @@ void RodLinkage_T<Real_>::Joint::visitInfluencedSegmentVars(const size_t joint_v
     else {
         // The joint's two rest lengths affect the closest vertex/theta/restkappa/restlen of the corresponding incident segments
         // Since each joint controls the overlapping edge of two adjacent segments, we need to check whether the joint is at the start or end of the segment. 
-        assert(joint_var_ind < 2);
+        EROD_REQUIRE(joint_var_ind < 2);
         if (joint_var_ind == 0) { visitSegment(m_segmentsA[0], m_isStartA[0], true); visitSegment(m_segmentsA[1], m_isStartA[1], true); }
         if (joint_var_ind == 1) { visitSegment(m_segmentsB[0], m_isStartB[0], true); visitSegment(m_segmentsB[1], m_isStartB[1], true); }
     }
@@ -3351,11 +3352,11 @@ florinVisualizationGeometry(std::vector<std::vector<size_t>> &polylinesA,
 
 template<typename Real_>
 void RodLinkage_T<Real_>::hessian(CSCMat &H, EnergyType eType, const bool variableDesignParameters) const {
-    assert(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
+    EROD_REQUIRE(H.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
     BENCHMARK_SCOPED_TIMER_SECTION timer(mangledName() + ".hessian");
 
     const size_t ndof = variableDesignParameters ? numExtendedDoF() : numDoF();
-    assert((size_t(H.m) == ndof) && (size_t(H.n) == ndof));
+    EROD_REQUIRE((size_t(H.m) == ndof) && (size_t(H.n) == ndof));
     UNUSED(ndof);
 
     struct DVDRCustomData : public CustomThreadLocalData {
@@ -3399,7 +3400,7 @@ void RodLinkage_T<Real_>::hessian(CSCMat &H, EnergyType eType, const bool variab
             if (variableDesignParameters && m_linkage_dPC.restLen) {
                 // Index of rest global length variable controlling segment si's end at local joint i
                 size_t abOffset = joint(ji).segmentABOffset(si);
-                assert(abOffset != NONE);
+                EROD_REQUIRE(abOffset != NONE);
                 segmentJointRestLenDofOffset[i] = m_designParameterDoFOffsetForJoint[ji] + abOffset;
             }
         }
@@ -3425,7 +3426,7 @@ void RodLinkage_T<Real_>::hessian(CSCMat &H, EnergyType eType, const bool variab
             for (auto entry = colbegin; entry < colend; ++entry) {
                 const Idx k = sH.Ai[entry];
                 const auto v = sH.Ax[entry];
-                assert(k <= l);
+                EROD_REQUIRE(k <= l);
                 const auto &dvk_dr = dv_dr[k];
                 const auto &dvl_dr = dv_dr[l];
                 for (const auto &dvl_drj : dvl_dr) {
@@ -3549,7 +3550,7 @@ auto RodLinkage_T<Real_>::hessian(EnergyType eType, bool variableDesignParameter
 template<typename Real_>
 void RodLinkage_T<Real_>::massMatrix(CSCMat &M, bool updatedSource, bool useLumped) const {
     BENCHMARK_SCOPED_TIMER_SECTION timer(mangledName() + ".massMatrix");
-    assert(M.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
+    EROD_REQUIRE(M.symmetry_mode == CSCMat::SymmetryMode::UPPER_TRIANGLE);
 
     {
         // Also cache the joint parametrization Hessian if it can be computed accurately
@@ -3594,7 +3595,7 @@ void RodLinkage_T<Real_>::massMatrix(CSCMat &M, bool updatedSource, bool useLump
         size_t hint = 0;
         for (const auto t : sM) {
             const size_t k = t.i, l = t.j;
-            assert(k <= l);
+            EROD_REQUIRE(k <= l);
             for (const auto &dvl_drj : dv_dr.at(l)) {
                 size_t j = dvl_drj.first;
                 for (const auto &dvk_dri : dv_dr.at(k)) {
@@ -3738,12 +3739,12 @@ auto RodLinkage_T<Real_>::restLengthLaplacianGradEnergy() const -> VecX {
         g.segment(offset, nfe) = sg.segment(s.hasStartJoint(), nfe);
         if (s.hasStartJoint()) {
             size_t abOffset = joint(s.startJoint).segmentABOffset(si);
-            assert(abOffset != NONE);
+            EROD_REQUIRE(abOffset != NONE);
             g[jointRestLenDoFOffset + 2 * s.startJoint + abOffset] += sg[0];
         }
         if (s.hasEndJoint()) {
             size_t abOffset = joint(s.endJoint).segmentABOffset(si);
-            assert(abOffset != NONE);
+            EROD_REQUIRE(abOffset != NONE);
             g[jointRestLenDoFOffset + 2 * s.endJoint + abOffset] += sg[s.rod.numEdges() - 1];
         }
         offset += nfe;
@@ -3780,19 +3781,19 @@ auto RodLinkage_T<Real_>::restLengthLaplacianHessEnergy() const -> TMatrix {
         auto global_idx = [&](size_t li) {
             if ((li == 0) && s.hasStartJoint()) {
                 size_t abOffset = joint(s.startJoint).segmentABOffset(si);
-                assert(abOffset != NONE);
+                EROD_REQUIRE(abOffset != NONE);
                 return jointRestLenDoFOffset + 2 * s.startJoint + abOffset;
             }
             if ((li == ne - 1) && s.hasEndJoint()) {
                 size_t abOffset = joint(s.endJoint).segmentABOffset(si);
-                assert(abOffset != NONE);
+                EROD_REQUIRE(abOffset != NONE);
                 return jointRestLenDoFOffset + 2 * s.endJoint + abOffset;
             }
             return offset + li - s.hasStartJoint();
         };
 
         for (const auto &t : sH) {
-            assert(t.i <= t.j);
+            EROD_REQUIRE(t.i <= t.j);
             // Convert local rest length index to global
             size_t gi = global_idx(t.i),
                    gj = global_idx(t.j);
@@ -3818,8 +3819,8 @@ struct LinkageTerminalEdgeSensitivity;
 template<typename Real_>
 const LinkageTerminalEdgeSensitivity<Real_> &RodLinkage_T<Real_>::getTerminalEdgeSensitivity(size_t si, TerminalEdge which, bool updatedSource, bool evalHessian) {
     m_sensitivityCache.update(*this, updatedSource, evalHessian);
-    assert(si < numSegments());
-    assert(m_segments[si].joint(static_cast<int>(which)) != NONE);
+    EROD_REQUIRE(si < numSegments());
+    EROD_REQUIRE(m_segments[si].joint(static_cast<int>(which)) != NONE);
     return m_sensitivityCache.lookup(si, which);
 }
 

@@ -27,7 +27,9 @@ include(MeshFEMDownloadExternal)
 find_package(Threads REQUIRED) # provides Threads::Threads
 
 # Boost library
-find_package(Boost 1.54 REQUIRED COMPONENTS filesystem system program_options QUIET)
+if(NOT TARGET Boost::filesystem)
+    find_package(Boost 1.54 REQUIRED COMPONENTS filesystem system program_options QUIET)
+endif()
 if(NOT TARGET meshfem::boost)
     add_library(meshfem_boost INTERFACE)
     if(TARGET Boost::filesystem AND TARGET Boost::system AND TARGET Boost::program_options)
@@ -39,6 +41,9 @@ if(NOT TARGET meshfem::boost)
         # When CMake and Boost versions are not in sync, imported targets may not be available... (sigh)
         target_include_directories(meshfem_boost SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
         target_link_libraries(meshfem_boost INTERFACE ${Boost_LIBRARIES})
+    endif()
+    if(TARGET Boost::property_tree)
+        target_link_libraries(meshfem_boost INTERFACE Boost::property_tree)
     endif()
     add_library(meshfem::boost ALIAS meshfem_boost)
 endif()
@@ -115,16 +120,28 @@ endif()
 # TinyExpr library
 if(NOT TARGET tinyexpr::tinyexpr)
     meshfem_download_tinyexpr()
-    add_library(meshfem_tinyexpr ${MESHFEM_EXTERNAL}/tinyexpr/tinyexpr.c)
+    set(_tinyexpr_source ${MESHFEM_EXTERNAL}/tinyexpr/tinyexpr.c)
+    if(MSVC)
+        file(READ "${_tinyexpr_source}" _tinyexpr)
+        string(REPLACE "static const te_variable functions[]" "#pragma function(ceil)\n#pragma function(floor)\nstatic const te_variable functions[]" _tinyexpr "${_tinyexpr}")
+        file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/tinyexpr-win.c"
+            "${_tinyexpr}")
+        set(_tinyexpr_source "${CMAKE_CURRENT_BINARY_DIR}/tinyexpr-win.c")
+    endif()
+    add_library(meshfem_tinyexpr ${_tinyexpr_source})
     target_include_directories(meshfem_tinyexpr SYSTEM PUBLIC ${MESHFEM_EXTERNAL}/tinyexpr)
     add_library(tinyexpr::tinyexpr ALIAS meshfem_tinyexpr)
 endif()
 
 # Cholmod solver
-find_package(CHOLMOD REQUIRED) # provides cholmod::cholmod
+if(NOT TARGET cholmod::cholmod)
+    find_package(CHOLMOD REQUIRED)
+endif() # provides cholmod::cholmod
 
 # UmfPack solver
-find_package(UMFPACK REQUIRED) # provides umfpack::umfpack
+if(NOT TARGET umfpack::umfpack)
+    find_package(UMFPACK REQUIRED)
+endif() # provides umfpack::umfpack
 
 ################################################################################
 # Optional libraries

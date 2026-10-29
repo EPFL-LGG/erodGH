@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ErodModelLib.Creators;
 using Rhino.Geometry;
 using ErodDataLib.Utils;
@@ -20,11 +20,15 @@ namespace ErodModelLib.Types
 
         public RodLinkage(RodLinkage model) : base((LinkageIO) model.ModelIO.Clone())
         {
-            if (model.ModelIO.ModelType == ElasticModelType.AttractedSurfaceRodLinkage) Model = Kernel.RodLinkage.ErodXShellAttractedSurfaceCopy(model.Model, out Error);
-            else Model = Kernel.RodLinkage.ErodXShellCopy(model.Model, out Error);
+            try {
+
+            if (model.ModelType == ElasticModelType.AttractedSurfaceRodLinkage) Handle = Kernel.RodLinkage.ErodXShellAttractedSurfaceCopy(model.Handle, out Error);
+            else Handle = Kernel.RodLinkage.ErodXShellCopy(model.Handle, out Error);
 
             if (Model != IntPtr.Zero) Init();
             else throw new Exception(Marshal.PtrToStringAnsi(Error));
+
+            } catch { Dispose(); throw; }
         }
 
         public override object Clone()
@@ -34,6 +38,8 @@ namespace ErodModelLib.Types
 
         public RodLinkage(LinkageIO modelIO, bool checkConsistentNormals, bool initConsistentAngle, bool edgeDataInitialization = false) : base(modelIO)
         {
+            try {
+
             ///////////////////////////////////////////////////
             ///////////////////////////////////////////////////
             // Parse joint data
@@ -167,7 +173,7 @@ namespace ErodModelLib.Types
             {
                 if (!edgeDataInitialization)
                 {
-                    Model = Kernel.RodLinkage.ErodXShellBuild(numVertices, numEdges, coordsNodes, edges, normalsNodes, restLengths, offsetCurvePoints, curvePoints.ToArray(), modelIO.Interleaving, Convert.ToInt32(initConsistentAngle), Convert.ToInt32(initConsistentAngle), out Error);
+                    Handle = Kernel.RodLinkage.ErodXShellBuild(numVertices, numEdges, coordsNodes, edges, normalsNodes, restLengths, offsetCurvePoints, curvePoints.ToArray(), modelIO.Interleaving, Convert.ToInt32(initConsistentAngle), Convert.ToInt32(initConsistentAngle), out Error);
                 }
                 else
                 {
@@ -176,15 +182,17 @@ namespace ErodModelLib.Types
                     modelIO.Graph.GetFlattenGraphData(out coords, out normals, out edges);
                     // For this constructor all rod segments needs to be subdivided equally
                     int subd = subdivisions.Sum() / subdivisions.Length;
-                    Model = Kernel.RodLinkage.ErodXShellBuildFromGraph(numVertices, numEdges, coords, edges, normals, subd, modelIO.Interleaving, Convert.ToInt32(initConsistentAngle), out Error);
+                    Handle = Kernel.RodLinkage.ErodXShellBuildFromGraph(numVertices, numEdges, coords, edges, normals, subd, modelIO.Interleaving, Convert.ToInt32(initConsistentAngle), out Error);
                 }
 
                 if (ModelIO.ContainsTargetSurface()) AddTargetSurface(ModelIO.TargetSurface);
 
                 if (Model != IntPtr.Zero) Init();
-                else throw new Exception(Marshal.PtrToStringAuto(Error));
+                else throw new Exception(Marshal.PtrToStringAnsi(Error));
             }
             #endregion
+
+            } catch { Dispose(); throw; }
         }
 
         public void AddTargetSurface(TargetSurfaceIO data)
@@ -192,8 +200,10 @@ namespace ErodModelLib.Types
             if (data == null || data == default) return;
             double[] inCoords = Helpers.FlattenDoubleArray(data.Vertices);
             int[] inTrias = Helpers.FlattenIntArray(data.Trias);
-            Model = Kernel.RodLinkage.ErodXShellAttractedSurfaceBuild(data.Vertices.Length, data.Trias.Length, inCoords, inTrias, Model, data.TargetJointWeight, out Error);
-            if (Model == IntPtr.Zero) throw new Exception(Marshal.PtrToStringAnsi(Error));
+            Handle = Kernel.RodLinkage.ErodXShellAttractedSurfaceBuild(data.Vertices.Length, data.Trias.Length, inCoords, inTrias, Handle, data.TargetJointWeight, out Error);
+            if (Model == IntPtr.Zero) throw new InvalidOperationException("Target surface construction failed");
+            ModelIO.SetTargetSurface(data);
+            if (Joints != null || Segments != null) { InitSegments(); InitJoints(); }
         }
 
         private void InitMaterials()
@@ -217,10 +227,12 @@ namespace ErodModelLib.Types
                 {
                     var mat = ModelIO.Materials[i];
                     int idx = Joints.ClosestJoint(mat.ReferencePosition);
+                    _materials[idx].Dispose();
                     _materials[idx] = new Material(mat);
                 }
             }
-            Kernel.Material.ErodMaterialSetToLinkage(_materials.Select(m => m.Model).ToArray(), _materials.Length, Model);
+            try { Kernel.Material.ErodMaterialSetToLinkage(_materials.Select(m => m.Handle).ToArray(), _materials.Length, Handle); }
+            finally { foreach (var material in _materials) material.Dispose(); }
         }
 
         public void InitSupports()
@@ -248,13 +260,13 @@ namespace ErodModelLib.Types
 
                     if (p.DistanceTo(Joints[idxJ].Position) < p.DistanceTo(Segments.GetNode(idxN)))
                     {
-                        Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Model, idxJ, dof, dof.Length, indicesDoFs);
+                        Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Handle, idxJ, dof, dof.Length, indicesDoFs);
                         sp.IndexMap = idxJ;
                         sp.IsJointSupport = true;
                     }
                     else
                     {
-                        Kernel.RodLinkage.ErodXShellGetDofOffsetForCenterLinePos(Model, idxN, dof, dof.Length, indicesDoFs);
+                        Kernel.RodLinkage.ErodXShellGetDofOffsetForCenterLinePos(Handle, idxN, dof, dof.Length, indicesDoFs);
                         sp.IndexMap = idxN;
                         sp.IsJointSupport = false;
                     }
@@ -271,7 +283,7 @@ namespace ErodModelLib.Types
         {
             var allForces = ModelIO.Forces;
 
-            // Check for forces with unset reference positions. These will be global forces that are applied to all joints 
+            // Check for forces with unset reference positions. These will be global forces that are applied to all joints
             var tempForces = allForces.Where(f => f.Positions[0] == Point3d.Unset);
             List<ForceIO> forces = new List<ForceIO>();
             if (tempForces.Count() != 0) {
@@ -288,7 +300,7 @@ namespace ErodModelLib.Types
 
                             int[] dof = new int[] { 0, 1, 2 };
                             int[] indicesDoFs = new int[dof.Length];
-                            Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Model, i, dof, dof.Length, indicesDoFs);
+                            Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Handle, i, dof, dof.Length, indicesDoFs);
                             newForce.SetIndexMap(0, i, true, indicesDoFs);
                             forces.Add(newForce);
                         }
@@ -312,12 +324,12 @@ namespace ErodModelLib.Types
 
                     if (p.DistanceTo(Joints[idxJ].Position) < p.DistanceTo(Segments.GetNode(idxN)))
                     {
-                        Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Model, idxJ, dof, dof.Length, indicesDoFs);
+                        Kernel.RodLinkage.ErodXShellGetDofOffsetForJoint(Handle, idxJ, dof, dof.Length, indicesDoFs);
                         f.SetIndexMap(i, idxJ, true, indicesDoFs);
                     }
                     else
                     {
-                        Kernel.RodLinkage.ErodXShellGetDofOffsetForCenterLinePos(Model, idxN, dof, dof.Length, indicesDoFs);
+                        Kernel.RodLinkage.ErodXShellGetDofOffsetForCenterLinePos(Handle, idxN, dof, dof.Length, indicesDoFs);
                         f.SetIndexMap(i, idxN, false, indicesDoFs);
                     }
                 }
@@ -339,17 +351,17 @@ namespace ErodModelLib.Types
 
         protected void InitSegments()
         {
-            int count = Kernel.RodLinkage.ErodXShellRodGetSegmentsCount(Model);
-            Segments = new RodSegmentCollection(Model);
-            for (int i = 0; i < count; i++) Segments.Add(new RodSegment(Model, i));
+            int count = Kernel.RodLinkage.ErodXShellRodGetSegmentsCount(Handle);
+            Segments = new RodSegmentCollection(Handle);
+            for (int i = 0; i < count; i++) Segments.Add(new RodSegment(Handle, i));
             Segments.UpdateNodePositions();
         }
 
         protected void InitJoints()
         {
-            int count = Kernel.RodLinkage.ErodXShellGetJointsCount(Model);
+            int count = Kernel.RodLinkage.ErodXShellGetJointsCount(Handle);
             Joints = new JointCollection();
-            for (int i = 0; i < count; i++) Joints.Add(new Joint(Model, i));
+            for (int i = 0; i < count; i++) Joints.Add(new Joint(Handle, i));
         }
 
         public override void InitMesh()

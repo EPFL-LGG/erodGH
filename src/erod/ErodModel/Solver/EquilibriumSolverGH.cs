@@ -11,7 +11,7 @@ using Rhino.Geometry;
 
 namespace ErodModel.Solver
 {
-    public class EquilibriumSolverGH : GH_Component
+    public class EquilibriumSolverGH : global::ErodModel.Solver.LiveReportSolverComponent
     {
         private bool run, equilibrium=false;
         private ElasticModel copy;
@@ -41,6 +41,7 @@ namespace ErodModel.Solver
             pManager.AddGenericParameter("Opts", "Opts", "Newton solver options.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Run", "Run", "Compute equilibrium.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Reset", "Reset", "Restart computation.", GH_ParamAccess.item);
+            AddLiveReportInput(pManager);
             pManager[1].Optional = true;
         }
 
@@ -89,6 +90,7 @@ namespace ErodModel.Solver
             DA.GetData(1, ref options);
             DA.GetData(2, ref run);
             DA.GetData(3, ref reset);
+            ConfigureLiveReport(DA, 4, run, reset);
 
             if (model.ContainsTemporarySupports() && !model.ContainsRollingSupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Temporary supports detected. This solver only operates with permanent supports. Temporary supports will be disabled.");
             if (model.ContainsRollingSupports() && !model.ContainsTemporarySupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Rolling supports detected. This solver only operates with fixed supports. Rolling supports will be fixed.");
@@ -112,7 +114,15 @@ namespace ErodModel.Solver
                     double[] forces = copy.GetForceVars(options.IncludeForces);
                     int[] supports = copy.GetFixedVars(false, 0.0); // Don't include temporary support for equilibrium solve
 
-                    equilibrium = NewtonSolver.Optimize(copy, supports, forces, options, out report);
+                    try {
+                        equilibrium = OptimizeWithLiveReport(copy, supports, forces, options, out report);
+                    }
+                    catch (Exception error) {
+                        run = false;
+                        copy = null;
+                        report = new ConvergenceReport();
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, error.Message);
+                    }
                 }
             }
 

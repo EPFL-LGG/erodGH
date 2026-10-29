@@ -1,0 +1,125 @@
+[
+  {
+    "name": "EquilibriumSolverGH",
+    "guid": "18b9ddc9-257d-4623-af57-438ae3af7b7c",
+    "inputs": [
+      "ElasticModel",
+      "Opts",
+      "Run",
+      "Reset",
+      "Live report"
+    ],
+    "outputs": [
+      "ElasticModel",
+      "Report"
+    ]
+  },
+  {
+    "name": "EquilibriumSolverMultiGH",
+    "guid": "dbf8d4e5-c486-47d0-98d2-02e34c30764a",
+    "inputs": [
+      "ElasticModels",
+      "Opts",
+      "Run",
+      "Reset"
+    ],
+    "outputs": [
+      "ElasticModels",
+      "Report"
+    ]
+  },
+  {
+    "name": "CableActuationGH",
+    "guid": "cc85e2f7-b119-4315-97ab-a6b122953714",
+    "inputs": [
+      "ElasticModel",
+      "Opts",
+      "Run",
+      "Reset"
+    ],
+    "outputs": [
+      "ElasticModel",
+      "Report",
+      "Cables",
+      "Beta"
+    ]
+  },
+  {
+    "name": "SliderActuationGH",
+    "guid": "77d5fd50-ac43-467f-a4ae-ccfdfec8f074",
+    "inputs": [
+      "Linkage",
+      "Opts",
+      "Run",
+      "Reset",
+      "JointIndices",
+      "SlideAlongA",
+      "SlidingStep"
+    ],
+    "outputs": [
+      "Linkage",
+      "Report",
+      "RestLengths"
+    ]
+  },
+  {
+    "name": "SupportActuationGH",
+    "guid": "ed855f8d-440d-47cb-a26f-75650e1a76c1",
+    "inputs": [
+      "ElasticModel",
+      "StepSize",
+      "Opts",
+      "Run",
+      "Reset"
+    ],
+    "outputs": [
+      "ElasticModel",
+      "Report"
+    ]
+  },
+  {
+    "name": "TorqueActuationGH",
+    "guid": "e78259de-9869-4ba9-a54d-b2cd8f7c08f8",
+    "inputs": [
+      "Linkage",
+      "Opts",
+      "Angle",
+      "Run",
+      "Reset"
+    ],
+    "outputs": [
+      "Linkage",
+      "Report"
+    ]
+  },
+  {
+    "name": "TorqueActuationMultiGH",
+    "guid": "6bae462d-9980-4549-934d-d254c227dc8e",
+    "inputs": [
+      "Linkages",
+      "Opts",
+      "Angle",
+      "Run",
+      "Reset"
+    ],
+    "outputs": [
+      "Linkages",
+      "Report"
+    ]
+  },
+  {
+    "name": "TorqueActuationStepsGH",
+    "guid": "59202505-c586-4b36-bb78-483f40666df4",
+    "inputs": [
+      "Linkage",
+      "Opts",
+      "Angle",
+      "Run",
+      "Reset"
+    ],
+    "outputs": [
+      "Linkages",
+      "Report"
+    ]
+  }
+]

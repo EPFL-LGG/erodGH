@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using ErodDataLib.Utils;
@@ -27,22 +27,24 @@ namespace ErodModelLib.Types
 
                 if (ModelIO.IsPeriodic)
                 {
-                    Model = Kernel.PeriodicRod.ErodPeriodicElasticRodBuild(numPoints, coords, Convert.ToInt32(ModelIO.RemoveRestCurvature), out Error);
-                    EdgeCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetEdgesCount(Model);
-                    NodesCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetVerticesCount(Model);
+                    Handle = Kernel.PeriodicRod.ErodPeriodicElasticRodBuild(numPoints, coords, Convert.ToInt32(ModelIO.RemoveRestCurvature), out Error);
+                    if (Model == IntPtr.Zero) throw new InvalidOperationException("Native construction failed");
+                    EdgeCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetEdgesCount(Handle);
+                    NodesCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetVerticesCount(Handle);
                 }
                 else
                 {
-                    Model = Kernel.ElasticRod.ErodElasticRodBuild(numPoints, coords, out Error);
-                    EdgeCount = Kernel.ElasticRod.ErodElasticRodGetEdgesCount(Model);
-                    NodesCount = Kernel.ElasticRod.ErodElasticRodGetVerticesCount(Model);
-                    if (ModelIO.RemoveRestCurvature) Kernel.ElasticRod.ErodElasticRodRemoveRestCurvatures(Model);
+                    Handle = Kernel.ElasticRod.ErodElasticRodBuild(numPoints, coords, out Error);
+                    if (Model == IntPtr.Zero) throw new InvalidOperationException("Native construction failed");
+                    EdgeCount = Kernel.ElasticRod.ErodElasticRodGetEdgesCount(Handle);
+                    NodesCount = Kernel.ElasticRod.ErodElasticRodGetVerticesCount(Handle);
+                    if (ModelIO.RemoveRestCurvature) Kernel.ElasticRod.ErodElasticRodRemoveRestCurvatures(Handle);
                 }
 
                 if (Model != IntPtr.Zero) Init();
                 else throw new Exception(Marshal.PtrToStringAnsi(Error));
             }
-            catch (Exception e) { Console.Write(e.ToString()); }
+            catch { Dispose(); throw; }
         }
 
         public ElasticRod(ElasticRod model) : base((RodIO)model.ModelIO.Clone())
@@ -51,21 +53,23 @@ namespace ErodModelLib.Types
             {
                 if (ModelIO.IsPeriodic)
                 {
-                    Model = Kernel.PeriodicRod.ErodPeriodicElasticRodCopy(model.Model, out Error);
-                    EdgeCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetEdgesCount(Model);
-                    NodesCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetVerticesCount(Model);
+                    Handle = Kernel.PeriodicRod.ErodPeriodicElasticRodCopy(model.Handle, out Error);
+                    if (Model == IntPtr.Zero) throw new InvalidOperationException("Native construction failed");
+                    EdgeCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetEdgesCount(Handle);
+                    NodesCount = Kernel.PeriodicRod.ErodPeriodicElasticRodGetVerticesCount(Handle);
                 }
                 else
                 {
-                    Model = Kernel.ElasticRod.ErodElasticRodCopy(model.Model, out Error);
-                    EdgeCount = Kernel.ElasticRod.ErodElasticRodGetEdgesCount(Model);
-                    NodesCount = Kernel.ElasticRod.ErodElasticRodGetVerticesCount(Model);
+                    Handle = Kernel.ElasticRod.ErodElasticRodCopy(model.Handle, out Error);
+                    if (Model == IntPtr.Zero) throw new InvalidOperationException("Native construction failed");
+                    EdgeCount = Kernel.ElasticRod.ErodElasticRodGetEdgesCount(Handle);
+                    NodesCount = Kernel.ElasticRod.ErodElasticRodGetVerticesCount(Handle);
                 }
 
                 if (Model != IntPtr.Zero) Init();
                 else throw new Exception(Marshal.PtrToStringAnsi(Error));
             }
-            catch(Exception e) { Console.Write(e.ToString()); }
+            catch { Dispose(); throw; }
         }
 
         public override object Clone()
@@ -84,8 +88,8 @@ namespace ErodModelLib.Types
 
         public override void SetMaterial(int sectionType, double E, double poisonRatio, double[] sectionParams, int axisType)
         {
-            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodSetMaterial(Model, sectionType, E, poisonRatio, sectionParams, sectionParams.Length, axisType);
-            else Kernel.ElasticRod.ErodElasticRodSetMaterial(Model, sectionType, E, poisonRatio, sectionParams, sectionParams.Length, axisType);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodSetMaterial(Handle, sectionType, E, poisonRatio, sectionParams, sectionParams.Length, axisType);
+            else Kernel.ElasticRod.ErodElasticRodSetMaterial(Handle, sectionType, E, poisonRatio, sectionParams, sectionParams.Length, axisType);
         }
 
         private void InitMaterials()
@@ -114,7 +118,6 @@ namespace ErodModelLib.Types
             {
                 var sp = ModelIO.Supports[i];
                 if (sp.IndexMap != -1) sp.UpdateReferencePosition(_nodes[sp.IndexMap].Location);
-                sp.UpdateReferencePosition(_nodes[sp.IndexMap].Location);
                 ModelIO.Supports[i] = sp;
             }
         }
@@ -131,17 +134,22 @@ namespace ErodModelLib.Types
 
         protected override void GetMeshData(out double[] outCoords, out int[] outQuads)
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numCoords, numQuads;
             IntPtr cPtr, qPtr;
-            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetMeshData(Model, out cPtr, out qPtr, out numCoords, out numQuads);
-            else Kernel.ElasticRod.ErodElasticRodGetMeshData(Model, out cPtr, out qPtr, out numCoords, out numQuads);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetMeshData(Handle, out cPtr, out qPtr, out numCoords, out numQuads);
+            else Kernel.ElasticRod.ErodElasticRodGetMeshData(Handle, out cPtr, out qPtr, out numCoords, out numQuads);
 
             outCoords = new double[numCoords];
             outQuads = new int[numQuads];
-            Marshal.Copy(cPtr, outCoords, 0, numCoords);
-            Marshal.Copy(qPtr, outQuads, 0, numQuads);
-            Marshal.FreeCoTaskMem(cPtr);
-            Marshal.FreeCoTaskMem(qPtr);
+            NativeBufferScope.Copy(cPtr, outCoords, 0, numCoords);
+            NativeBufferScope.Copy(qPtr, outQuads, 0, numQuads);
+            Kernel.FreeNativeBuffer(cPtr);
+            Kernel.FreeNativeBuffer(qPtr);
+
+            }
         }
 
         public void UpdateMesh()
@@ -163,8 +171,8 @@ namespace ErodModelLib.Types
 
         public override int GetDoFCount()
         {
-            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetDoFCount(Model);
-            else return Kernel.ElasticRod.ErodElasticRodGetDoFCount(Model);
+            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetDoFCount(Handle);
+            else return Kernel.ElasticRod.ErodElasticRodGetDoFCount(Handle);
         }
 
         public void InitSupports()
@@ -199,7 +207,7 @@ namespace ErodModelLib.Types
         {
             var allForces = ModelIO.Forces;
 
-            // Check for forces with unset reference positions. These will be global forces that are applied to all joints 
+            // Check for forces with unset reference positions. These will be global forces that are applied to all joints
             var tempForces = allForces.Where(f => f.Positions[0] == Point3d.Unset);
             List<ForceIO> forces = new List<ForceIO>();
             if (tempForces.Count() != 0)
@@ -239,95 +247,100 @@ namespace ErodModelLib.Types
 
         public int GetThetaOffset()
         {
-            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetThetaOffset(Model);
-            else return Kernel.ElasticRod.ErodElasticRodGetThetaOffset(Model);
+            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetThetaOffset(Handle);
+            else return Kernel.ElasticRod.ErodElasticRodGetThetaOffset(Handle);
         }
 
         public int GetRestLengthOffset()
         {
-            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestLengthOffset(Model);
-            else return Kernel.ElasticRod.ErodElasticRodGetRestLengthOffset(Model);
+            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestLengthOffset(Handle);
+            else return Kernel.ElasticRod.ErodElasticRodGetRestLengthOffset(Handle);
         }
 
         public int GetRestKappaOffset()
         {
-            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestKappaOffset(Model);
-            else return Kernel.ElasticRod.ErodElasticRodGetRestKappaOffset(Model);
+            if (ModelIO.IsPeriodic) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestKappaOffset(Handle);
+            else return Kernel.ElasticRod.ErodElasticRodGetRestKappaOffset(Handle);
         }
 
         public double[] GetCenterLineCoordinates()
         {
             double[] coords = new double[NodesCount * 3];
-            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetCenterLinePositions(Model, coords, NodesCount);
-            else Kernel.ElasticRod.ErodElasticRodGetCenterLinePositions(Model, coords, NodesCount);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetCenterLinePositions(Handle, coords, NodesCount);
+            else Kernel.ElasticRod.ErodElasticRodGetCenterLinePositions(Handle, coords, NodesCount);
             return coords;
         }
 
         public double[] GetRestLengths()
         {
             double[] restLengths = new double[EdgeCount];
-            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestLengths(Model, restLengths, EdgeCount);
-            else Kernel.ElasticRod.ErodElasticRodGetRestLengths(Model, restLengths, EdgeCount);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestLengths(Handle, restLengths, EdgeCount);
+            else Kernel.ElasticRod.ErodElasticRodGetRestLengths(Handle, restLengths, EdgeCount);
             return restLengths;
         }
 
         public double[] GetStretchingStresses()
         {
             double[] stresses = new double[EdgeCount];
-            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetStretchingStresses(Model, stresses, EdgeCount);
-            else Kernel.ElasticRod.ErodElasticRodGetStretchingStresses(Model, stresses, EdgeCount);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetStretchingStresses(Handle, stresses, EdgeCount);
+            else Kernel.ElasticRod.ErodElasticRodGetStretchingStresses(Handle, stresses, EdgeCount);
             return stresses;
         }
 
         public double[] GetTwistingStresses()
         {
             double[] stresses = new double[NodesCount];
-            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetTwistingStresses(Model, stresses, NodesCount);
-            else Kernel.ElasticRod.ErodElasticRodGetTwistingStresses(Model, stresses, NodesCount);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetTwistingStresses(Handle, stresses, NodesCount);
+            else Kernel.ElasticRod.ErodElasticRodGetTwistingStresses(Handle, stresses, NodesCount);
             return stresses;
         }
 
         public double[] GetMaxBendingStresses()
         {
             double[] stresses = new double[NodesCount];
-            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetMaxBendingStresses(Model, stresses, NodesCount);
-            else Kernel.ElasticRod.ErodElasticRodGetMaxBendingStresses(Model, stresses, NodesCount);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetMaxBendingStresses(Handle, stresses, NodesCount);
+            else Kernel.ElasticRod.ErodElasticRodGetMaxBendingStresses(Handle, stresses, NodesCount);
             return stresses;
         }
 
         public double[] GetMinBendingStresses()
         {
             double[] stresses = new double[NodesCount];
-            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetMinBendingStresses(Model, stresses, NodesCount);
-            else Kernel.ElasticRod.ErodElasticRodGetMinBendingStresses(Model, stresses, NodesCount);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetMinBendingStresses(Handle, stresses, NodesCount);
+            else Kernel.ElasticRod.ErodElasticRodGetMinBendingStresses(Handle, stresses, NodesCount);
             return stresses;
         }
 
         public double[] GetSqrtBendingEnergies()
         {
             double[] stresses = new double[NodesCount];
-            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetSqrtBendingEnergies(Model, stresses, NodesCount);
-            else Kernel.ElasticRod.ErodElasticRodGetSqrtBendingEnergies(Model, stresses, NodesCount);
+            if (ModelIO.IsPeriodic) Kernel.PeriodicRod.ErodPeriodicElasticRodGetSqrtBendingEnergies(Handle, stresses, NodesCount);
+            else Kernel.ElasticRod.ErodElasticRodGetSqrtBendingEnergies(Handle, stresses, NodesCount);
             return stresses;
         }
 
         public double[] GetDoFs()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numDoFs;
             IntPtr cPtr;
-            if (ModelType == ElasticModelType.ElasticRod) Kernel.ElasticRod.ErodElasticRodGetDoFs(Model, out cPtr, out numDoFs);
-            else Kernel.PeriodicRod.ErodPeriodicElasticRodGetDoFs(Model, out cPtr, out numDoFs);
+            if (ModelType == ElasticModelType.ElasticRod) Kernel.ElasticRod.ErodElasticRodGetDoFs(Handle, out cPtr, out numDoFs);
+            else Kernel.PeriodicRod.ErodPeriodicElasticRodGetDoFs(Handle, out cPtr, out numDoFs);
 
             double[] outDoFs = new double[numDoFs];
-            Marshal.Copy(cPtr, outDoFs, 0, numDoFs);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outDoFs, 0, numDoFs);
+            Kernel.FreeNativeBuffer(cPtr);
             return outDoFs;
+
+            }
         }
 
         public void SetDoFs(double[] dofs)
         {
-            if (ModelType == ElasticModelType.ElasticRod) Kernel.ElasticRod.ErodElasticRodSetDoFs(Model, dofs, dofs.Length);
-            else Kernel.PeriodicRod.ErodPeriodicElasticRodSetDoFs(Model, dofs, dofs.Length);
+            if (ModelType == ElasticModelType.ElasticRod) Kernel.ElasticRod.ErodElasticRodSetDoFs(Handle, dofs, dofs.Length);
+            else Kernel.PeriodicRod.ErodPeriodicElasticRodSetDoFs(Handle, dofs, dofs.Length);
         }
 
         public Point3d[] GetCenterLinePositionsAsPoint3d()
@@ -345,18 +358,21 @@ namespace ErodModelLib.Types
 
         public Plane[] GetMaterialFames()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr outCoordsD1, outCoordsD2;
             int outCoordsCount;
 
-            if (ModelType == ElasticModelType.ElasticRod) Kernel.ElasticRod.ErodElasticRodGetMaterialFrame(Model, out outCoordsCount, out outCoordsD1, out outCoordsD2);
-            else Kernel.PeriodicRod.ErodPeriodicElasticRodGetMaterialFrame(Model, out outCoordsCount, out outCoordsD1, out outCoordsD2);
+            if (ModelType == ElasticModelType.ElasticRod) Kernel.ElasticRod.ErodElasticRodGetMaterialFrame(Handle, out outCoordsCount, out outCoordsD1, out outCoordsD2);
+            else Kernel.PeriodicRod.ErodPeriodicElasticRodGetMaterialFrame(Handle, out outCoordsCount, out outCoordsD1, out outCoordsD2);
 
             double[] coordsD1 = new double[outCoordsCount];
             double[] coordsD2 = new double[outCoordsCount];
-            Marshal.Copy(outCoordsD1, coordsD1, 0, outCoordsCount);
-            Marshal.Copy(outCoordsD2, coordsD2, 0, outCoordsCount);
-            Marshal.FreeCoTaskMem(outCoordsD1);
-            Marshal.FreeCoTaskMem(outCoordsD2);
+            NativeBufferScope.Copy(outCoordsD1, coordsD1, 0, outCoordsCount);
+            NativeBufferScope.Copy(outCoordsD2, coordsD2, 0, outCoordsCount);
+            Kernel.FreeNativeBuffer(outCoordsD1);
+            Kernel.FreeNativeBuffer(outCoordsD2);
 
             int numFrames = outCoordsCount / 3;
             Plane[] frames = new Plane[numFrames];
@@ -370,6 +386,8 @@ namespace ErodModelLib.Types
             }
 
             return frames;
+
+            }
         }
 
         public override double[] GetForceVars(bool includeExternalForces = true, bool includeCables=false)
@@ -477,8 +495,8 @@ namespace ErodModelLib.Types
 
         public double GetInitialMinRestLength()
         {
-            if (ModelType == ElasticModelType.PeriodicRod) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetInitialMinRestLength(Model);
-            else return Kernel.ElasticRod.ErodElasticRodGetInitialMinRestLength(Model);
+            if (ModelType == ElasticModelType.PeriodicRod) return Kernel.PeriodicRod.ErodPeriodicElasticRodGetInitialMinRestLength(Handle);
+            else return Kernel.ElasticRod.ErodElasticRodGetInitialMinRestLength(Handle);
         }
 
         public Curve GetInterpolatedCurve(int degree = 3)
@@ -488,94 +506,129 @@ namespace ErodModelLib.Types
 
         public double[] GetRestKappas()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             IntPtr ptrData;
             int numData;
-            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestKappas(Model, out ptrData, out numData);
-            else Kernel.ElasticRod.ErodElasticRodGetRestKappas(Model, out ptrData, out numData);
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetRestKappas(Handle, out ptrData, out numData);
+            else Kernel.ElasticRod.ErodElasticRodGetRestKappas(Handle, out ptrData, out numData);
 
             double[] data = new double[numData];
-            Marshal.Copy(ptrData, data, 0, numData);
-            Marshal.FreeCoTaskMem(ptrData);
+            NativeBufferScope.Copy(ptrData, data, 0, numData);
+            Kernel.FreeNativeBuffer(ptrData);
             return data;
+
+            }
         }
 
         public double[] GetScalarFieldSqrtBendingEnergies()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldSqrtBendingEnergies(Model, out cPtr, out numField);
-            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldSqrtBendingEnergies(Model, out cPtr, out numField);
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldSqrtBendingEnergies(Handle, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldSqrtBendingEnergies(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         public double[] GetScalarFieldMaxBendingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldMaxBendingStresses(Model, out cPtr, out numField);
-            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldMaxBendingStresses(Model, out cPtr, out numField);
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldMaxBendingStresses(Handle, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldMaxBendingStresses(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         #region Stresses
         public double[] GetScalarFieldMinBendingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldMinBendingStresses(Model, out cPtr, out numField);
-            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldMinBendingStresses(Model, out cPtr, out numField);
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldMinBendingStresses(Handle, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldMinBendingStresses(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         public double[] GetScalarFieldTwistingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldTwistingStresses(Model, out cPtr, out numField);
-            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldTwistingStresses(Model, out cPtr, out numField);
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldTwistingStresses(Handle, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldTwistingStresses(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         public double[] GetScalarFieldStretchingStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldStretchingStresses(Model, out cPtr, out numField);
-            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldStretchingStresses(Model, out cPtr, out numField);
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldStretchingStresses(Handle, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldStretchingStresses(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
 
         public double[] GetScalarFieldVonMisesStresses()
         {
+            using (var nativeBuffers = new NativeBufferScope())
+            {
+
             int numField;
             IntPtr cPtr;
-            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldVonMisesStresses(Model, out cPtr, out numField);
-            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldVonMisesStresses(Model, out cPtr, out numField);
+            if (ModelType == ElasticModelType.PeriodicRod) Kernel.PeriodicRod.ErodPeriodicElasticRodGetScalarFieldVonMisesStresses(Handle, out cPtr, out numField);
+            else Kernel.ElasticRod.ErodElasticRodGetScalarFieldVonMisesStresses(Handle, out cPtr, out numField);
 
             double[] outField = new double[numField];
-            Marshal.Copy(cPtr, outField, 0, numField);
-            Marshal.FreeCoTaskMem(cPtr);
+            NativeBufferScope.Copy(cPtr, outField, 0, numField);
+            Kernel.FreeNativeBuffer(cPtr);
             return outField;
+
+            }
         }
         #endregion
     }

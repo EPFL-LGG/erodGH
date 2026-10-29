@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net48</TargetFramework><PlatformTarget>x64</PlatformTarget><LangVersion>latest</LangVersion></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/erod/ErodModel/Solver/LiveSolverConsole.cs" Link="LiveSolverConsole.cs" />
+    <Compile Include="../../src/erod/ErodModel/Solver/MacSolverConsole.cs" Link="MacSolverConsole.cs" />
+    <Reference Include="System.Windows.Forms" /><Reference Include="System.Drawing" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

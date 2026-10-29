@@ -1,6 +1,6 @@
 ################################################################################
 
-add_library(MeshFEM SHARED
+add_library(MeshFEM STATIC
         Algebra.hh
         BaseCellType.hh
         BoundaryConditions.cc
@@ -163,7 +163,9 @@ target_link_libraries(${PROJECT_NAME}
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC -DMESHFEM_WITH_TBB -DNOMINMAX -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_USE_MATH_DEFINES)
 #target_link_options(${PROJECT_NAME} PUBLIC -fsanitize=address)
+if(NOT MSVC)
 target_compile_options(${PROJECT_NAME} PUBLIC -fvisibility=hidden)
+endif()
 if(MESHFEM_VECTORIZE)
     CHECK_CXX_COMPILER_FLAG(-march=native COMPILER_SUPPORTS_MARCH_NATIVE)
     if(COMPILER_SUPPORTS_MARCH_NATIVE)

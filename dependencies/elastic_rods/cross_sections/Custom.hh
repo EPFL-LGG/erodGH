@@ -1,3 +1,4 @@
+#include "../RuntimeChecks.hh"
 ////////////////////////////////////////////////////////////////////////////////
 // Custom.hh
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,7 +86,7 @@ struct Custom : public ::CrossSection {
             pt[0] = p[i++];
             pt[1] = p[i++];
         }
-        assert(i == p.size());
+        EROD_REQUIRE(i == p.size());
     }
 
     virtual std::vector<Real> params() const override {
@@ -95,7 +96,7 @@ struct Custom : public ::CrossSection {
             result[i++] = pt[0];
             result[i++] = pt[1];
         }
-        assert(i == result.size());
+        EROD_REQUIRE(i == result.size());
         return result;
     }
 

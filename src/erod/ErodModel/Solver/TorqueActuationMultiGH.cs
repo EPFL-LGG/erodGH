@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using ErodDataLib.Types;
 using ErodModelLib.Types;
@@ -9,7 +9,7 @@ using Rhino.Geometry;
 
 namespace ErodModel.Model
 {
-    public class TorqueActuationMultiGH : GH_Component
+    public class TorqueActuationMultiGH : global::ErodModel.Solver.LiveReportSolverComponent
     {
         private bool run;
         private int steps = 1;//, openingSteps = 0;
@@ -55,6 +55,7 @@ namespace ErodModel.Model
             pManager.AddBooleanParameter("Run", "Run", "Compute equilibrium.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Reset", "Reset", "Restart computation.", GH_ParamAccess.item);
             pManager[1].Optional = true;
+            AddLiveReportInput(pManager);
         }
 
         /// <summary>
@@ -102,6 +103,7 @@ namespace ErodModel.Model
             DA.GetDataList(2, angleDegrees);
             DA.GetData(3, ref run);
             DA.GetData(4, ref reset);
+            ConfigureLiveReport(DA, 5, run, reset);
 
             if (reset || copies.Count == 0)
             {
@@ -155,7 +157,7 @@ namespace ErodModel.Model
                         int[] supports = c.GetFixedVars(opts.NumDeploymentSteps, steps, steps * refStep[i]);
 
                         ConvergenceReport r;
-                        NewtonSolver.Optimize(c, supports, forces, opts, out r, true, angle, false);
+                        OptimizeWithLiveReport(c, supports, forces, opts, out r, true, angle, false, context: "Model " + (i + 1) + ", step " + steps);
                         r.OpeningStep = steps;
                         reports[i] = r;
                     }
@@ -172,7 +174,7 @@ namespace ErodModel.Model
                         double[] forces = c.GetForceVars(opts.IncludeForces);
                         int[] supports = c.GetFixedVars(opts.NumDeploymentSteps, steps, 1.0);
 
-                        NewtonSolver.Optimize(c, supports, forces, opts, out r, true, deployedAngle[i], true);
+                        OptimizeWithLiveReport(c, supports, forces, opts, out r, true, deployedAngle[i], true, context: "Model " + (i + 1) + ", step " + steps);
                         r.OpeningStep = steps;
                         reports[i] = r;
                     }

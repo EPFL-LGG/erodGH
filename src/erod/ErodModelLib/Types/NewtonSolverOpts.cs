@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using GH_IO.Serialization;
 using Grasshopper.Kernel.Types;
 

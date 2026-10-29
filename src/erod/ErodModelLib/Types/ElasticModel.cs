@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using ErodModelLib.Creators;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,16 +11,25 @@ using Rhino.Geometry;
 
 namespace ErodModelLib.Types
 {
-    public abstract partial class ElasticModel : IGH_Goo, ICloneable
+    public abstract partial class ElasticModel : IGH_Goo, ICloneable, IDisposable
     {
         public Mesh MeshVis { get; protected set; }
         public IntPtr Error;
-        public IntPtr Model { get;  protected set; }
+        private NativeHandle nativeHandle;
+        private readonly object lifetime = new object();
+        private bool disposed;
+        public IntPtr Model { get { var value=nativeHandle; return value != null && value.IsAlive ? value.DangerousGetHandle() : IntPtr.Zero; } }
+        internal NativeHandle Handle
+        {
+            get { var value=nativeHandle; if(value==null || !value.IsAlive) throw new ObjectDisposedException(GetType().Name); return value; }
+            set { lock(lifetime) { if(disposed) { value?.Dispose(); throw new ObjectDisposedException(GetType().Name); } var previous=nativeHandle; nativeHandle=value; if(previous!=null && !ReferenceEquals(previous,value)) previous.Dispose(); } }
+        }
+        public void Dispose() { lock(lifetime) { disposed=true; var previous=nativeHandle; nativeHandle=null; previous?.Dispose(); } }
         protected ModelIO _modelIO { get; set; }
 
-        public ElasticModelType ModelType => _modelIO.ModelType;
+        public ElasticModelType ModelType => nativeHandle != null && nativeHandle.Kind == 4 ? ElasticModelType.AttractedSurfaceRodLinkage : _modelIO.ModelType;
 
-        public ElasticModel(ModelIO modelIO) { _modelIO = modelIO; }
+        public ElasticModel(ModelIO modelIO) { _modelIO = modelIO ?? throw new ArgumentNullException(nameof(modelIO)); }
 
         public bool ContainsTemporarySupports()
         {
@@ -75,7 +85,7 @@ namespace ErodModelLib.Types
         {
             get
             {
-                if (Model != null || Model != IntPtr.Zero) return true;
+                if (Model != IntPtr.Zero) return true;
                 else return false;
             }
         }
@@ -88,7 +98,7 @@ namespace ErodModelLib.Types
 
         public IGH_Goo Duplicate()
         {
-            return (IGH_Goo)this.MemberwiseClone();
+            return (IGH_Goo)Clone();
         }
 
         public IGH_GooProxy EmitProxy()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ErodModelLib.Types;
 using GH_IO.Serialization;
 using Grasshopper.Kernel;
@@ -9,7 +9,7 @@ using ErodDataLib.Types;
 
 namespace ErodModel.Model
 {
-    public class SupportActuationGH : GH_Component
+    public class SupportActuationGH : global::ErodModel.Solver.LiveReportSolverComponent
     {
         private bool run, equilibrium = false;
         private double refParam = 0.0;
@@ -42,6 +42,7 @@ namespace ErodModel.Model
             pManager.AddBooleanParameter("Run", "Run", "Compute equilibrium.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Reset", "Reset", "Restart computation.", GH_ParamAccess.item);
             pManager[2].Optional = true;
+            AddLiveReportInput(pManager);
         }
 
         /// <summary>
@@ -89,6 +90,7 @@ namespace ErodModel.Model
             if (!DA.GetData(2, ref opts)) opts = new NewtonSolverOpts(20, 20);
             DA.GetData(3, ref run);
             DA.GetData(4, ref reset);
+            ConfigureLiveReport(DA, 5, run, reset);
 
             if (reset || copy == null)
             {
@@ -110,7 +112,7 @@ namespace ErodModel.Model
                     double[] forces = copy.GetForceVars(opts.IncludeForces);
                     int[] supports = copy.GetFixedVars(100, (int) (100*refParam), refParam);
 
-                    bool flag = NewtonSolver.Optimize(copy, supports, forces, opts, out report, true, 0);
+                    bool flag = OptimizeWithLiveReport(copy, supports, forces, opts, out report, true, 0, context: "Support position " + refParam);
 
                     if (refParam > 1.0)
                     {

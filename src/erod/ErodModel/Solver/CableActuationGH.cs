@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using ErodDataLib.Types;
 using ErodModelLib.Types;
@@ -8,7 +8,7 @@ using Rhino.Geometry;
 
 namespace ErodModel.Solver
 {
-    public class CableActuationGH : GH_Component
+    public class CableActuationGH : global::ErodModel.Solver.LiveReportSolverComponent
     {
         private bool run, equilibrium;
         private int steps = 1, numIterations;
@@ -43,6 +43,7 @@ namespace ErodModel.Solver
             pManager.AddBooleanParameter("Run", "Run", "Compute equilibrium.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Reset", "Reset", "Restart computation.", GH_ParamAccess.item);
             pManager[1].Optional = true;
+            AddLiveReportInput(pManager);
         }
 
         /// <summary>
@@ -94,6 +95,7 @@ namespace ErodModel.Solver
             DA.GetData(1, ref options);
             DA.GetData(2, ref run);
             DA.GetData(3, ref reset);
+            ConfigureLiveReport(DA, 4, run, reset);
 
             if (model.ContainsTemporarySupports() && !model.ContainsRollingSupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Temporary supports detected. This solver only operates with permanent supports. Temporary supports will be disabled.");
             if (model.ContainsRollingSupports() && !model.ContainsTemporarySupports()) this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Rolling supports detected. This solver only operates with fixed supports. Rolling supports will be fixed.");
@@ -133,11 +135,11 @@ namespace ErodModel.Solver
                         double[] forces = copy.GetForceVars(options.IncludeForces, true);
                         int[] supports = copy.GetFixedVars(false, 0.0);
 
-                        equilibrium = NewtonSolver.Optimize(copy, supports, forces, optionsCopy, out report);
+                        equilibrium = OptimizeWithLiveReport(copy, supports, forces, optionsCopy, out report, context: "Step " + steps);
                         if (copy.ModelType == ElasticModelType.RodLinkage)
                         {
                             forces = copy.GetForceVars(options.IncludeForces, false);
-                            equilibrium = NewtonSolver.Optimize(copy, supports, forces, options, out report, true, ((RodLinkage)copy).GetAverageJointAngle());
+                            equilibrium = OptimizeWithLiveReport(copy, supports, forces, options, out report, true, ((RodLinkage)copy).GetAverageJointAngle(), context: "Step " + steps);
                         }
                         cables = copy.GetCablesAsLines();
                         minBeta += refBeta;

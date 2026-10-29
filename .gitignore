@@ -17,3 +17,13 @@ __pycache__
 python/MeshFEM/
 colors/
 python/ElasticRods/
+# Sources fetched by MeshFEM's CMake dependency downloader.
+/dependencies/elastic_rods/3rdparty/MeshFEM/3rdparty/.cache/
+/dependencies/elastic_rods/3rdparty/MeshFEM/3rdparty/eigen/
+/dependencies/elastic_rods/3rdparty/MeshFEM/3rdparty/json/
+/dependencies/elastic_rods/3rdparty/MeshFEM/3rdparty/optional/
+/dependencies/elastic_rods/3rdparty/MeshFEM/3rdparty/spectra/
+/dependencies/elastic_rods/3rdparty/MeshFEM/3rdparty/tbb/
+/dependencies/elastic_rods/3rdparty/MeshFEM/3rdparty/tinyexpr/
+/dependencies/elastic_rods/3rdparty/MeshFEM/3rdparty/triangle/
+/dist/

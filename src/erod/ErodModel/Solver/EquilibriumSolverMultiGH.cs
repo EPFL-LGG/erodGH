@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using ErodModelLib.Types;
 using GH_IO.Serialization;
@@ -8,7 +8,7 @@ using Rhino.Geometry;
 
 namespace ErodModel.Model
 {
-    public class EquilibriumSolverMultiGH : GH_Component
+    public class EquilibriumSolverMultiGH : global::ErodModel.Solver.LiveReportSolverComponent
     {
         private bool run, equilibrium = false;
         private List<ElasticModel> copies;
@@ -64,6 +64,7 @@ namespace ErodModel.Model
             pManager.AddBooleanParameter("Run", "Run", "Compute equilibrium.", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Reset", "Reset", "Restart computation.", GH_ParamAccess.item);
             pManager[1].Optional = true;
+            AddLiveReportInput(pManager);
         }
 
         /// <summary>
@@ -91,6 +92,7 @@ namespace ErodModel.Model
             DA.GetData(1, ref options);
             DA.GetData(2, ref run);
             DA.GetData(3, ref reset);
+            ConfigureLiveReport(DA, 4, run, reset);
 
             foreach (var model in models)
             {
@@ -136,7 +138,7 @@ namespace ErodModel.Model
                             double[] forces = cc.GetForceVars(options.IncludeForces);
                             int[] supports = cc.GetFixedVars(false, 0.0);
 
-                            modelEquilibrium = NewtonSolver.Optimize(copies[i], supports, forces, options, out r);
+                            modelEquilibrium = OptimizeWithLiveReport(copies[i], supports, forces, options, out r, context: "Model " + (i + 1));
                             reports[i] = r;
 
                             if (modelEquilibrium) modelsInEquilibrium.Add(i);
